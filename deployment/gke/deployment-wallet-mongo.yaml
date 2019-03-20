@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wall-mongo
+spec:
+  ports:
+  - port: 27017
+    name: wall-mongo
+  selector:
+    app: wall-mongo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wall-mongo-pv-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 0.5Gi
+---
+apiVersion: apps/v1beta2 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: wall-mongo
+spec:
+  selector:
+    matchLabels:
+      app: wall-mongo
+  strategy:
+    type: Recreate      
+  template:
+    metadata:
+      labels:
+        app: wall-mongo
+    spec:
+      containers:
+      - image: mongo:4
+        name: wall-mongo        
+        ports:
+        - containerPort: 27017
+          name: wall-mongo
+        volumeMounts:
+        - name: wall-mongo-persistent-storage
+          mountPath: /data/db
+        resources:
+          requests:
+            cpu: "50m"
+      volumes:
+      - name: wall-mongo-persistent-storage
+        persistentVolumeClaim:
+          claimName: wall-mongo-pv-claim      

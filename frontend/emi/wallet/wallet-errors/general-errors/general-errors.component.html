@@ -1,0 +1,62 @@
+<mat-table id="clearing-errors-table" #table [dataSource]="dataSource" multiTemplateDataRows class="mat-elevation-z8">
+
+  <!-- Timestamp Column -->
+  <ng-container cdkColumnDef="timestamp">
+    <mat-header-cell *cdkHeaderCellDef>{{'WALLET.DATE' | translate}}</mat-header-cell>
+    <mat-cell *cdkCellDef="let log">
+      <p class="text-truncate">{{log.timestamp | date: 'd/MM/y HH:mm:ss'}}</p>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Error type Column -->
+  <ng-container cdkColumnDef="type">
+    <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TYPE' | translate}}</mat-header-cell>
+    <mat-cell *cdkCellDef="let log">
+      <p class="text-truncate">{{log.type}}</p>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Error Column -->
+  <ng-container cdkColumnDef="error">
+    <mat-header-cell *cdkHeaderCellDef>{{'WALLET.ERROR' | translate}}</mat-header-cell>
+    <mat-cell *cdkCellDef="let log">
+      <p class="text-truncate">{{log.error}}</p>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+  <ng-container matColumnDef="expandedDetail">
+    <mat-cell flex="90" *matCellDef="let log" [attr.colspan]="displayedColumns.length">
+      <div fxLayout="column" [@detailExpand]="log == expandedElement ? 'expanded' : 'collapsed'">
+          
+            <div> {{'WALLET.ERROR' | translate}} </div>
+            <div> {{log.error}} </div>
+
+            <div class="pb-12">
+            </div>         
+
+            <div style="width: 80%;"> {{'WALLET.EVENT' | translate}} </div>
+            <div style="width: 80%;"> 
+            {{log.event}}
+            </div>         
+      </div>
+    </mat-cell>
+  </ng-container>
+
+
+
+
+  <mat-header-row *cdkHeaderRowDef="displayedColumns"></mat-header-row>
+
+  <mat-row *cdkRowDef="let log; columns: displayedColumns;"
+    class="element-row"
+      [class.expanded-row]="expandedElement === log"
+      (click)="expandedElement = log">
+  </mat-row>
+  <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+
+
+</mat-table>
+
+<mat-paginator #paginator [length]="tableSize" [pageIndex]="0" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]">
+</mat-paginator>

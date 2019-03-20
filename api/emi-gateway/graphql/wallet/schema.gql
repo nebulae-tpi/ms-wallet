@@ -1,0 +1,291 @@
+"Command response"
+type CommandResponse {
+  "Response code"
+  code: Int
+  "Response message"
+  message: String
+}
+
+"Wallet info"
+type Pocket {
+  "Main pocket"
+  main: Float
+  "bonus pocket"
+  bonus: Float
+}
+
+"Wallet info."
+type Wallet {
+  "Wallet ID"
+  _id: ID!
+  "pocket info"
+  pockets: Pocket!
+  "Wallet state"
+  spendingState: SpendingStateEnum
+  "Minimum amount operation"
+  minAmountOperation: Int
+  "Business ID"
+  businessId: String
+}
+
+"Wallet transaction info"
+type WalletTransaction {
+  "Wallet ID"
+  _id: ID!
+  "Timestamp where the transaction was created"
+  timestamp: BigInt!
+  "ID of the business associated with the transaction"
+  businessId: String!
+  "Transaction type"
+  type: String!
+  "Transaction concept"
+  concept: String!
+  "Indicates which was the used pocket"
+  pocket: String!
+  "Value associated to the transaction"
+  value: Float!
+  "User that performs the operation that create the transaction"
+  user: String!  
+  "Notes"
+  notes: String
+  "Location where the operation was performed"
+  location: Location
+  "Terminal data (Additional info useful to identify where the operation was performed)"
+  terminal: Terminal
+  "IDs of the wallet transactions associated with this one"
+  associatedTransactionIds: [String]
+}
+
+"GeoJSON format"
+type Location {
+  "Geojson type E.g: Point, LineString"
+  type: String!
+  "Geojson coordinates"
+  coordinates: [String]!
+}
+
+"Terminal data"
+type Terminal {
+  id: String
+  userId: String
+  username: String
+}
+
+enum SpendingStateEnum {
+  ALLOWED
+  FORBIDDEN
+}
+
+"Business info"
+type Business {
+  "Business id"
+  _id: ID
+  "Business name"
+  name: String
+}
+
+type ProductBonusConfig {
+  type: String
+  concept: String
+  bonusType: String
+  bonusValueByMain: Float
+  bonusValueByCredit: Float
+}
+
+input ProductBonusConfigInput {
+  type: String
+  concept: String
+  bonusType: String
+  bonusValueByMain: Float
+  bonusValueByCredit: Float
+}
+
+input ManualBalanceAdjustmentInput {
+  "Business ID"
+  businessId: String!
+  "Value"
+  value: Float!
+  "Adjustment type"
+  adjustmentType: AdjustmentType!  
+  "Notes"
+  notes: String!
+  "Location"
+  location: LocationInput
+}
+
+enum AdjustmentType {
+  "Withdrawal adjustment"
+  WITHDRAWAL
+  "Deposit adjustment"
+  DEPOSIT
+}
+
+input LocationInput {
+  latitude: String!
+  longitude: String!
+}
+
+input PaginationInput {
+  "Page"
+  page: Int!
+  "Count"
+  count: Int!
+  "Sort, default: ASC"
+  sort: Int
+}
+
+input FilterInput {
+  "ID of the business with which the information will be filter"
+  businessId: String!
+  "Init date"
+  initDate: BigInt!
+  "End date"
+  endDate: BigInt!
+  "Transaction type"
+  transactionType: String
+  "Transaction concept"
+  transactionConcept: String
+  "Terminal"
+  terminal: TerminalInput
+}
+
+input TerminalInput {
+  "Terminal ID"
+  id: String
+  "Terminal User ID"
+  userId: String
+  "Terminal username"
+  username: String
+}
+
+enum ComparatorEnum {
+  "Less than"
+  LT
+  "Greater than"
+  GT
+  "Less than or equal"
+  LTE
+  "Greater thanor equal"
+  GTE
+  "Enough"
+  ENOUGH
+  "Insufficient"
+  INS
+}
+
+type WalletPocketSelectionRuleCondition {
+  pocket: String
+  comparator: ComparatorEnum
+  value: Float
+}
+
+input WalletPocketSelectionRuleConditionInput {
+  pocket: String
+  comparator: ComparatorEnum
+  value: Float 
+}
+
+type WalletPocketSelectionRule {
+  priority: Int
+  pocketToUse: String
+  condition: WalletPocketSelectionRuleCondition
+}
+
+input WalletPocketSelectionRuleInput {
+  priority: Int
+  pocketToUse: String
+  condition: WalletPocketSelectionRuleConditionInput
+}
+
+
+type WalletSpendingRule {
+  id: BigInt
+  businessId: String
+  businessName: String
+  minOperationAmount: Int
+  productBonusConfigs: [ProductBonusConfig]
+  autoPocketSelectionRules: [WalletPocketSelectionRule]
+  lastEditionTimestamp: BigInt
+  editedBy: String
+}
+
+input WalletSpendingRuleInput {
+  businessId: String
+  minOperationAmount: Int
+  productBonusConfigs: [ProductBonusConfigInput]
+  autoPocketSelectionRules: [WalletPocketSelectionRuleInput]
+}
+
+type TypeVsConcepts {
+  type: String
+  concepts: [String]
+}
+
+"Error info"
+type Error {
+  "Error ID"
+  _id: ID!
+  "Timestamp"
+  timestamp: BigInt
+  "Error type"
+  type: String
+  "Error"
+  error: String!
+  "Event"
+  event: String!
+}
+
+
+type Query {
+  "Gets the businesses by id or name. If limit is applied the query will be limited to the amount defined"
+  getBusinessByFilter(filterText: String, limit: Int): [Business]
+  "Get business"
+  getWalletBusiness: Business
+  "Get businesses"
+  getWalletBusinesses: [Business]
+  "Get business by id"
+  getWalletBusinessById(id: ID!): Business
+  "Get wallet info of the business"
+  getWallet(businessId: String!): Wallet
+  "Get the transactions history according to the filter and the pagination"
+  getWalletTransactionsHistory(filterInput: FilterInput!, paginationInput: PaginationInput!): [WalletTransaction]
+  "Get the amount of transactions according to the filter"
+  getWalletTransactionsHistoryAmount(filterInput: FilterInput!): Int!
+  "Get a transaction history by id"
+  getWalletTransactionsHistoryById(id: ID!): WalletTransaction
+  "Get a transaction history by id"
+  getAssociatedTransactionsHistoryByTransactionHistoryId(id: ID!): [WalletTransaction]
+  "Fetch spending of the buiness given as parameter"
+  WalletGetSpendingRule(businessId: String): WalletSpendingRule
+  "Get all businesses filtered"
+  WalletGetSpendingRules(
+    page: Int!
+    count: Int!
+    filter: String
+    sortColumn: String
+    sortOrder: String
+  ): [WalletSpendingRule]
+  "Get the diferents products and concepts types combinations"
+  typeAndConcepts: [TypeVsConcepts]
+  "Get the quantity of spending rules"
+  WalletSpendingRuleQuantity: Int
+  "Gets errors ocurred while the transactions were being processed."
+  getWalletErrors(page: Int!, count: Int!, errorType: String): [Error]
+  "Gets amount of errors ocurred while the transactions were being processed"
+  getWalletErrorsCount(errorType: String): Int!
+}
+
+
+type Mutation {
+  "Mutation to create manual balance adjustments."
+  makeManualBalanceAdjustment(input: ManualBalanceAdjustmentInput): CommandResponse
+  walletUpdateSpendingRule(input: WalletSpendingRuleInput ): CommandResponse
+}
+
+type Subscription {
+  "Subscription fires when the pockets of a wallet are updated."
+  walletPocketUpdated(businessId: String!): Wallet
+  "Subscriptions fires when the spending rules of a wallet are updated."
+  walletSpendingRuleUpdated(businessId: String!): Wallet
+}
+

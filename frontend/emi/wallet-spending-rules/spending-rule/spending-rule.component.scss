@@ -1,0 +1,46 @@
+@import "src/app/core/scss/fuse";
+
+.row-align{
+  display: flex;
+  flex-direction: row;
+}
+.scroll-x{
+  overflow : scroll;
+}
+
+.marging-b-t-5{
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+.pr-5 {
+  padding-right: 10px;
+}
+.pl-5 {
+ padding-left: 10px;
+}
+.padding-tb{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.margin-tb{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.border{
+  margin-top: 5px;
+  padding-top: 10px;
+  border-style: solid;
+  border-radius: 10px;
+}
+.red-border{
+  margin-top: 5px;
+  padding-top: 10px;
+  border-style: solid;
+  border-radius: 10px;
+  border-width: 2px;
+  border-color: coral;
+}
+
+.center-text{
+  text-align: center;
+}

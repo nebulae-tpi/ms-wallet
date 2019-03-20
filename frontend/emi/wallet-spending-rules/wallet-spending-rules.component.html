@@ -1,0 +1,117 @@
+<div id="spending_rules" class="page-layout carded fullwidth" fusePerfectScrollbar>
+  
+  <!-- TOP BACKGROUND -->
+  <div class="top-bg mat-accent-bg"></div>
+  <!-- / TOP BACKGROUND -->
+
+  <!-- CENTER -->
+  <div class="center">
+
+    <!-- HEADER -->
+    <div class="header white-fg" fxLayout="column" fxLayoutAlign="center center" fxLayout.gt-xs="row" fxLayoutAlign.gt-xs="space-between center">
+
+      <!-- APP TITLE -->
+      <div class="logo my-12 m-sm-0" fxLayout="row" fxLayoutAlign="start center">
+        <mat-icon class="logo-icon mr-16" *fuseIfOnDom [@animate]="{value:'*',params:{delay:'50ms',scale:'0.2'}}">bookmark</mat-icon>
+        <span class="logo-text h1">{{ 'SPENDING_RULES' | translate }}</span>
+      </div>
+      <!-- / APP TITLE -->
+
+      <!-- SEARCH -->
+      <div class="search-input-wrapper mx-12 m-md-0" fxFlex="1 0 auto" fxLayout="row" fxLayoutAlign="start center">
+        <label for="search" class="mr-8">
+          <mat-icon class="secondary-text">search</mat-icon>
+        </label>
+        <mat-form-field floatPlaceholder="never" fxFlex="1 0 auto">
+          <input id="search" matInput #filter placeholder="{{ 'FILTER' | translate }}">
+        </mat-form-field>
+      </div>
+      <!-- / SEARCH -->
+
+      <!-- <button mat-raised-button (click)="onNewTag()" class="add-product-button mat-white-bg my-12 mt-sm-0">
+        <span>{{ 'GENERAL_TABLE.NEW_TAG' | translate }}</span>
+      </button> -->
+    </div>
+    <!-- / HEADER -->
+
+    <!-- CONTENT CARD -->
+    <div class="content-card mat-white-bg">
+
+      <mat-table class="spending-rules-table" [dataSource]="spendingRulesDataSource" fusePerfectScrollbar>
+
+        <!-- BUSINESS UNIT ID -->
+        <ng-container cdkColumnDef="businessId">
+          <mat-header-cell fxFlex="27" fxFlex.gt-sm="20" *cdkHeaderCellDef>{{ 'TABLE.BU_ID' | translate }}</mat-header-cell>
+          <mat-cell fxFlex="27" fxFlex.gt-sm="20" *cdkCellDef="let spendingRule">
+            <div class="margin_right_left_5">
+              <span>{{spendingRule.businessId}}</span>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <!-- BUSINESS UNIT ID -->
+
+        <!-- BUSINESS UNIT NAME -->
+        <ng-container cdkColumnDef="businessName">
+          <mat-header-cell fxFlex="27" fxFlex.gt-sm="20" *cdkHeaderCellDef> {{ 'TABLE.BU_NAME' | translate }} </mat-header-cell>
+          <mat-cell fxFlex="27" fxFlex.gt-sm="20" *cdkCellDef="let spendingRule">
+            <div class="margin_right_left_5">
+              <span>{{spendingRule.businessName}}</span>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <!-- BUSINESS UNIT NAME -->
+
+        <!-- MIN AMOUNT REQUIRED TO OPERATE -->
+        <ng-container cdkColumnDef="minOperationAmount">
+          <mat-header-cell fxFlex="27" fxFlex.gt-sm="20" *cdkHeaderCellDef>{{'TABLE.MIN_AMOUNT_ALLOWED' | translate }}</mat-header-cell>
+          <mat-cell fxFlex="27" fxFlex.gt-sm="20" *cdkCellDef="let spendingRule">
+            <div class="margin_right_left_5">
+              <span>{{spendingRule.minOperationAmount | currency}}</span>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <!-- MIN AMOUNT REQUIRED TO OPERATE -->
+
+        <!-- LAST SPENDING RULE EDITION -->
+        <ng-container cdkColumnDef="lastEditionTimestamp">
+          <mat-header-cell fxFlex="27" fxFlex.gt-sm="20" fxFlex.gt-sm="20" *cdkHeaderCellDef>{{'TABLE.LAST_EDITION' | translate }}</mat-header-cell>
+          <mat-cell fxFlex="27" fxFlex.gt-sm="20" *cdkCellDef="let spendingRule">
+            <div class="margin_right_left_5">
+              <span>{{ spendingRule.lastEditionTimestamp | date }}</span>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <!-- LAST SPENDING RULE EDITION -->
+
+        <!-- EDITED BY -->
+        <ng-container cdkColumnDef="editedBy">
+          <mat-header-cell fxFlex="20" fxHide fxShow.gt-sm
+           *cdkHeaderCellDef>{{'TABLE.EDITED_BY' | translate }}</mat-header-cell>
+          <mat-cell fxFlex="20" fxHide fxShow.gt-sm *cdkCellDef="let spendingRule">
+            <div  class="margin_right_left_5">
+              <span>{{spendingRule.editedBy}}</span>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <!-- EDITED BY -->
+        
+        
+
+        <mat-header-row *cdkHeaderRowDef="tableColumns"></mat-header-row>
+        <mat-row *cdkRowDef="let spendingRule; columns: tableColumns;" class="mat-row" matRipple [routerLink]="['edit/', spendingRule.businessId]" >
+        </mat-row>
+
+      </mat-table>
+      <mat-paginator #paginator
+        [length]="tableSize"
+        [pageIndex]="0"
+        [pageSize]="10"
+        [pageSizeOptions]="[5, 10, 25, 100]">
+      </mat-paginator>
+
+    </div>
+    <!-- / CONTENT CARD -->
+  </div>
+  <!-- / CENTER -->
+</div>
+

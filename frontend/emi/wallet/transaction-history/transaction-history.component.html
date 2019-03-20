@@ -1,0 +1,428 @@
+<div id="mail" class="page-layout carded left-sidenav" fusePerfectScrollbar>
+  <!-- TOP BACKGROUND -->
+  <div class="top-bg mat-accent-bg"></div>
+  <!-- / TOP BACKGROUND -->
+
+  <mat-sidenav-container>
+    <!-- SIDENAV -->
+    <mat-sidenav class="sidenav" align="start" mode="side" opened="true" fuseMatSidenavHelper="carded-left-sidenav"
+      mat-is-locked-open="gt-md">
+      <!-- SIDENAV HEADER -->
+      <div
+        fxLayout="column"
+        fxLayoutAlign="space-between start"
+        class="header p-24 pb-4"
+        ngClass="mat-accent-bg"
+        ngClass.gt-md="white-fg"
+      >
+        <div class="logo" fxFlex fxLayout="row" fxLayoutAlign="start center">
+          <mat-icon
+            class="logo-icon s-32"
+            *fuseIfOnDom
+            [@animate]="{ value: '*', params: { delay: '50ms', scale: '0.2' } }"
+            >book</mat-icon
+          >
+          <span
+            class="logo-text"
+            *fuseIfOnDom
+            [@animate]="{ value: '*', params: { delay: '100ms', x: '-25px' } }"
+            >{{ "WALLET.TRANSACTION_HISTORY" | translate }}</span
+          >
+        </div>
+
+        <div class="account" fxFlex fxFill fxLayout="row" fxLayoutAlign="space-between end">
+          <span
+            class="mat-title"
+            *fuseIfOnDom
+            [@animate]="{ value: '*', params: { delay: '100ms', x: '-25px' } }"
+            >{{ "WALLET.WALLET" | translate }}
+          </span>
+
+          <button mat-mini-fab class="mb-8"
+          [ngClass]="{'blink-button': outdatedData}" (click)="resetFilter()"
+          matTooltip="{{ 'WALLET.TRANSACTION_HISTORY_REFRESH' | translate }}">
+            <mat-icon aria-label="Icon with a refresh icon">refresh</mat-icon>
+          </button>    
+
+        </div>
+
+      </div>
+      <!-- / SIDENAV HEADER -->
+
+      <!-- SIDENAV CONTENT -->
+      <div
+        class="content"
+        fusePerfectScrollbar
+        *fuseIfOnDom
+        [@animate]="{ value: '*', params: { y: '50px' } }"
+      >
+
+
+
+      <div
+          class="grey-300-bg p-4"
+          fxLayout="column"
+          fxLayoutAlign="start center"
+        >
+
+          <div fxLayout="column" fxFill>
+            <div
+              class="px-16 py-12"
+              fxFlex="100"
+              fxLayout="row"
+              fxLayoutAlign="start center"
+            >
+              <div
+                class="h4 secondary-text"
+                fxFlex="35">
+                {{'WALLET.MAIN' | translate}}
+              </div>
+              <div
+                class="pt-0 mat-title m-0 font-weight-300 text-nowrap"
+                fxFlex="65"
+              >
+                <span
+                  [ngStyle]="{
+                    color: walletData.pockets.main >= 0 ? 'green' : 'red'
+                  }"
+                  >{{ walletData.pockets.main | currency }}</span
+                >
+              </div>
+            </div>
+
+            <div
+              class="px-16 py-12"
+              fxLayout="row"
+              fxLayoutAlign="start center"
+            >
+                <div class="h4 secondary-text" fxFlex="35">{{'WALLET.BONUS' | translate}}</div>
+                <div class="pt-0 mat-title m-0 font-weight-300 text-nowrap" fxFlex="65">
+                  <span
+                    [ngStyle]="{
+                      color: walletData.pockets.bonus >= 0 ? 'green' : 'red'
+                    }"
+                    >{{ walletData.pockets.bonus | currency }}</span
+                  >
+                </div>
+            </div>
+
+            <div
+              class="px-16 py-12"
+              fxLayout="row"
+              fxLayoutAlign="start center"
+            >
+                <div class="h4 secondary-text" fxFlex="35">{{'WALLET.CREDIT' | translate}}</div>
+                <div class="pt-0 mat-title m-0 font-weight-300 text-nowrap" fxFlex="65">
+                  <span
+                    [ngStyle]="{
+                      color: walletData.pockets.credit >= 0 ? 'green' : 'red'
+                    }"
+                    >{{ walletData.pockets.credit | currency }}</span
+                  >
+                </div>
+              </div>
+          </div>
+        </div>
+
+
+
+        <div class="nav" fxLayout="column">
+          <div class="nav-subheader">{{ "WALLET.FILTER" | translate }}</div>
+
+          <form
+            fxLayout="column"
+            fxLayoutAlign="start"
+            fxFlex="100"
+            name="form"
+            [formGroup]="filterForm"
+          >
+            <div
+              fxLayout="column"
+              fxLayoutAlign="space-between center"
+              fxFlex="100"
+            >
+              <mat-form-field>
+                <input
+                  matInput
+                  [matDatepicker]="pickerInitDate"
+                  placeholder="{{'WALLET.INIT_DATE' | translate}}"
+                  formControlName="initDate"
+                  (dateChange)="onInitDateChange()"
+                />
+                <mat-datepicker-toggle
+                  matSuffix
+                  [for]="pickerInitDate"
+                ></mat-datepicker-toggle>
+                <mat-datepicker
+                [twelveHour]="false"
+                  type="datetime"
+                  #pickerInitDate
+                ></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field>
+                <input
+                  [min]="minEndDate"
+                  [max]="maxEndDate"
+                  matInput
+                  [matDatepicker]="pickerEndDate"
+                  placeholder="{{'WALLET.END_DATE' | translate}}"
+                  formControlName="endDate"
+                  (dateChange)="onEndDateChange()"
+                />
+                <mat-datepicker-toggle
+                  matSuffix
+                  [for]="pickerEndDate"
+                ></mat-datepicker-toggle>
+                <mat-datepicker
+                [twelveHour]="false"
+                  type="datetime"
+                  #pickerEndDate
+                ></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-select
+                  placeholder="{{'WALLET.SELECT_TRANSACTION_TYPE' | translate}}"
+                  formControlName="transactionType" [compareWith]="compareTypes"
+                  id="transactionType" (selectionChange)="filterForm.get('transactionConcept').reset()"
+                >
+                  <mat-option>{{ "WALLET.NONE" | translate }}</mat-option>
+                  <mat-option
+                    *ngFor="let transactionType of typesAndConceptsList"
+                    [value]="transactionType"
+                  >
+                    {{ "WALLET.TYPES." + transactionType.type | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field fxFlex="100" *ngIf="filterForm.get('transactionType').value">
+                <mat-select
+                  placeholder="{{'WALLET.SELECT_TRANSACTION_CONCEPT' | translate}}"
+                  formControlName="transactionConcept"
+                >
+                  <mat-option>{{ "WALLET.NONE" | translate }}</mat-option>
+                  <mat-option
+                    *ngFor="let transactionConcept of filterForm.get('transactionType').value.concepts"
+                    [value]="transactionConcept"
+                  >
+                    {{ "WALLET.CONCEPTS." + transactionConcept | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field>
+                <input
+                  matInput
+                  placeholder="{{'WALLET.TERMINAL_ID' | translate}}"
+                  formControlName="terminalId"
+                  id="terminalId"
+                  maxlength="20"
+                />
+              </mat-form-field>
+
+              <mat-form-field>
+                <input
+                  matInput
+                  placeholder="{{'WALLET.TERMINAL_USER_ID' | translate}}"
+                  formControlName="terminalUserId"
+                  id="terminalUserId"
+                  maxlength="20"
+                />
+              </mat-form-field>
+
+              <mat-form-field>
+                <input
+                  matInput
+                  placeholder="{{'WALLET.TERMINAL_USERNAME' | translate}}"
+                  formControlName="terminalUsername"
+                  id="terminalUsername"
+                  maxlength="20"
+                />
+              </mat-form-field>
+
+              <button
+                fxFlex
+                mat-raised-button
+                mat-button
+                class="mat-accent compose-dialog-button"
+                aria-label="Filter"
+                (click)="resetFilter()"
+              >
+                {{ "WALLET.RESET_FILTER" | translate }}
+              </button>
+            </div>
+          </form>
+
+          <div class="p-24">
+            <button
+              fxFlex
+              mat-raised-button
+              mat-button
+              class="mat-accent compose-dialog-button"
+              aria-label="Filter"
+              (click)="resetFilter()"
+            >
+              {{ "WALLET.RESET_FILTER" | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- / SIDENAV CONTENT -->
+    </mat-sidenav>
+    <!-- / SIDENAV -->
+
+    <!-- CENTER -->
+    <div class="center">
+      <!-- CONTENT HEADER -->
+      <div class="header" fxLayout="row" fxLayoutAlign="start center">
+        <div
+          class="search-wrapper"
+          fxFlex
+          fxLayout="row"
+          fxLayoutAlign="start center"
+        >
+          <button
+            mat-button
+            class="mat-icon-button sidenav-toggle"
+            fuseMatSidenavToggler="carded-left-sidenav"
+            fxHide.gt-md
+            aria-label="Toggle Sidenav"
+          >
+            <mat-icon>menu</mat-icon>
+          </button>
+
+          <div
+            class="search mat-white-bg"
+            flex
+            fxLayout="row"
+            fxLayoutAlign="start center">
+
+            <mat-icon *ngIf="isPlatformAdmin">search</mat-icon>
+
+            <input [placeholder]="'WALLET.SELECT_BUSINESS' | translate" aria-label="Business" *ngIf="!isPlatformAdmin"
+             [formControl]="businessFilterCtrl" [(value)]="selectedBusinessName" fxFlex readonly="true">
+
+              <input [placeholder]="'WALLET.SELECT_BUSINESS' | translate" aria-label="Business" [matAutocomplete]="auto" *ngIf="isPlatformAdmin"
+              [(value)]="selectedBusinessData" [formControl]="businessFilterCtrl" fxFlex>
+              <mat-autocomplete #auto="matAutocomplete" (optionSelected)='onSelectBusinessEvent($event.option.value)' [displayWith]="displayFn">
+                <mat-option *ngFor="let business of businessQueryFiltered$ | async"
+                [value]="business">
+                {{ business.name }} (ID: {{ business._id }})
+              </mat-option>
+              </mat-autocomplete>
+          </div>
+        </div>
+      </div>
+      <!-- / CONTENT HEADER -->
+
+      <!-- CONTENT CARD -->
+      <div class="content-card mat-white-bg">
+        <mat-table
+          id="transaction-history-table"
+          class="item-table"
+          #table
+          [dataSource]="dataSource"
+          fusePerfectScrollbar
+        >
+          <!-- Timestamp Column -->
+          <ng-container cdkColumnDef="timestamp">
+            <mat-header-cell *cdkHeaderCellDef>{{
+              "WALLET.TIMESTAMP" | translate
+            }}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction">
+              <p class="text-truncate">
+                {{ transaction.timestamp | date: "dd/MM/y HH:mm:ss" }}
+              </p>
+            </mat-cell>
+          </ng-container>
+
+          <!-- From Column -->
+          <ng-container cdkColumnDef="type">
+            <mat-header-cell *cdkHeaderCellDef>{{
+              "WALLET.TRANSACTION_TYPE" | translate
+            }}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction">
+              <p class="text-truncate">
+                {{ "WALLET.TYPES." + transaction.type | translate }}
+              </p>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Concept Column -->
+          <ng-container cdkColumnDef="concept">
+            <mat-header-cell *cdkHeaderCellDef>{{
+              "WALLET.TRANSACTION_CONCEPT" | translate
+            }}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction">
+              <p class="text-truncate">
+                {{ "WALLET.CONCEPTS." + transaction.concept | translate }}
+              </p>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Value Column -->
+          <ng-container cdkColumnDef="value">
+            <mat-header-cell *cdkHeaderCellDef>{{
+              "WALLET.TRANSACTION_VALUE" | translate
+            }}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction">
+              <p class="text-truncate" [ngClass]="{'green-fg':transaction.value > 0, 'red-fg':transaction.value < 0}">
+                {{ transaction.value | currency }}
+              </p>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Pocket Column -->
+          <ng-container cdkColumnDef="pocket">
+            <mat-header-cell *cdkHeaderCellDef>{{
+              "WALLET.TRANSACTION_POCKET" | translate
+            }}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction">
+              <p class="text-truncate">
+                {{ "WALLET." + transaction.pocket | translate }}
+              </p>
+            </mat-cell>
+          </ng-container>
+
+          <!-- User Column -->
+          <ng-container cdkColumnDef="user">
+            <mat-header-cell *cdkHeaderCellDef>{{
+              "WALLET.TRANSACTION_USER" | translate
+            }}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction">
+              <p class="text-truncate">{{ transaction.user }}</p>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *cdkHeaderRowDef="displayedColumns"></mat-header-row>
+
+          <mat-row
+            *cdkRowDef="let transaction; columns: displayedColumns"
+            class="transactions"
+            (click)="selectTransactionHistoryRow(transaction)"
+            [ngClass]="{
+              highlight:
+                selectedTransactionHistory &&
+                selectedTransactionHistory._id == transaction._id
+            }"
+            [routerLink]="transaction._id"
+            matRipple
+          >
+          </mat-row>
+        </mat-table>
+        <mat-paginator
+          #paginator
+          [length]="tableSize"
+          [pageIndex]="page"
+          [pageSize]="count"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+        >
+        </mat-paginator>
+      </div>
+      <!-- / CONTENT CARD -->
+    </div>
+    <!-- / CENTER -->
+  </mat-sidenav-container>
+</div>

@@ -1,0 +1,8 @@
+[
+    {
+        "name": "wallet",
+        "type": "graphql",        
+        "src": "api/emi-gateway/graphql/wallet",
+        "preBuildCommands": []
+    }
+]

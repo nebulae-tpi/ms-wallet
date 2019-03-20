@@ -1,0 +1,132 @@
+[
+    {
+        "name": "wallet",
+        "src": "frontend/emi/wallet",
+        "groups": [
+            {
+            "id": "BUSINESS_UNIT_MANAGER",
+            "icon": "location_searching",
+            "translate": {
+                "en": "Business units",
+                "es": "Unidades de negocio"
+            },
+            "priority": 200
+            }
+          ],
+        "subgroups": [
+            {
+                "groupId": "BUSINESS_UNIT_MANAGER",
+                "id": "WALLET",
+                "icon": "account_balance_wallet",
+                "translate": {
+                    "en": "Wallet",
+                    "es": "Billetera"
+                },
+                "priority": 2000
+            }
+        ],
+        "contents": [
+            {
+                "groupId": "BUSINESS_UNIT_MANAGER",
+                "subgroupId": "WALLET",
+                "id": "historical-transaction-wallet",
+                "icon": "history",
+                "translate": {
+                    "en": "Historical transactions",
+                    "es": "Historial de transacciones"
+                },
+                "navURL": "/wallet/transaction-history",
+                "path": "wallet",
+                "loadChildren": "./main/content/wallet/wallet.module#WalletModule",
+                "priority": 4000,
+                "roles" : ["PLATFORM-ADMIN", "BUSINESS-OWNER"],
+                "default" : false
+            },
+            {
+                "groupId": "BUSINESS_UNIT_MANAGER",
+                "subgroupId": "WALLET",
+                "id": "manual-wallet-adjustments",
+                "icon": "adjust",
+                "translate": {
+                    "es": "Ajustes manuales de saldo",
+                    "en": "Manual balance adjustments"
+                },
+                "navURL": "/wallet/manual-pocket-adjustment",
+                "path": "wallet",
+                "loadChildren": "./main/content/wallet/wallet.module#WalletModule",
+                "priority": 3000,
+                "roles" : ["PLATFORM-ADMIN"],
+                "default" : false
+            },
+            {
+                "groupId": "BUSINESS_UNIT_MANAGER",
+                "subgroupId": "WALLET",
+                "id": "wallet-errors",
+                "icon": "error",
+                "translate": {
+                    "es": "Errores",
+                    "en": "Errors"
+                },
+                "navURL": "/wallet/wallet-errors",
+                "path": "wallet-errors",
+                "loadChildren": "./main/content/wallet/wallet.module#WalletModule",
+                "priority": 1000,
+                "roles" : ["PLATFORM-ADMIN"],
+                "default" : false
+            }            
+        ],
+        "preBuildCommands": [
+            "npm install ng2-currency-mask"
+        ],
+        "environmentVars": {
+        }
+    },
+    {
+        "name": "wallet-spending-rules",
+        "src": "frontend/emi/wallet-spending-rules",
+        "groups": [
+            {
+            "id": "BUSINESS_UNIT_MANAGER",
+            "icon": "location_searching",
+            "translate": {
+                "en": "Business units",
+                "es": "Unidades de negocio"
+            },
+            "priority": 200
+            }
+          ],
+          "subgroups": [
+            {
+                "groupId": "BUSINESS_UNIT_MANAGER",
+                "id": "WALLET",
+                "icon": "account_balance_wallet",
+                "translate": {
+                    "en": "Wallet",
+                    "es": "Billetera"
+                },
+                "priority": 2000
+            }
+        ],
+        "contents": [
+            {
+                "groupId": "BUSINESS_UNIT_MANAGER",
+                "subgroupId": "WALLET",
+                "id": "wallet-spending-rules",
+                "icon": "dashboard",
+                "translate": {
+                    "es": "Reglas",
+                    "en": "Rules"
+                },
+                "navURL": "/wallet-spending-rules",
+                "path": "wallet-spending-rules",
+                "loadChildren": "./main/content/wallet-spending-rules/wallet-spending-rules.module#WalletSpengingRulesModule",
+                "priority": 2000,
+                "roles" : ["PLATFORM-ADMIN"],
+                "default" : false
+            }            
+        ],
+        "preBuildCommands": [],
+        "environmentVars": {
+        }
+    }
+]

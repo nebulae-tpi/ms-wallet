@@ -1,0 +1,8 @@
+<h1 mat-dialog-title>{{data.dialogTitle | translate}}</h1>
+<mat-dialog-content>
+  <p>{{data.dialogMessage | translate}}</p>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button (click)="pushButton(true)">{{'WALLET.OK' | translate}}</button>
+  <button mat-raised-button mat-dialog-close color="warn" (click)="pushButton(false)">{{'WALLET.CANCEL' | translate}}</button>
+</mat-dialog-actions>

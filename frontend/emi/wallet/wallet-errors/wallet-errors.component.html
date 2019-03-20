@@ -1,0 +1,43 @@
+<div id="user" class="page-layout carded fullwidth" fusePerfectScrollbar>
+
+  <!-- TOP BACKGROUND -->
+  <div class="top-bg mat-accent-bg"></div>
+  <!-- / TOP BACKGROUND -->
+
+  <!-- CENTER -->
+  <div class="center">
+
+    <!-- HEADER BUSINESS-->
+    <div class="header white-fg" fxLayout="row" fxLayoutAlign="space-between center">
+
+      <!-- APP TITLE -->
+      <div fxLayout="row" fxLayoutAlign="start center">
+
+        <div fxLayout="column" fxLayoutAlign="start start" *fuseIfOnDom>
+
+          <label for="search" style="margin-bottom: 10px" class="mr-20">
+            <span class="mat-title">{{'WALLET.WALLET_ERRORS' | translate}}</span>
+          </label>
+          <div class="subtitle" *ngIf="selectedBusiness">
+            {{selectedBusiness.name}}
+          </div>
+        </div>
+      </div>
+      <!-- / APP TITLE -->
+    </div>
+    <!-- / HEADER BUSINESS-->
+
+    <!-- CONTENT CARD -->
+    <div class="content-card mat-white-bg">
+        <mat-tab-group>
+            <mat-tab label="{{'WALLET.GENERAL_ERRORS' | translate}}">
+              <app-general-errors></app-general-errors>
+            </mat-tab>
+
+        </mat-tab-group>
+
+    </div>
+    <!-- / CONTENT CARD -->
+  </div>
+  <!-- / CENTER -->
+</div>
