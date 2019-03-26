@@ -14,21 +14,25 @@ const WalletTransactionDA = require('./data/WalletTransactionDA');
 const LogErrorDA = require('./data/LogErrorDA');
 const SpendingRulesDA = require('./data/SpendingRulesDA');
 const graphQlService_emi = require('./services/emi-gateway/GraphQlService')();
-const graphQlService_sales = require('./services/sales-gateway/GraphQlService')();
-const Rx = require('rxjs');
+// const graphQlService_sales = require('./services/sales-gateway/GraphQlService')();
+const { concat, forkJoin} = require('rxjs');
+
 
 const start = () => {
-    Rx.concat(
+    concat(
         eventSourcing.eventStore.start$(),
         eventStoreService.start$(),
         mongoDB.start$(),
-        BusinessDA.start$(),
-        WalletDA.start$(),
-        WalletTransactionDA.start$(),
-        LogErrorDA.start$(),
-        SpendingRulesDA.start$(),
+        forkJoin(
+            BusinessDA.start$(),
+            WalletDA.start$(),
+            WalletTransactionDA.start$(),
+            LogErrorDA.start$(),
+            SpendingRulesDA.start$()
+        ),
+        
         graphQlService_emi.start$(),
-        graphQlService_sales.start$()
+        // graphQlService_sales.start$()
     ).subscribe(
         (evt) => {
             // console.log(evt)

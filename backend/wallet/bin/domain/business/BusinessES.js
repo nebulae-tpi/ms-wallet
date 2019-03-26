@@ -5,6 +5,10 @@ const wallet = require('../wallet');
 const { take, mergeMap, tap, catchError, map } = require('rxjs/operators');
 const  { forkJoin, of, interval } = require('rxjs');
 
+const walletDA = require("../../data/WalletDA");
+const WalletSpendingRuleDA = require('../../data/SpendingRulesDA');
+const defaultWSR = process.env.WSR_BUSINESS || {};
+
 let instance;
 
 class BusinessES {
@@ -12,35 +16,69 @@ class BusinessES {
   }
 
   /**
-   * Persists the business on the materialized view according to the received data from the event store.
-   * @param {*} businessCreatedEvent business created event
+   * Create the dafault wallet and WalletSpendingRule for the business created
+   * @param {*} event business created event
    */
-  handleBusinessCreated$(businessCreatedEvent) {
-    return of(businessCreatedEvent)
-    .pipe(
-      mergeMap((business) => forkJoin(
-        BusinessDA.persistBusiness$(business.data),
-        spendingRules.eventSourcing.handleBusinessCreated$(business.data),
-        wallet.eventSourcing.handleBusinessCreated$(businessCreatedEvent)
-      ))
-    )
+  handleBusinessCreated$({aid, data}) {
+    // return forkJoin(
+    //   BusinessDA.persistBusiness$(data),
+    //   spendingRules.eventSourcing.handleBusinessCreated$(data),
+    //   wallet.eventSourcing.handleBusinessCreated$(businessCreatedEvent)
+    // );
+
+
+    // NEW HANDLER
+
+    return of(data)
+      .pipe(
+        // create the default wallet state
+        map(rawdata => ({
+          _id: aid,
+          businessId: aid,
+          type: 'BUSINESS',
+          fullname: rawdata.generalInfo.name,
+          documentId: rawdata.generalInfo.documentId,
+          pockets: { main: 0, credit: 0, bonus: 0 }
+        })),
+        mergeMap(wallet => walletDA.createNeWallet$(wallet)),
+        // create the default wallet spending Rule
+        mergeMap(() => WalletSpendingRuleDA.createNewWalletSpendingRule$(defaultWSR))
+      );
   }
 
   /**
-   * updates the business general info on the materialized view according to the received data from the event store.
+   * updates Wallet and WSR if necessary for the business edited
    * @param {*} evt business general info updated event
    */
   handleBusinessGeneralInfoUpdated$(evt) {
-    return of(evt.data)
+    // return of(evt.data)
+    //   .pipe(
+    //     mergeMap(businessUpdated => forkJoin(
+    //       BusinessDA.updateBusinessGeneralInfo$(
+    //         evt.aid,
+    //         businessUpdated
+    //       ),
+    //       spendingRules.eventSourcing.handleBusinessGeneralInfoUpdated$(evt.aid, businessUpdated.name ),
+    //       wallet.eventSourcing.handleBusinessGeneralInfoUpdated$(evt)
+    //     )
+    //     )
+    //   );
+
+    // NEW HANDLER 
+
+    return of(data)
       .pipe(
-        mergeMap(businessUpdated => forkJoin(
-          BusinessDA.updateBusinessGeneralInfo$(
-            evt.aid,
-            businessUpdated
-          ),
-          spendingRules.eventSourcing.handleBusinessGeneralInfoUpdated$(evt.aid, businessUpdated.name ),
-          wallet.eventSourcing.handleBusinessGeneralInfoUpdated$(evt)
-        )
+        map(rawdata => ({
+          _id: aid,
+          businessId: rawdata.aid, // todo
+          type: 'BUSINESS',
+          fullname: rawdata.generalInfo.name,
+          documentId: rawdata.generalInfo.documentId
+        })),
+        mergeMap(wallet => walletDA.updateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } })),
+        mergeMap(mResult => (mResult && mResult.result && mResult.result.inserted == 1)
+          ? WalletSpendingRuleDA.updateNewWalletSpendingRule$({}, defaultWSR)
+          : of(null)
         )
       );
   }

@@ -141,6 +141,37 @@ class SpendingRules {
     }
     return undefined;
   }
+
+//   NEW METHODS
+
+/**
+     * Creates a new  wallet spending rule
+     * @param {*} business spendig rule to create
+     */
+    static createNewWalletSpendingRule$(spendingRule) {
+        const collection = mongoDB.db.collection(COLLECTION_NAME);
+        return of(spendingRule)
+            .pipe(
+                mergeMap(spendingRule => defer(() => collection.insertOne(spendingRule)))
+            );
+    }
+
+    static updateNewWalletSpendingRule$(spendingRule, setOnInset) {
+        const collection = mongoDB.db.collection(COLLECTION_NAME);
+        return of(spendingRule)
+            .pipe(
+                mergeMap(spendingRule => defer(() => collection.updateone(
+                    { _id: spendingRule._id },
+                    { $set: { ...spendingRule }, $setOnInsert: { ...setOnInset } },
+                    { upsert: true }
+                )))
+            );
+    }
+
+
+
+
+
 }
 
 /**

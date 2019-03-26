@@ -5,6 +5,9 @@ const business = require("../../domain/business/");
 const spendingRule = require('../../domain/spending-rules');
 const wallet = require('../../domain/wallet');
 const { map, switchMap, filter, mergeMap, concatMap } = require('rxjs/operators');
+const { UserES } = require('../../domain/user');
+const { DriverES } = require('../../domain/driver');
+const { ClientES } = require('../../domain/client');
 /**
  * Singleton instance
  */
@@ -123,6 +126,7 @@ class EventStoreService {
 
   generateFunctionMap() {
     return {
+      // BUSINESSES
       BusinessCreated: {
         fn: business.eventSourcing.handleBusinessCreated$,
         obj: business.eventSourcing
@@ -131,6 +135,34 @@ class EventStoreService {
         fn: business.eventSourcing.handleBusinessGeneralInfoUpdated$,
         obj: business.eventSourcing
       },
+      // DRIVERS
+      DriverCreated: {
+        fn: DriverES.handleDriverCreated$,
+        obj: DriverES
+      },
+      DriverGeneralInfoUpdated: {
+        fn: DriverES.handleDriverGeneralInfoUpdated$,
+        obj: DriverES
+      },
+      // CLIENT
+      ClientCreated: {
+        fn: ClientES.handleClientCreated$,
+        obj: ClientES
+      },
+      ClientGeneralInfoUpdated: {
+        fn: ClientES.handleClientGeneralInfoUpdated$,
+        obj: ClientES
+      },
+      // USER
+      UserCreated:{
+        fn: UserES.handleUserCreated$,
+        obj: UserES 
+      },
+      UserGeneralInfoUpdated:{
+        fn: UserES.handleUserGeneralInfoUpdated$,
+        obj: UserES 
+      },
+      // WALLET SPENDING RULES
       SpendingRuleUpdated:{
         fn: spendingRule.eventSourcing.handleSpendingRuleUpdated$,
         obj: spendingRule.eventSourcing
@@ -161,14 +193,22 @@ class EventStoreService {
   */
   generateAggregateEventsArray() {
     return [
-      {
-        aggregateType: "Business",
-        eventType: "BusinessCreated"
-      },
-      {
-        aggregateType: "Business",
-        eventType: "BusinessGeneralInfoUpdated"
-      },
+
+      // BUSINESSES
+      { aggregateType: "Business", eventType: "BusinessCreated" },
+      { aggregateType: "Business", eventType: "BusinessGeneralInfoUpdated" },
+      // DRIVERS
+      { aggregateType: "Driver", eventType: "DriverCreated" },
+      { aggregateType: "Driver", eventType: "DriverGeneralInfoUpdated" },
+      // CLIENT
+      { aggregateType: "Client", eventType: "ClientCreated" },
+      { aggregateType: "Client", eventType: "ClientGeneralInfoUpdated" },
+      // USER
+      { aggregateType: "User", eventType: "UserCreated" },
+      { aggregateType: "User", eventType: "UserGeneralInfoUpdated" },
+
+      // WALLET SPENDING RULES
+      
       {
         aggregateType: "SpendingRule",
         eventType: "SpendingRuleUpdated"

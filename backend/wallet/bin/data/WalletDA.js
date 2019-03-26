@@ -152,6 +152,26 @@ class WalletDA {
       })
     );
   }
+
+
+  // NEW METHODS.....
+
+
+  static createNeWallet$(wallet){
+    const collection = mongoDB.db.collection(COLLECTION_NAME);
+    return defer(() => collection.insertOne(wallet));
+  }
+
+  static updateWallet$(wallet, setOnInsert) {
+    const collection = mongoDB.db.collection(COLLECTION_NAME);
+    return defer(() => collection.updateOne(
+      { _id: wallet._id },
+      { $set: { ...wallet }, $setOnInsert:{...setOnInsert} },
+      { upsert: true }
+    ));
+  }
+
+
 }
 
 /**
