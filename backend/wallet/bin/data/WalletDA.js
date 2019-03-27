@@ -171,6 +171,24 @@ class WalletDA {
     ));
   }
 
+  static getFilteredWallets$(filterText, businessId, limit=10) {
+    const collection = mongoDB.db.collection(COLLECTION_NAME);
+    const filter = {};
+    if (filterText) {
+      filter['$or'] = [ 
+        { fullname: { $regex: filterText, $options: 'i' } },
+        { documentId: { $regex: filterText, $options: 'i' } }
+      ];
+    }
+    if(businessId){ filter.businessId = businessId; }
+    return defer(() => collection.find(filter).limit(limit).toArray());
+  }
+
+  static getWalletById$(id) {
+    const collection = mongoDB.db.collection(COLLECTION_NAME);
+    return defer(() => collection.findOne({_id: id}));
+  }
+
 
 }
 

@@ -152,6 +152,42 @@ module.exports = {
         mergeMap(response => getResponseFromBackEnd$(response))
       ).toPromise();
     },
+    getWalletsByFilter(root, args, context) {
+      return RoleValidator.checkPermissions$(
+        context.authToken.realm_access.roles,
+        CONTEXT_NAME,
+        "getWalletsByFilter",
+        PERMISSION_DENIED_ERROR_CODE,
+        "Permission denied",
+        ["PLATFORM-ADMIN"]
+      )
+      .pipe(
+        mergeMap(() => broker.forwardAndGetReply$(
+          "Wallet", "emigateway.graphql.query.getWalletsByFilter",
+          { root, args, jwt: context.encodedToken }, 2000
+        )),
+        catchError(err => handleError$(err, "getWalletsByFilter")),
+        mergeMap(response => getResponseFromBackEnd$(response))
+      ).toPromise();
+    },
+    getMyWallet(root, args, context) {
+      return RoleValidator.checkPermissions$(
+        context.authToken.realm_access.roles,
+        CONTEXT_NAME,
+        "getMyWallet",
+        PERMISSION_DENIED_ERROR_CODE,
+        "Permission denied",
+        ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
+      )
+      .pipe(
+        mergeMap(() => broker.forwardAndGetReply$(
+          "Wallet", "emigateway.graphql.query.getMyWallet",
+          { root, args, jwt: context.encodedToken }, 2000
+        )),
+        catchError(err => handleError$(err, "getMyWallet")),
+        mergeMap(response => getResponseFromBackEnd$(response))
+      ).toPromise();
+    },
     getWalletBusiness(root, args, context) {
       return RoleValidator.checkPermissions$(
         context.authToken.realm_access.roles,

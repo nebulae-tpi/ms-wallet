@@ -18,6 +18,12 @@ type Pocket {
 type Wallet {
   "Wallet ID"
   _id: ID!
+  "Owner fullname"
+  fullname: String
+  "Ownberdocument ID"
+  documentId: String
+  "ops: CLIENT | BUSINESS | USER | DRIVER"
+  type: String
   "pocket info"
   pockets: Pocket!
   "Wallet state"
@@ -239,6 +245,10 @@ type Error {
 type Query {
   "Gets the businesses by id or name. If limit is applied the query will be limited to the amount defined"
   getBusinessByFilter(filterText: String, limit: Int): [Business]
+  "Gets the wallets by id, name or document Id. If limit is applied the query will be limited to the amount defined"
+  getWalletsByFilter(filterText: String, businessId: String, limit: Int): [Wallet]
+  "get the own wallet"
+  getMyWallet: Wallet
   "Get business"
   getWalletBusiness: Business
   "Get businesses"

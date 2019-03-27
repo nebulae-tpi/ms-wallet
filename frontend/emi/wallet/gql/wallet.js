@@ -13,6 +13,35 @@ export const getBusinessByFilter = gql`
   }
 `;
 
+export const getWalletsByFilter = gql`
+  query getWalletsByFilter($filterText: String, $businessId: String, $limit: Int) {
+    getWalletsByFilter(filterText: $filterText, businessId: $businessId, limit: $limit) {
+      _id      
+      fullname
+      type
+      documentId
+      pockets{
+        main
+        bonus
+      }
+    }
+  }
+`;
+export const getMyWallet = gql`
+  query getMyWallet{
+    getMyWallet{
+      _id      
+      fullname
+      type
+      documentId
+      pockets{
+        main
+        bonus
+      }
+    }
+  }
+`;
+
 export const getWalletBusiness = gql`
   query getWalletBusiness {
     getWalletBusiness {

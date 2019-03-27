@@ -7,7 +7,9 @@ import {
   getWallet,
   getWalletBusinessById,
   getBusinessByFilter,
-  walletPocketUpdated
+  walletPocketUpdated,
+  getWalletsByFilter,
+  getMyWallet
 } from "./gql/wallet";
 
 @Injectable()
@@ -24,6 +26,25 @@ export class WalletService {
             filterText: filterText,
             limit: limit
           },
+          fetchPolicy: 'network-only',
+          errorPolicy: 'all'
+        });
+    }
+
+    getWalletsByFilter(filterText: String, businessId: String, limit: number): Observable<any> {
+      return this.gateway.apollo
+        .query<any>({
+          query: getWalletsByFilter,
+          variables: { filterText, businessId, limit },
+          fetchPolicy: 'network-only',
+          errorPolicy: 'all'
+        });
+    }
+
+    getMyOwnWallet$(){
+      return this.gateway.apollo
+        .query<any>({
+          query: getMyWallet,
           fetchPolicy: 'network-only',
           errorPolicy: 'all'
         });

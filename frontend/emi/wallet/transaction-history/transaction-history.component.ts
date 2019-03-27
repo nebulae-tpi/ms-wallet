@@ -3,21 +3,19 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  Input,
   ViewChild,
   ElementRef
-} from "@angular/core";
-import { Router, ActivatedRoute } from "@angular/router";
+} from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   FormBuilder,
   FormGroup,
-  FormControl,
-  Validators
-} from "@angular/forms";
+  FormControl
+} from '@angular/forms';
 
 ////////// RXJS ///////////
 // tslint:disable-next-line:import-blacklist
-import * as Rx from "rxjs/Rx";
+import * as Rx from 'rxjs/Rx';
 import {
   map,
   mergeMap,
@@ -30,8 +28,8 @@ import {
   debounceTime,
   distinctUntilChanged,
   take
-} from "rxjs/operators";
-import { Subject, fromEvent, of, forkJoin, Observable, concat } from "rxjs";
+} from 'rxjs/operators';
+import { Subject, forkJoin, Observable, concat } from 'rxjs';
 
 //////////// ANGULAR MATERIAL ///////////
 import {
@@ -39,41 +37,39 @@ import {
   MatSort,
   MatTableDataSource,
   MatSnackBar
-} from "@angular/material";
-import { fuseAnimations } from "../../../../core/animations";
+} from '@angular/material';
+import { fuseAnimations } from '../../../../core/animations';
 
 //////////// i18n ////////////
-import { FuseTranslationLoaderService } from "../../../../core/services/translation-loader.service";
-import {
-  TranslateService,
-  LangChangeEvent,
-  TranslationChangeEvent
-} from "@ngx-translate/core";
-import { locale as english } from "../i18n/en";
-import { locale as spanish } from "../i18n/es";
+import { FuseTranslationLoaderService } from '../../../../core/services/translation-loader.service';
+import { TranslateService } from '@ngx-translate/core';
+import { locale as english } from '../i18n/en';
+import { locale as spanish } from '../i18n/es';
 
 //////////// Services ////////////
-import { KeycloakService } from "keycloak-angular";
-import { WalletService } from "./../wallet.service";
-import { TransactionHistoryService } from "./transaction-history.service";
-import { MAT_MOMENT_DATE_FORMATS } from "./my-date-format";
+import { KeycloakService } from 'keycloak-angular';
+import { WalletService } from './../wallet.service';
+import { TransactionHistoryService } from './transaction-history.service';
+import { MAT_MOMENT_DATE_FORMATS } from './my-date-format';
+import { ToolbarService } from '../../../toolbar/toolbar.service';
 
 import {
   DateAdapter,
   MAT_DATE_FORMATS,
   MAT_DATE_LOCALE,
   MomentDateAdapter
-} from "@coachcare/datepicker";
+} from '@coachcare/datepicker';
 
-import * as moment from "moment";
+import * as moment from 'moment';
 
 @Component({
-  selector: "app-transaction-history",
-  templateUrl: "./transaction-history.component.html",
-  styleUrls: ["./transaction-history.component.scss"],
+// tslint:disable-next-line: component-selector
+  selector: 'app-transaction-history',
+  templateUrl: './transaction-history.component.html',
+  styleUrls: ['./transaction-history.component.scss'],
   animations: fuseAnimations,
   providers: [
-    { provide: MAT_DATE_LOCALE, useValue: "es" },
+    { provide: MAT_DATE_LOCALE, useValue: 'es' },
     {
       provide: DateAdapter,
       useClass: MomentDateAdapter,
@@ -85,18 +81,18 @@ import * as moment from "moment";
 export class TransactionHistoryComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
 
-  businessFilterCtrl: FormControl;
+  walletFilterCtrl: FormControl;
   filterForm: FormGroup;
   // Table data
   dataSource = new MatTableDataSource();
   // Columns to show in the table
   displayedColumns = [
-    "timestamp",
-    "type",
-    "concept",
-    "value",
-    "pocket",
-    "user"
+    'timestamp',
+    'type',
+    'concept',
+    'value',
+    'pocket',
+    'user'
   ];
 
   transactionTypes: any = [];
@@ -106,14 +102,17 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   myBusiness: any = null;
   allBusiness: any = [];
   selectedBusinessData: any = null;
-  selectedBusinessName: any = "";
+  selectedWalletName: any = '';
   selectedTransactionHistory: any = null;
-  isPlatformAdmin: Boolean = false;
+  // isPlatformAdmin: Boolean = false;
+  canChangeWallet = false;
+
+  RolesToChangeWallet = ['PLATFORM-ADMIN', 'BUSINESS-OWNER'];
 
   businessQueryFiltered$: Observable<any[]>;
 
   walletData: any = {
-    spendingState: "",
+    spendingState: '',
     pockets: {
       main: 0,
       bonus: 0,
@@ -121,10 +120,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     }
   };
 
-  //terminalIdInput: any;
-  //terminalUserId: any;
-  //terminalUsername: any;
-  //transactionType: any;
+  // transactionType: any;
 
   maxEndDate: any = null;
   minEndDate: any = null;
@@ -132,19 +128,21 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   // Table values
   @ViewChild(MatPaginator)
   paginator: MatPaginator;
-  @ViewChild("filter")
+  @ViewChild('filter')
   filter: ElementRef;
   @ViewChild(MatSort)
   sort: MatSort;
   tableSize: number;
   page = 0;
   count = 10;
-  filterText = "";
+  filterText = '';
   sortColumn = null;
   sortOrder = null;
-  itemPerPage = "";
-  //Indicates if there are new transactions 
+  itemPerPage = '';
+  // Indicates if there are new transactions
   outdatedData = false;
+
+  selectedBusinessId: any;
 
 
   constructor(
@@ -157,37 +155,47 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     private keycloakService: KeycloakService,
     private walletService: WalletService,
     private transactionHistoryService: TransactionHistoryService,
-    private adapter: DateAdapter<any>
+    private adapter: DateAdapter<any>,
+    private toolbarService: ToolbarService,
   ) {
     this.translationLoader.loadTranslations(english, spanish);
-    this.businessFilterCtrl = new FormControl();
+    this.walletFilterCtrl = new FormControl();
   }
 
   ngOnInit() {
     this.buildFilterForm();
-    this.onLangChange();
-    this.loadTypesAndConcepts();
-    this.loadBusinessFilter();
-    this.detectFilterAndPaginatorChanges();
-    this.loadDataInForm();
     this.loadRoleData();
+    this.onLangChange();
+    this.listenBusinessChanges();
+    this.loadTypesAndConcepts();
+    this.loadWalletFilter();
+    this.detectFilterAndPaginatorChanges();
+    // this.loadDataInForm();
     // this.loadBusinessData();
-    this.loadWalletData();
-    this.refreshTransactionHistoryTable();
+    // this.loadWalletData();
+    // this.refreshTransactionHistoryTable();
+  }
+
+  listenBusinessChanges() {
+    this.toolbarService.onSelectedBusiness$
+      .pipe(
+        tap(bu => {
+          this.selectedBusinessId = bu ? bu.id : null;
+        }),
+        takeUntil(this.ngUnsubscribe)
+      )
+      .subscribe();
   }
 
   buildFilterForm() {
-    const startOfMonth = moment().startOf("month");
-    const endOfMonth = moment().endOf("day");
+    const startOfMonth = moment().startOf('month');
+    const endOfMonth = moment().endOf('day');
     this.minEndDate = startOfMonth;
     this.maxEndDate = endOfMonth;
     // Reactive Form
     this.filterForm = this.formBuilder.group({
       initDate: [startOfMonth],
       endDate: [endOfMonth],
-      terminalId: [""],
-      terminalUserId: [""],
-      terminalUsername: [""],
       transactionType: [null],
       transactionConcept: [null]
     });
@@ -226,14 +234,11 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
             const terminal: any = filterAndPaginator.filter.terminal || {};
 
             this.minEndDate = moment(filterData.initDate);
-            this.maxEndDate =  moment(filterData.initDate.valueOf()).endOf("month");
+            this.maxEndDate =  moment(filterData.initDate.valueOf()).endOf('month');
 
             this.filterForm.patchValue({
               initDate: filterData.initDate,
               endDate: filterData.endDate,
-              terminalId: terminal.id,
-              terminalUserId: terminal.userId,
-              terminalUsername: terminal.username,
               transactionType: filterData.transactionTypeData,
               transactionConcept: filterData.transactionConcept
             });
@@ -247,7 +252,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
 
         if (selectedBusiness) {
           this.selectedBusinessData = selectedBusiness;
-          this.businessFilterCtrl.setValue(this.selectedBusinessData);
+          this.walletFilterCtrl.setValue(this.selectedBusinessData);
         }
         this.filterForm.enable({ emitEvent: true });
         this.outdatedData = false;
@@ -271,15 +276,12 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(event => {
-        if (event) {
-          this.adapter.setLocale(event.lang);
-        }
+        if (event) { this.adapter.setLocale(event.lang); }
       });
   }
 
   loadTypesAndConcepts() {
-    this.transactionHistoryService
-      .getTypesAndConcepts$()
+    this.transactionHistoryService.getTypesAndConcepts$()
       .pipe(
         map(result => result.data.typeAndConcepts),
         takeUntil(this.ngUnsubscribe)
@@ -360,33 +362,24 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   }
 
   onInitDateChange() {
-    const start = this.filterForm.get("initDate").value;
-    const end = this.filterForm.get("endDate").value;
+    const start = this.filterForm.get('initDate').value;
+    const end = this.filterForm.get('endDate').value;
 
     const startMonth = start.month();
     const startYear = start.year();
-    const startMonthYear = startMonth + "-" + startYear;
+    const startMonthYear = startMonth + '-' + startYear;
 
     const endMonth = end.month();
     const endYear = end.year();
-    const endMonthYear = endMonth + "-" + endYear;
+    const endMonthYear = endMonth + '-' + endYear;
 
     this.minEndDate = moment(start);
-    if (startMonthYear != endMonthYear) {
+    if (startMonthYear !== endMonthYear) {
       this.filterForm.patchValue({
-        endDate: moment(start.valueOf()).endOf("month")
+        endDate: moment(start.valueOf()).endOf('month')
       });
-      this.maxEndDate =  moment(start.valueOf()).endOf("month");
+      this.maxEndDate =  moment(start.valueOf()).endOf('month');
     }
-
-    // console.log(
-    //   "minEndDate => ",
-    //   this.minEndDate.format("MMMM Do YYYY, h:mm:ss a")
-    // );
-    // console.log(
-    //   "maxEndDate => ",
-    //   this.maxEndDate.format("MMMM Do YYYY, h:mm:ss a")
-    // );
   }
 
   onEndDateChange() {
@@ -400,8 +393,8 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     this.page = 0;
     this.count = 10;
 
-    const startOfMonth = moment().startOf("month");
-    const endOfMonth = moment().endOf("day");
+    const startOfMonth = moment().startOf('month');
+    const endOfMonth = moment().endOf('day');
     this.filterForm.patchValue({
       initDate: startOfMonth,
       endDate: endOfMonth
@@ -412,23 +405,15 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   detectFilterAndPaginatorChanges() {
     Rx.Observable.combineLatest(this.getFormChanges$(), this.getPaginator$())
       .pipe(
-        filter(data => {
-          return this.filterForm.enabled;
-        }),
+        filter(() => this.filterForm.enabled),
         map(([formChanges, paginator]) => {
-          console.log("detectFilterAndPaginatorChanges2 => ", formChanges);
-
+          console.log('detectFilterAndPaginatorChanges2 => ', formChanges);
           const data = {
             filter: {
               initDate: formChanges.initDate,
               endDate: formChanges.endDate,
               // transactionType: {type: 'SALE', concepts: ['ADIOS']},
               transactionConcept: formChanges.transactionConcept,
-              terminal: {
-                id: formChanges.terminalId,
-                userId: formChanges.terminalUserId,
-                username: formChanges.terminalUsername
-              }
             },
             pagination: {
               page: paginator.pageIndex,
@@ -437,7 +422,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
             }
           };
 
-          data.filter["transactionTypeData"] = formChanges.transactionType;
+          data.filter['transactionTypeData'] = formChanges.transactionType;
           return data;
         }),
         takeUntil(this.ngUnsubscribe)
@@ -460,7 +445,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(500),
         filter(([filterAndPagination, selectedBusiness]) => {
-          //console.log('refreshTable => ', ([filterAndPagination, selectedBusiness]));
+          // console.log('refreshTable => ', ([filterAndPagination, selectedBusiness]));
           return filterAndPagination != null && selectedBusiness != null;
         }),
         map(([filterAndPagination, selectedBusiness]) => {
@@ -496,14 +481,14 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
       )
       .subscribe(([transactionsHistory, transactionsHistoryAmount]) => {
         this.outdatedData = false;
-        if(transactionsHistory.data.getWalletTransactionsHistory){
+        if (transactionsHistory.data.getWalletTransactionsHistory){
           transactionsHistory.data.getWalletTransactionsHistory
-          .sort(function (transactionsHistory1, transactionsHistory2) {   
-            return transactionsHistory2.timestamp - transactionsHistory1.timestamp || (transactionsHistory2.pocket < transactionsHistory1.pocket ? -1: 1);
+          .sort(function (transactionsHistory1, transactionsHistory2) {
+            return transactionsHistory2.timestamp - transactionsHistory1.timestamp || (transactionsHistory2.pocket < transactionsHistory1.pocket ? -1 : 1);
           });
         }
 
-        
+
         this.dataSource.data = transactionsHistory.data.getWalletTransactionsHistory;
         this.tableSize =
           transactionsHistoryAmount.data.getWalletTransactionsHistoryAmount;
@@ -514,10 +499,11 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
    *
    */
   loadRoleData() {
-    this.checkIfUserIsAdmin$()
+    this.checkIfUserCanChangeWallet$()
       .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe(hasSysAdminRole => {
-        this.isPlatformAdmin = hasSysAdminRole;
+      .subscribe(response => {
+        console.log('checkIfUserCanChangeWallet', response);
+        this.canChangeWallet = response;
       });
   }
 
@@ -531,34 +517,33 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   /**
    * Checks if the logged user has role PLATFORM-ADMIN
    */
-  checkIfUserIsAdmin$() {
-    return Rx.Observable.of(this.keycloakService.getUserRoles(true)).pipe(
-      map(userRoles => userRoles.some(role => role === "PLATFORM-ADMIN")),
-      tap(isAdmin => {
-        this.isPlatformAdmin = isAdmin;
-      })
+  checkIfUserCanChangeWallet$() {
+    return Rx.Observable.of(this.keycloakService.getUserRoles(true))
+    .pipe(
+      map((userRoles: string[]) => userRoles.filter(value => -1 !== this.RolesToChangeWallet.indexOf(value)).length),
+      map(commonRoles => commonRoles > 0)
     );
   }
 
-  loadBusinessFilter() {
-    this.businessQueryFiltered$ = this.checkIfUserIsAdmin$().pipe(
-      mergeMap(isAdmin => {
-        console.log("loadBusinessFilter1 => ", isAdmin);
-        if (isAdmin) {
-          return this.businessFilterCtrl.valueChanges.pipe(
+  loadWalletFilter() {
+    this.businessQueryFiltered$ = this.checkIfUserCanChangeWallet$()
+    .pipe(
+      mergeMap(canChangeWallet => {
+        console.log('canChangeWallet => ', canChangeWallet);
+        if (canChangeWallet) {
+          return this.walletFilterCtrl.valueChanges.pipe(
             startWith(undefined),
+            filter(filterValue  => typeof filterValue === 'string'),
             debounceTime(500),
             distinctUntilChanged(),
-            mergeMap((filterText: String) => {
-              return this.getBusinessFiltered(filterText, 10);
-            })
+            mergeMap((filterText: String) => this.getWalletsFiltered$(filterText, 10))
           );
         } else {
           return this.getBusiness$().pipe(
             tap(business => {
               // this.myBusiness = business;
               this.selectedBusinessData = business;
-              this.selectedBusinessName = this.selectedBusinessData.name;
+              this.selectedWalletName = this.selectedBusinessData.name;
               this.onSelectBusinessEvent(this.selectedBusinessData);
             }),
             filter(business => business != null),
@@ -566,7 +551,6 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
           );
         }
       })
-      // tap(data => console.log('loadBusinessFilter2 => ', data))
     );
   }
 
@@ -575,6 +559,15 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
       mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
       filter(resp => !resp.errors),
       mergeMap(result => Observable.from(result.data.getBusinessByFilter)),
+      toArray()
+    );
+  }
+
+  getWalletsFiltered$(filterText: String, limit: number): Observable<any[]> {
+    return this.walletService.getWalletsByFilter(filterText, null,  limit).pipe(
+      mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+      filter(resp => !resp.errors),
+      mergeMap(result => Observable.from(result.data.getWalletsByFilter)),
       toArray()
     );
   }
@@ -643,11 +636,11 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
         response.errors.forEach(error => {
           if (Array.isArray(error)) {
             error.forEach(errorDetail => {
-              this.showMessageSnackbar("ERRORS." + errorDetail.message.code);
+              this.showMessageSnackbar('ERRORS.' + errorDetail.message.code);
             });
           } else {
             response.errors.forEach(errorData => {
-              this.showMessageSnackbar("ERRORS." + errorData.message.code);
+              this.showMessageSnackbar('ERRORS.' + errorData.message.code);
             });
           }
         });
@@ -672,8 +665,8 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
 
     this.translate.get(translationData).subscribe(data => {
       this.snackBar.open(
-        messageKey ? data[messageKey] : "",
-        detailMessageKey ? data[detailMessageKey] : "",
+        messageKey ? data[messageKey] : '',
+        detailMessageKey ? data[detailMessageKey] : '',
         {
           duration: 2000
         }

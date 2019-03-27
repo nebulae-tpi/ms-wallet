@@ -1,15 +1,15 @@
-import { Injectable } from "@angular/core";
-import { Observable, BehaviorSubject } from "rxjs";
+import { Injectable } from '@angular/core';
+import { Observable, BehaviorSubject } from 'rxjs';
 import {
   startWith
-} from "rxjs/operators";
-import { GatewayService } from "../../../../api/gateway.service";
-import * as moment from "moment";
+} from 'rxjs/operators';
+import { GatewayService } from '../../../../api/gateway.service';
+import * as moment from 'moment';
 import {
   getWalletTransactionsHistory,
   getWalletTransactionsHistoryAmount,
   getTypesAndConcepts
-} from "../gql/wallet";
+} from '../gql/wallet';
 
 @Injectable()
 export class TransactionHistoryService {
@@ -37,7 +37,7 @@ export class TransactionHistoryService {
    * @returns {Observable<any>}
    */
   get filterAndPaginator$(): Observable<any> {
-    return this._filterAndPaginator$.asObservable()
+    return this._filterAndPaginator$.asObservable();
   }
 
   /**
@@ -68,8 +68,8 @@ export class TransactionHistoryService {
         filterInput: filterInput,
         paginationInput: paginationInput
       },
-      fetchPolicy: "network-only",
-      errorPolicy: "all"
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all'
     });
   }
 
@@ -85,8 +85,8 @@ export class TransactionHistoryService {
       variables: {
         filterInput: filterInput
       },
-      fetchPolicy: "network-only",
-      errorPolicy: "all"
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all'
     });
   }
 
@@ -98,8 +98,8 @@ export class TransactionHistoryService {
   getTypesAndConcepts$() {
     return this.gateway.apollo.query<any>({
       query: getTypesAndConcepts,
-      fetchPolicy: "network-only",
-      errorPolicy: "all"
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all'
     });
   }
 

@@ -150,7 +150,7 @@ class GraphQlService {
       {
         aggregateType: "Business",
         messageType: "emigateway.graphql.query.getBusinessByFilter"
-      },
+      },     
       {
         aggregateType: "Business",
         messageType: "emigateway.graphql.query.getWalletBusiness"
@@ -205,6 +205,14 @@ class GraphQlService {
       },
       {
         aggregateType: "Wallet",
+        messageType: "emigateway.graphql.query.getMyWallet",        
+      },
+      {
+        aggregateType: "Wallet",
+        messageType: "emigateway.graphql.query.getWalletsByFilter"
+      },
+      {
+        aggregateType: "Wallet",
         messageType: "emigateway.graphql.query.getWalletSpendingRuleQuantity",        
       },
       {
@@ -227,7 +235,7 @@ class GraphQlService {
       "emigateway.graphql.query.getBusinessByFilter": {
         fn: business.cqrs.getBusinessByFilter$,
         obj: business.cqrs
-      },
+      },      
       "emigateway.graphql.query.getWalletBusiness": {
         fn: business.cqrs.getWalletBusiness$,
         obj: business.cqrs
@@ -280,6 +288,14 @@ class GraphQlService {
         fn: wallet.cqrs.getTypesAndConceptsValues$,
         obj: wallet.cqrs
       },
+      "emigateway.graphql.query.getMyWallet":{
+        fn: wallet.cqrs.getMyWallet$,
+        obj: wallet.cqrs
+      },
+      "emigateway.graphql.query.getWalletsByFilter":{
+        fn: wallet.cqrs.getWalletsByFilter$,
+        obj: wallet.cqrs
+      },
       "emigateway.graphql.query.getWalletSpendingRuleQuantity":{
         fn: spendingRules.cqrs.getWalletSpendingRuleQuantity$,
         obj: spendingRules.cqrs
@@ -291,7 +307,8 @@ class GraphQlService {
       'emigateway.graphql.query.getWalletErrorsCount': {
         fn: logError.cqrs.getWalletErrorsCount$,
         obj: logError.cqrs
-      },
+      }
+
     };
   }
 }

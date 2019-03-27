@@ -17,7 +17,7 @@ export const locale = {
       BUSINESS_REQUIRED: 'Debe seleccionar el agente al cual desea aplicar el ajuste de saldo',
       TRANSACTION_HISTORY: 'Historial de transacciones',
       BUSINESS: 'Agente:',
-      SELECT_BUSINESS: 'Seleccione unidad de negocio',
+      SELECT_WALLET: 'Selecciona la billetera',
       FILTER: 'Filtro',
       INIT_DATE: 'Fecha inicial',
       END_DATE: 'Fecha final',
@@ -46,6 +46,12 @@ export const locale = {
         SALE: 'Venta',
         MOVEMENT: 'Movimiento',
         undefined: ''
+      },
+      ENTITY_TYPES:{
+        DRIVER: 'Conductor',
+        BUSINESS: 'Unidad',
+        CLIENT: 'Cliente',
+        USER: 'Usuario'
       },
       CONCEPTS: {
         RECARGA_CIVICA: 'Recarga cívica',
@@ -81,6 +87,7 @@ export const locale = {
     ERRORS: {
       19001: 'Error interno de servidor',
       19002: 'Permiso denegado.',
+      19003: 'No Tienes Informacion Suficiente de tu Billetera. Por Favor Reinicia tus Credenciales',
     }
   }
 };

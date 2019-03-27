@@ -17,7 +17,7 @@ export const locale = {
       BUSINESS_REQUIRED: 'You should select the agent to which you want to make a manual balance adjustment.',
       TRANSACTION_HISTORY: 'Transaction history',
       BUSINESS: 'Agent:',
-      SELECT_BUSINESS: 'Select a business unit',
+      SELECT_WALLET: 'Select a Wallet',
       FILTER: 'Filter',
       INIT_DATE: 'Init date',
       END_DATE: 'End date',
@@ -46,6 +46,12 @@ export const locale = {
         SALE: 'Sale',
         MOVEMENT: 'Movement',
         undefined: ''
+      },
+      ENTITY_TYPES:{
+        DRIVER: 'Driver',
+        BUSINESS: 'Business',
+        CLIENT: 'Client',
+        USER: 'User'
       },
       CONCEPTS: {
         RECARGA_CIVICA: 'Civic recharge card',
@@ -81,6 +87,7 @@ export const locale = {
     ERRORS: {
       19001: 'Internal server error',
       19002: 'Permission denied',
+      19003: 'You Don\'t have Enough information about Your Wallet. Please Restart Your Credentials'
     }
   }
 };

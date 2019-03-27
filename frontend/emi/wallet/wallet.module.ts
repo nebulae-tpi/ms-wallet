@@ -9,7 +9,6 @@ import { ManualPocketAdjustmentService } from './manual-pocket-adjustment/manual
 import { TransactionHistoryDetailService } from './transaction-history-detail/transaction-history-detail.service';
 import { WalletErrorsService } from './wallet-errors/wallet-errors.service';
 import { WalletService } from './wallet.service';
-import { walletComponent } from './wallet.component';
 import { TransactionHistoryComponent } from './transaction-history/transaction-history.component';
 import { ManualPocketAdjustmentComponent } from './manual-pocket-adjustment/manual-pocket-adjustment.component';
 import { TransactionHistoryDetailComponent } from './transaction-history-detail/transaction-history-detail.component';
@@ -46,7 +45,6 @@ const routes: Routes = [
     CurrencyMaskModule
   ],
   declarations: [
-    walletComponent,
     WalletErrorsComponent,
     TransactionHistoryComponent,
     TransactionHistoryDetailComponent,
