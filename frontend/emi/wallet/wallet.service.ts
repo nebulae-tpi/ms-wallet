@@ -17,7 +17,6 @@ export class WalletService {
 
   constructor(private gateway: GatewayService) {}
 
-
     getBusinessByFilter(filterText: String, limit: number): Observable<any> {
       return this.gateway.apollo
         .query<any>({

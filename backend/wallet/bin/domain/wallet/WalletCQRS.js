@@ -119,7 +119,7 @@ class WalletCQRS {
       "WALLET",
       "getWalletTransactionHistory",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+      ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
     ).pipe(
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
@@ -132,7 +132,7 @@ class WalletCQRS {
           }
           return of(roles);
       }),
-      mergeMap(val => WalletTransactionDA.getTransactionsHistory$(args.filterInput, args.paginationInput)),
+      mergeMap(() => WalletTransactionDA.getTransactionsHistory$(args.filterInput, args.paginationInput)),
       toArray(),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))

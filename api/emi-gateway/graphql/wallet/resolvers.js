@@ -45,7 +45,7 @@ module.exports = {
         "getWalletTransactionsHistory",
         PERMISSION_DENIED_ERROR_CODE,
         "Permission denied",
-        ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+        ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       )
         .pipe(
           mergeMap(() => broker.forwardAndGetReply$(

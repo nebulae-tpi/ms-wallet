@@ -84,7 +84,7 @@ export const getWallet = gql`
 `;
 
 export const getWalletTransactionsHistory = gql`
-  query getWalletTransactionsHistory($filterInput: FilterInput!, $paginationInput: PaginationInput!) {
+  query getWalletTransactionsHistory($filterInput: WalletTransactionsFilterInput!, $paginationInput: PaginationInput!) {
     getWalletTransactionsHistory(filterInput: $filterInput, paginationInput: $paginationInput) {
       _id
       timestamp
@@ -109,7 +109,7 @@ export const getWalletTransactionsHistory = gql`
 `;
 
 export const getWalletTransactionsHistoryAmount = gql`
-  query getWalletTransactionsHistoryAmount($filterInput: FilterInput!) {
+  query getWalletTransactionsHistoryAmount($filterInput: WalletTransactionsFilterInput!) {
     getWalletTransactionsHistoryAmount(filterInput: $filterInput)
   }
 `;

@@ -140,9 +140,11 @@ input PaginationInput {
   sort: Int
 }
 
-input FilterInput {
+input WalletTransactionsFilterInput {
   "ID of the business with which the information will be filter"
-  businessId: String!
+  businessId: String
+  "Wallet ID"
+  walletId: String
   "Init date"
   initDate: BigInt!
   "End date"
@@ -258,9 +260,9 @@ type Query {
   "Get wallet info of the business"
   getWallet(businessId: String!): Wallet
   "Get the transactions history according to the filter and the pagination"
-  getWalletTransactionsHistory(filterInput: FilterInput!, paginationInput: PaginationInput!): [WalletTransaction]
+  getWalletTransactionsHistory(filterInput: WalletTransactionsFilterInput!, paginationInput: PaginationInput!): [WalletTransaction]
   "Get the amount of transactions according to the filter"
-  getWalletTransactionsHistoryAmount(filterInput: FilterInput!): Int!
+  getWalletTransactionsHistoryAmount(filterInput: WalletTransactionsFilterInput!): Int!
   "Get a transaction history by id"
   getWalletTransactionsHistoryById(id: ID!): WalletTransaction
   "Get a transaction history by id"

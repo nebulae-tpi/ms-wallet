@@ -28,7 +28,7 @@ import {
   distinctUntilChanged,
   take
 } from 'rxjs/operators';
-import { Subject, Observable, concat } from 'rxjs';
+import { Subject, Observable, concat, forkJoin } from 'rxjs';
 
 //////////// ANGULAR MATERIAL ///////////
 import {
@@ -155,12 +155,21 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     this.buildFilterForm();       // Initialize the filter form in the side nav
     this.loadRoleData();          // Load the roles of the user
     this.onLangChange();          // Language listener to update the time filter
+    this.listenbusinessChanges(); // Listen busineses changes
     this.loadTypesAndConcepts();  // Load the types and concepts to apply in filter
     this.loadWalletFilter();      // BusinessQueryFiltered$ initializer
     this.detectFilterAndPaginatorChanges(); // detects the changes in filter and paginator and sends to service
     this.loadDataInForm();        // Load data in filter form and paginator using data saved in the service
     // this.loadWalletData();        // create the listener in change wallet to listen the wallet update subscription
-    this.refreshTransactionHistoryTable();
+    this.refreshTransactionHistoryTable(); // create the listener fo filters and business  and wallet selection to update the data source
+  }
+
+  listenbusinessChanges(){
+    this.toolbarService.onSelectedBusiness$
+    .pipe(
+      tap(bu => this.selectedBusinessId = (bu && bu.id) ? bu.id : undefined)
+    )
+    .subscribe()
   }
 
   buildFilterForm() {
@@ -192,7 +201,6 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   }
 
   displayFn(wallet) {
-    console.log('DISPLAYING ==> ', wallet);
     return wallet ? `${wallet.fullname} (${wallet.documentId})` : '';
   }
 
@@ -414,24 +422,23 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   refreshTransactionHistoryTable() {
     Rx.Observable.combineLatest(
       this.transactionHistoryService.filterAndPaginator$,
-      this.transactionHistoryService.selectedWalletEvent$,
-      this.toolbarService.onSelectedBusiness$
+      this.transactionHistoryService.selectedWalletEvent$
     )
       .pipe(
         debounceTime(500),
         filter(
-          ([filterAndPagination, selectedWallet, selectedBusiness]) => {
+          ([filterAndPagination, selectedWallet]) => {
             console.log('refreshTable => ', [
               filterAndPagination,
               selectedWallet,
-              selectedBusiness
+              this.selectedBusinessId
             ]);
             return filterAndPagination != null && selectedWallet != null;
           }
         ),
-        map(([filterAndPagination, selectedWallet, selectedBusiness]) => {
+        map(([filterAndPagination, selectedWallet]) => {
           const filterInput = {
-            businessId: (selectedBusiness && selectedBusiness.id) ?  selectedBusiness.id : null,
+            businessId: this.selectedBusinessId,
             walletId: selectedWallet._id,
             initDate: filterAndPagination.filter.initDate
               ? filterAndPagination.filter.initDate.valueOf()
@@ -450,19 +457,19 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
           const paginationInput = filterAndPagination.pagination;
           return [filterInput, paginationInput];
         }),
-        // mergeMap(([filterInput, paginationInput]) =>
-        //   forkJoin(
-        //     this.transactionHistoryService.getTransactionsHistory$(filterInput, paginationInput)
-        //       .pipe(mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp))),
-        //     this.transactionHistoryService.getTransactionsHistoryAmount$(filterInput)
-        //       .pipe(mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)))
-        //   )
-        // ),
+        mergeMap(([filterInput, paginationInput]) =>
+          forkJoin(
+            this.transactionHistoryService.getTransactionsHistory$(filterInput, paginationInput)
+              .pipe(mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp))),
+            // this.transactionHistoryService.getTransactionsHistoryAmount$(filterInput)
+            //   .pipe(mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)))
+          )
+        ),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(([transactionsHistory, transactionsHistoryAmount]) => {
-        console.log(transactionsHistory, transactionsHistoryAmount);
-        // this.outdatedData = false;
+        console.log( 'GENERANDO OBJETOS PARA REALIZAR LA QUERY', transactionsHistory, transactionsHistoryAmount);
+        this.outdatedData = false;
         // if (transactionsHistory.data.getWalletTransactionsHistory) {
         //   transactionsHistory.data.getWalletTransactionsHistory.sort(
         //     function(transactionsHistory1, transactionsHistory2) {
@@ -547,12 +554,13 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   }
 
   getWalletsFiltered$(filterText: String, limit: number): Observable<any[]> {
-    return this.walletService.getWalletsByFilter(filterText, null,  limit).pipe(
-      mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
-      filter(resp => !resp.errors),
-      mergeMap(result => Observable.from(result.data.getWalletsByFilter)),
-      toArray()
-    );
+    return this.walletService.getWalletsByFilter(filterText, this.selectedBusinessId, limit)
+      .pipe(
+        mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+        filter(resp => !resp.errors),
+        mergeMap(result => Observable.from(result.data.getWalletsByFilter)),
+        toArray()
+      );
   }
 
 
