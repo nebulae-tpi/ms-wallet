@@ -39,7 +39,7 @@
                 "path": "wallet",
                 "loadChildren": "./main/content/wallet/wallet.module#WalletModule",
                 "priority": 4000,
-                "roles" : ["PLATFORM-ADMIN", "BUSINESS-OWNER"],
+                "roles" : ["PLATFORM-ADMIN", "BUSINESS-OWNER", "DRIVER", "CLIENT", "BUSINESS-VIEWER", "OPERATOR"],
                 "default" : false
             },
             {

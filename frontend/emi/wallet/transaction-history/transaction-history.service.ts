@@ -1,8 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
-import {
-  startWith
-} from 'rxjs/operators';
 import { GatewayService } from '../../../../api/gateway.service';
 import * as moment from 'moment';
 import {
@@ -14,7 +11,7 @@ import {
 @Injectable()
 export class TransactionHistoryService {
 
-  private selectedBusinessSubject$ = new BehaviorSubject<any>(null);
+  private selectedWalletSubject$ = new BehaviorSubject<any>(null);
   private _filterAndPaginator$ = new BehaviorSubject({
     filter: {
       initDate: moment().startOf('month'),
@@ -43,15 +40,15 @@ export class TransactionHistoryService {
   /**
    * Returns an observable
    */
-  get selectedBusinessEvent$() {
-    return this.selectedBusinessSubject$.asObservable();
+  get selectedWalletEvent$() {
+    return this.selectedWalletSubject$.asObservable();
   }
 
   /**
    * Set the selected business
    */
-  selectBusiness(business) {
-    this.selectedBusinessSubject$.next(business);
+  selectWallet(business) {
+    this.selectedWalletSubject$.next(business);
   }
 
   /**

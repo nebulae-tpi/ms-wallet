@@ -21,17 +21,14 @@ let instance;
 
 class WalletCQRS {
   constructor() {}
-
-
-
-       /**
+   /**
    * Gets the business where the user that is performing the request belong
    *
    * @param {*} args args
    * @param {*} args.businessId business ID
    */
   getWalletsByFilter$({ args }, authToken) {
-    console.log("getWalletsByFilter$", args,authToken);
+    console.log("getWalletsByFilter$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -40,24 +37,24 @@ class WalletCQRS {
       ["PLATFORM-ADMIN"]
       ).pipe(
           mergeMap(() => walletDA.getFilteredWallets$(args.filterText, args.businessId, args.limit)),
-          tap(r => console.log("###### RESPONSE ######", r)),
+          tap(r => console.log("###### RESPONSE.LENGTH ######", r.length)),
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
           catchError(err => this.handleError$(err))
       );
   }
 
   getMyWallet$({ args }, authToken) {
-    console.log("getMyWallet$", args,authToken);
+    console.log("getMyWallet$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
       "getMyWallet$",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN"]
+      ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       ).pipe(
-          map(() => authToken.userId || authToken.driverd || authToken.clientId),
+          map(() => authToken.userId || authToken.driverId || authToken.clientId),
           tap(r => console.log('QUERING BY A WALLET WIT ID ==> ', r)),
-          mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$" ) : of(walletDA) ),
+          mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$" ) : of(walletId) ),
           mergeMap(walletId => walletDA.getWalletById$(walletId)),
           tap(r => console.log("###### RESPONSE ######", r)),
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),

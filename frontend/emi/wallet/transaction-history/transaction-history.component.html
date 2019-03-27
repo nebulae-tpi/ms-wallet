@@ -45,9 +45,7 @@
                 {{'WALLET.MAIN' | translate}}
               </div>
               <div class="pt-0 mat-title m-0 font-weight-300 text-nowrap" fxFlex="65">
-                <span [ngStyle]="{
-                      color: walletData.pockets.main >= 0 ? 'green' : 'red'
-                    }">{{ walletData.pockets.main | currency }}</span>
+                <span [ngStyle]="{color: walletData.pockets.main >= 0 ? 'green' : 'red'}">{{ walletData.pockets.main | currency }}</span>
               </div>
             </div>
 
@@ -147,8 +145,8 @@
               [formControl]="walletFilterCtrl" [(value)]="selectedWalletName" fxFlex readonly="true">
 
             <input *ngIf="canChangeWallet" [placeholder]="'WALLET.SELECT_WALLET' | translate" [matAutocomplete]="auto"
-               [(value)]="selectedBusinessData" [formControl]="walletFilterCtrl" fxFlex>
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)='onSelectBusinessEvent($event.option.value)'
+               [(value)]="selectedWallet" [formControl]="walletFilterCtrl" fxFlex>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)='onSelectWalletEvent($event.option.value)'
               [displayWith]="displayFn">
               <mat-option *ngFor="let wallet of businessQueryFiltered$ | async" [value]="wallet">
                 {{ wallet.fullname }}:{{ ' ' + wallet.documentId }}

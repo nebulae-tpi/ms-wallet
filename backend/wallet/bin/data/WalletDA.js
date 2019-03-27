@@ -2,13 +2,19 @@
 let mongoDB = undefined;
 const COLLECTION_NAME = "Wallet";
 const { CustomError } = require("../tools/customError");
-const NumberDecimal = require('mongodb').Decimal128;
-const { take, mergeMap, catchError, map, tap } = require('rxjs/operators');
-const  { Observable, forkJoin, of, interval, defer, throwError } = require('rxjs');
+const NumberDecimal = require("mongodb").Decimal128;
+const { mergeMap, map} = require("rxjs/operators");
+const { Observable, of, defer, throwError } = require("rxjs");
 
-const WALLET_NO_FOUND_ERROR = new CustomError('Wallet no found', 'getWallet$', 170005, 'Wallet not found with the businessId given');
+const WALLET_NO_FOUND_ERROR = new CustomError(
+  "Wallet no found",
+  "getWallet$",
+  170005,
+  "Wallet not found with the businessId given"
+);
 
 class WalletDA {
+
   static start$(mongoDbInstance) {
     return Observable.create(observer => {
       if (mongoDbInstance) {
@@ -31,45 +37,50 @@ class WalletDA {
     return of(businessId).pipe(
       mergeMap(id => defer(() => collection.findOne({ businessId: id }))),
       mergeMap(wallet => wallet ? of(wallet) : throwError(WALLET_NO_FOUND_ERROR) ),
-      map(wallet => 
-        ({...wallet, 
-          pockets:{ 
-            main: parseFloat(new NumberDecimal(wallet.pockets.main.bytes).toString()),
-            bonus: parseFloat(new NumberDecimal(wallet.pockets.bonus.bytes).toString()) 
-          } 
-        })
-      )
+      map(wallet => ({
+        ...wallet,
+        pockets: {
+          main: parseFloat( new NumberDecimal(wallet.pockets.main.bytes).toString() ),
+          bonus: parseFloat( new NumberDecimal(wallet.pockets.bonus.bytes).toString() )
+        }
+      }))
     );
   }
 
   /**
    * Persists the wallet info . If the wallet has been already created and error will be generated.
-   * @param {*} wallet 
+   * @param {*} wallet
    */
   static createWallet$(wallet) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return of(wallet)
-    .pipe(
-      mergeMap(wallet => defer(() => {
-        const walletData = {
-          businessId: wallet.businessId,
-          businessName: wallet.businessName,
-          spendingState: wallet.spendingState,
-          pockets: {
-            main: NumberDecimal.fromString(wallet.pockets.main.toString()) ,
-            bonus:NumberDecimal.fromString(wallet.pockets.bonus.toString()) 
-          }
-        };
-        return collection.insertOne(walletData);
-      })),
+    return of(wallet).pipe(
+      mergeMap(wallet =>
+        defer(() => {
+          const walletData = {
+            businessId: wallet.businessId,
+            businessName: wallet.businessName,
+            spendingState: wallet.spendingState,
+            pockets: {
+              main: NumberDecimal.fromString(wallet.pockets.main.toString()),
+              bonus: NumberDecimal.fromString(wallet.pockets.bonus.toString())
+            }
+          };
+          return collection.insertOne(walletData);
+        })
+      ),
       map(result => result.ops[0]),
       map(wallet => {
-        return ({...wallet, 
-          pockets:{ 
-            main: parseFloat(new NumberDecimal(wallet.pockets.main.bytes).toString()),
-            bonus: parseFloat(new NumberDecimal(wallet.pockets.bonus.bytes).toString()) 
-          } 
-        });
+        return {
+          ...wallet,
+          pockets: {
+            main: parseFloat(
+              new NumberDecimal(wallet.pockets.main.bytes).toString()
+            ),
+            bonus: parseFloat(
+              new NumberDecimal(wallet.pockets.bonus.bytes).toString()
+            )
+          }
+        };
       })
     );
   }
@@ -81,20 +92,21 @@ class WalletDA {
    */
   static updateWalletBusinessName$(businessId, newBusinessName) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return of({businessId, newBusinessName})
-    .pipe(
-      mergeMap(business => defer(() => {
-        const updateQuery = {
-          $set: {businessName: newBusinessName}
-        };
-        return collection.updateOne({ businessId }, updateQuery);
-      }))
+    return of({ businessId, newBusinessName }).pipe(
+      mergeMap(business =>
+        defer(() => {
+          const updateQuery = {
+            $set: { businessName: newBusinessName }
+          };
+          return collection.updateOne({ businessId }, updateQuery);
+        })
+      )
     );
   }
 
   /**
    * update the wallet pocket values. If the wallet is not found, a new wallet will be created.
-   * 
+   *
    * @param {string} business Business data
    * @param {Object} increment Indicates the increments that must be performed on the different pockets
    * @param {Object} increment.main value to be incremented in the main pocket
@@ -103,24 +115,33 @@ class WalletDA {
   static updateWalletPockets$(business, increment) {
     // console.log('updateWalletPockets => ', business, increment);
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return of(business)
-    .pipe(
-      mergeMap(business => defer(() => {
-        const updateQuery = {
-          $inc: {
-            // 'pockets.main': increment.main,
-            // 'pockets.bonus': increment.bonus
-            'pockets.main': NumberDecimal.fromString(increment.main.toString()),
-            'pockets.bonus': NumberDecimal.fromString(increment.bonus.toString())
-          },
-          $setOnInsert: {
-            businessId: business._id,
-            businessName: business.name,
-            spendingState: 'FORBIDDEN'
-          }
-        };
-        return collection.updateOne({ businessId: business._id }, updateQuery, {upsert: true});
-      }))
+    return of(business).pipe(
+      mergeMap(business =>
+        defer(() => {
+          const updateQuery = {
+            $inc: {
+              // 'pockets.main': increment.main,
+              // 'pockets.bonus': increment.bonus
+              "pockets.main": NumberDecimal.fromString(
+                increment.main.toString()
+              ),
+              "pockets.bonus": NumberDecimal.fromString(
+                increment.bonus.toString()
+              )
+            },
+            $setOnInsert: {
+              businessId: business._id,
+              businessName: business.name,
+              spendingState: "FORBIDDEN"
+            }
+          };
+          return collection.updateOne(
+            { businessId: business._id },
+            updateQuery,
+            { upsert: true }
+          );
+        })
+      )
     );
   }
 
@@ -131,65 +152,79 @@ class WalletDA {
    */
   static updateWalletSpendingState$(businessId, newSpendingState) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return of({businessId, newSpendingState})
-    .pipe(
-      mergeMap(({businessId, newSpendingState}) => defer(() => {
-        const updateQuery = {
-          $set: {
-            'spendingState': newSpendingState
-          }
-        };
-        return collection.findOneAndUpdate({ businessId }, updateQuery, {returnOriginal: false});
-      })),
+    return of({ businessId, newSpendingState }).pipe(
+      mergeMap(({ businessId, newSpendingState }) =>
+        defer(() => {
+          const updateQuery = {
+            $set: {
+              spendingState: newSpendingState
+            }
+          };
+          return collection.findOneAndUpdate({ businessId }, updateQuery, {
+            returnOriginal: false
+          });
+        })
+      ),
       map(updateOperation => updateOperation.value),
       map(wallet => {
-        return ({...wallet, 
-          pockets:{ 
-            main: parseFloat(new NumberDecimal(wallet.pockets.main.bytes).toString()),
-            bonus: parseFloat(new NumberDecimal(wallet.pockets.bonus.bytes).toString()) 
-          } 
-        });
+        return {
+          ...wallet,
+          pockets: {
+            main: parseFloat(
+              new NumberDecimal(wallet.pockets.main.bytes).toString()
+            ),
+            bonus: parseFloat(
+              new NumberDecimal(wallet.pockets.bonus.bytes).toString()
+            )
+          }
+        };
       })
     );
   }
 
-
   // NEW METHODS.....
 
-
-  static createNeWallet$(wallet){
+  static createNeWallet$(wallet) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
     return defer(() => collection.insertOne(wallet));
   }
 
   static updateWallet$(wallet, setOnInsert) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return defer(() => collection.updateOne(
-      { _id: wallet._id },
-      { $set: { ...wallet }, $setOnInsert:{...setOnInsert} },
-      { upsert: true }
-    ));
+    return defer(() =>
+      collection.updateOne(
+        { _id: wallet._id },
+        { $set: { ...wallet }, $setOnInsert: { ...setOnInsert } },
+        { upsert: true }
+      )
+    );
   }
 
-  static getFilteredWallets$(filterText, businessId, limit=10) {
+  static getFilteredWallets$(filterText, businessId, limit = 10) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
     const filter = {};
     if (filterText) {
-      filter['$or'] = [ 
-        { fullname: { $regex: filterText, $options: 'i' } },
-        { documentId: { $regex: filterText, $options: 'i' } }
+      filter["$or"] = [
+        { fullname: { $regex: filterText, $options: "i" } },
+        { documentId: { $regex: filterText, $options: "i" } }
       ];
     }
-    if(businessId){ filter.businessId = businessId; }
-    return defer(() => collection.find(filter).limit(limit).toArray());
+    if (businessId) {
+      filter.businessId = businessId;
+    }
+    return defer(() =>
+      collection
+        .find(filter)
+        .limit(limit)
+        .toArray()
+    );
   }
 
-  static getWalletById$(id) {
+  static getWalletById$(walletId) {
+    console.log("getWalletById$", walletId);
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return defer(() => collection.findOne({_id: id}));
+    return defer(() => collection.findOne({ _id: walletId }));
   }
-
-
 }
 
 /**

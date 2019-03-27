@@ -3,7 +3,7 @@ export const locale = {
   data: {
     WALLET: {
       CREDIT: 'Crédito',
-      MANUAL_BALANCE_ADJUSTMENT: 'Ajuste manual de saldo',
+      MANUAL_BALANCE_ADJUSTMENT: 'Ajuste Manual de Saldo',
       VALUE: 'Valor',
       NOTES: 'Notas',
       WITHDRAWAL: 'Retiro',
@@ -15,7 +15,7 @@ export const locale = {
       VALUE_REQUIRED: 'Valor requerido',
       NOTES_REQUIRED: 'Notas requeridas',
       BUSINESS_REQUIRED: 'Debe seleccionar el agente al cual desea aplicar el ajuste de saldo',
-      TRANSACTION_HISTORY: 'Historial de transacciones',
+      TRANSACTION_HISTORY: 'Historial de Transacciones',
       BUSINESS: 'Agente:',
       SELECT_WALLET: 'Selecciona la billetera',
       FILTER: 'Filtro',
@@ -68,7 +68,7 @@ export const locale = {
       NONE: 'Ninguno',
       ASSOCIATED_TRANSACTIONS: 'Transacciones asociadas',
       TRANSACTION: 'Transacción ',
-      WALLET: 'Bolsas',
+      WALLET: 'Billetera',
       EXECUTED_OPERATION: 'La operación fue ejecutada correctamente.',
       CLOSE: 'Cerrar',
       MAKE_MANUAL_BALANCE_ADJUSTMENT_MESSAGE: '¿Estás seguro que desea realizar la operación?',
