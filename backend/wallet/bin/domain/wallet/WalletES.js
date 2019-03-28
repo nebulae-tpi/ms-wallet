@@ -4,6 +4,7 @@ const WalletDA = require('../../data/WalletDA');
 const WalletHelper = require("./WalletHelper");
 const broker = require('../../tools/broker/BrokerFactory')();
 const SpendingRulesDA = require('../../data/SpendingRulesDA');
+const WalletTransactionsDA = require('../../data/WalletTransactionDA');
 const { mergeMap, catchError, map, defaultIfEmpty, first, tap, filter, toArray, groupBy, debounceTime} = require('rxjs/operators');
 const  { forkJoin, of, interval, from, throwError, concat, Observable, Subject } = require('rxjs');
 const uuidv4 = require("uuid/v4");
@@ -108,48 +109,50 @@ class WalletES {
     );
   }
   
-  handleWalletSpendingCommited$(evt){
-    console.log("handleWalletSpendingCommited$", evt);
-    return of(evt.data)
-    .pipe(
-      mergeMap(eventData => forkJoin(
-        // search the wallet for business unit
-        WalletDA.getWallet$(eventData.businessId),
-        // Search the spendingRule for business unit
-        SpendingRulesDA.getSpendingRule$(eventData.businessId)
-      )),
-      // selects the pocket to use and returns => { wallet, spendingRule, selectedPocket }
-      mergeMap(([wallet, spendingRule]) => this.selectPockect$(wallet, spendingRule, evt.data.value)),
-      // selects the according productBonusConfig returns => { wallet, productBonusConfig, selectedPocket }
-      map(result => ({...result, spendingRule: result.spendingRule.productBonusConfigs.find(e => (e.type == evt.data.type && e.concept == evt.data.concept)) })),      
-      mergeMap(result => this.calculateTransactionsToExecute$(evt, result)),
-      // tap(r => console.log("PARA PROCESAR", JSON.stringify(r))),
-      map(tx => ({
-        wallet: tx.wallet,
-        transaction: this.createWalletTransactionExecuted(
-          tx.transaction.businessId,
-          tx.transaction.type,
-          tx.transaction.concept,
-          ...tx.transaction.transactions
-        )
-      })),
-      mergeMap(tx =>
-        eventSourcing.eventStore.emitEvent$(
-          new Event({
-            eventType: "WalletTransactionExecuted",
-            eventTypeVersion: 1,
-            aggregateType: "Wallet",
-            aggregateId: tx.wallet._id,
-            data: tx.transaction,
-            user: 'SYSTEM'
-          })
-        )
-      ),
-      catchError(error => {
-        console.log(`An error was generated while a walletSpendingCommitedEvent was being processed: ${error.stack}`);
-        return this.errorHandler$(evt, error.stack, 'walletSpendingCommitedEvent');
-      })
-    )
+  handleWalletSpendingCommited$({aid, data}){
+    console.log("handleWalletSpendingCommited$", data);
+    return of({});
+
+    // return of(evt.data)
+    // .pipe(
+    //   mergeMap(eventData => forkJoin(
+    //     // search the wallet for business unit
+    //     WalletDA.getWallet$(eventData.businessId),
+    //     // Search the spendingRule for business unit
+    //     SpendingRulesDA.getSpendingRule$(eventData.businessId)
+    //   )),
+    //   // selects the pocket to use and returns => { wallet, spendingRule, selectedPocket }
+    //   mergeMap(([wallet, spendingRule]) => this.selectPockect$(wallet, spendingRule, evt.data.value)),
+    //   // selects the according productBonusConfig returns => { wallet, productBonusConfig, selectedPocket }
+    //   map(result => ({...result, spendingRule: result.spendingRule.productBonusConfigs.find(e => (e.type == evt.data.type && e.concept == evt.data.concept)) })),      
+    //   mergeMap(result => this.calculateTransactionsToExecute$(evt, result)),
+    //   // tap(r => console.log("PARA PROCESAR", JSON.stringify(r))),
+    //   map(tx => ({
+    //     wallet: tx.wallet,
+    //     transaction: this.createWalletTransactionExecuted(
+    //       tx.transaction.businessId,
+    //       tx.transaction.type,
+    //       tx.transaction.concept,
+    //       ...tx.transaction.transactions
+    //     )
+    //   })),
+    //   mergeMap(tx =>
+    //     eventSourcing.eventStore.emitEvent$(
+    //       new Event({
+    //         eventType: "WalletTransactionExecuted",
+    //         eventTypeVersion: 1,
+    //         aggregateType: "Wallet",
+    //         aggregateId: tx.wallet._id,
+    //         data: tx.transaction,
+    //         user: 'SYSTEM'
+    //       })
+    //     )
+    //   ),
+    //   catchError(error => {
+    //     console.log(`An error was generated while a walletSpendingCommitedEvent was being processed: ${error.stack}`);
+    //     return this.errorHandler$(evt, error.stack, 'walletSpendingCommitedEvent');
+    //   })
+    // )
   }
 /**
  * 
@@ -368,7 +371,9 @@ class WalletES {
    * 
    * @param {*} walletDepositCommitedEvent 
    */
-  handleWalletDepositCommited$(walletDepositCommitedEvent){
+  handleWalletDepositCommited$({aid, data, user}){
+    console.log("handleWalletDepositCommited$", data, user);   
+
     return of(walletDepositCommitedEvent)
     .pipe(
       //Create wallet execute transaction
@@ -496,6 +501,23 @@ class WalletES {
         return mongoDB.createIndexBackground$(index);
       })
     );
+  }
+
+
+  handleWalletTransactionCommited$({aid, data, user}) {
+    // console.log("handleWalletTransactionCommited$",aid, data, user);
+    return of({})
+    .pipe(
+      map(() =>({
+        ...data, user, _id: Crosscutting.generateHistoricalUuid(new Date()),
+      })),
+      tap(t => console.log("handleWalletTransactionCommited$", t)),
+      mergeMap(t => forkJoin(
+        WalletTransactionsDA.saveTransactionHistory$(t),
+        WalletDA.updateAmount$(data.fromId, 'main', data.amount * -1),
+        WalletDA.updateAmount$(data.toId, 'main', data.amount)
+      ))
+    )
   }
 
   /**

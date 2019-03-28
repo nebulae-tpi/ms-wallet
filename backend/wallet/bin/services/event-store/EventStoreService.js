@@ -162,6 +162,11 @@ class EventStoreService {
         fn: UserES.handleUserGeneralInfoUpdated$,
         obj: UserES 
       },
+      // WALLET TRANSACTIONS
+      WalletTransactionCommited:{
+        fn: wallet.eventSourcing.handleWalletTransactionCommited$, 
+        obj: wallet.eventSourcing 
+      },
       // WALLET SPENDING RULES
       SpendingRuleUpdated:{
         fn: spendingRule.eventSourcing.handleSpendingRuleUpdated$,
@@ -206,9 +211,10 @@ class EventStoreService {
       // USER
       { aggregateType: "User", eventType: "UserCreated" },
       { aggregateType: "User", eventType: "UserGeneralInfoUpdated" },
+      // WALLET MOVEMENTS      
+      { aggregateType: "Wallet", eventType: "WalletTransactionCommited" },
 
-      // WALLET SPENDING RULES
-      
+      // WALLET SPENDING RULES      
       {
         aggregateType: "SpendingRule",
         eventType: "SpendingRuleUpdated"

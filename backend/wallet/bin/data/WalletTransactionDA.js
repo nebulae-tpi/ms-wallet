@@ -104,7 +104,7 @@ class WalletTransactionDA {
       const monthYear = Crosscutting.getMonthYear(initDateFormat);
       const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);
       const query = {
-        businessId: filter.businessId,
+        walletId: filter.walletId,
       };
 
       if(filter.initDate){
@@ -117,18 +117,6 @@ class WalletTransactionDA {
         query.timestamp['$lt'] = filter.endDate;
       }
 
-      if(filter.terminal && filter.terminal.id){
-        query['terminal.id'] = filter.terminal.id;
-      }
-
-      if(filter.terminal && filter.terminal.userId){
-        query['terminal.userId'] = filter.terminal.userId;
-      }
-
-      if(filter.terminal && filter.terminal.username){
-        query['terminal.username'] = filter.terminal.username;
-      }
-
       if(filter.transactionType){
         query.type = filter.transactionType;
       }
@@ -137,7 +125,7 @@ class WalletTransactionDA {
         query.concept = filter.transactionConcept;
       }
 
-      //console.log('Query => ', JSON.stringify(query));
+      console.log('Query => ', JSON.stringify(query));
       const cursor = collection.find(query).skip(pagination.count * pagination.page).limit(pagination.count).sort({timestamp: pagination.sort});
       let obj = await this.extractNextFromMongoCursor(cursor);
       while (obj) {

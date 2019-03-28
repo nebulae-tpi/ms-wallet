@@ -100,7 +100,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
 
   RolesToChangeWallet = ['PLATFORM-ADMIN', 'BUSINESS-OWNER'];
 
-  businessQueryFiltered$: Observable<any[]>;
+  businessQueryFiltered$: Observable<any[]>; // Wallet autocomplete supplier
 
   walletData: any = {
     spendingState: '',
@@ -169,7 +169,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     .pipe(
       tap(bu => this.selectedBusinessId = (bu && bu.id) ? bu.id : undefined)
     )
-    .subscribe()
+    .subscribe();
   }
 
   buildFilterForm() {

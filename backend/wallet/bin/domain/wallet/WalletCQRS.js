@@ -234,11 +234,15 @@ class WalletCQRS {
    * @param {*} data args that contain the ifno of the manual balance adjustment
    * @param {string} authToken JWT token
    */
-  makeManualBalanceAdjustment$(data, authToken) {
-    const manualBalanceAdjustment = !data.args ? undefined : data.args.input;
-    manualBalanceAdjustment._id = uuidv4();
-    manualBalanceAdjustment.type = 'MOVEMENT';
-    manualBalanceAdjustment.concept = manualBalanceAdjustment.adjustmentType;
+  makeManualBalanceAdjustment$({args}, authToken) {
+    let mba = !args ? undefined : args.input; // Manual balance Adjusment
+    mba = {
+      _id: uuidv4(), type: 'MOVEMENT', notes: mba.notes,
+      concept: mba.adjustmentType, timestamp: Date.now(),      
+      amount: mba.value,
+      fromId: mba.adjustmentType === 'DEPOSIT' ? mba.businessWalletId : mba.walletId,
+      toId: mba.adjustmentType === 'DEPOSIT' ? mba.walletId : mba.businessWalletId
+    };
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -246,24 +250,17 @@ class WalletCQRS {
       PERMISSION_DENIED_ERROR,
       ["PLATFORM-ADMIN"]
     ).pipe(
-      mergeMap(roles => {              
-        return eventSourcing.eventStore.emitEvent$(
-          new Event({
-            eventType: manualBalanceAdjustment.adjustmentType == 'WITHDRAWAL' ? "WalletSpendingCommited": "WalletDepositCommited",
-            eventTypeVersion: 1,
-            aggregateType: "Wallet",
-            aggregateId: manualBalanceAdjustment._id,
-            data: manualBalanceAdjustment,
-            user: authToken.preferred_username
-          })
-        );
-      }),
-      map(result => {
-        return {
-          code: 200,
-          message: `Manual balance adjustment with id: ${manualBalanceAdjustment._id} has been created`
-        };
-      }),
+      mergeMap(() => eventSourcing.eventStore.emitEvent$(
+        new Event({
+          eventType: "WalletTransactionCommited",
+          eventTypeVersion: 1,
+          aggregateType: "Wallet",
+          aggregateId: mba._id,
+          data: mba,
+          user: authToken.preferred_username
+        })
+      )),
+      map(() => ({ code: 200, message: `Manual balance adjustment has been created` })),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );

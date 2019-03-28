@@ -1,10 +1,10 @@
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs/Observable";
-import * as Rx from "rxjs";
-import { GatewayService } from "../../../../api/gateway.service";
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import * as Rx from 'rxjs';
+import { GatewayService } from '../../../../api/gateway.service';
 import {
   makeManualBalanceAdjustment
-} from "../gql/wallet";
+} from '../gql/wallet';
 
 @Injectable()
 export class ManualPocketAdjustmentService {
@@ -13,15 +13,16 @@ export class ManualPocketAdjustmentService {
 
   /**
    * Make a new manual balance adjustment
-   * @param manualBalanceAdjustment Balance adjustment to be created
+   * @param mba Balance adjustment to be created
    */
-  makeManualBalanceAdjustment$(manualBalanceAdjustment): Observable<any> {
+  makeManualBalanceAdjustment$(mba: any): Observable<any> {
     const manualBalanceAdjustmentInput = {
-      businessId: manualBalanceAdjustment.businessId,
-      location: manualBalanceAdjustment.location,
-      value: manualBalanceAdjustment.value,
-      adjustmentType: manualBalanceAdjustment.adjustmentType,
-      notes: manualBalanceAdjustment.notes,    
+      businessWalletId: mba.businessWalletId,
+      walletId: mba.walletId,
+      location: mba.location,
+      value: mba.value,
+      adjustmentType: mba.adjustmentType,
+      notes: mba.notes,
     };
 
     return this.gateway.apollo.mutate<any>({
@@ -29,7 +30,7 @@ export class ManualPocketAdjustmentService {
       variables: {
         input: manualBalanceAdjustmentInput
       },
-      errorPolicy: "all"
+      errorPolicy: 'all'
     });
   }
 

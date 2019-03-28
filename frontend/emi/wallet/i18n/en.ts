@@ -10,6 +10,7 @@ export const locale = {
       DEPOSIT: 'Deposit',
       SELECT_AGENT: 'Select business unit:',
       MAX_CHARACTER_NOTES: 'Max 200 characters',
+      WALLET_REQUIRED: 'Valid Wallet Required',
       MIN_VALUE_REQUIRED: 'The value must be a value greater than zero.',
       MAX_VALUE_REQUIRED: 'The value should not exceed 20,000,000.',
       VALUE_REQUIRED: 'Value required',
@@ -47,7 +48,7 @@ export const locale = {
         MOVEMENT: 'Movement',
         undefined: ''
       },
-      ENTITY_TYPES:{
+      ENTITY_TYPES: {
         DRIVER: 'Driver',
         BUSINESS: 'Business',
         CLIENT: 'Client',
@@ -71,8 +72,8 @@ export const locale = {
       WALLET: 'Pockets',
       EXECUTED_OPERATION: 'The operation was executed correctly.',
       CLOSE: 'Close',
-      MAKE_MANUAL_BALANCE_ADJUSTMENT_MESSAGE: "Are you sure you want to perform the operation?",
-      MAKE_MANUAL_BALANCE_ADJUSTMENT_TITLE: "Manual balance adjustment",
+      MAKE_MANUAL_BALANCE_ADJUSTMENT_MESSAGE: 'Are you sure you want to perform the operation?',
+      MAKE_MANUAL_BALANCE_ADJUSTMENT_TITLE: 'Manual balance adjustment',
       OK: 'Accept',
       CANCEL: 'Cancel',
       NOTES_MINLENGTH: 'Mínima cantidad de caracteres permitidos: 20',
@@ -85,6 +86,7 @@ export const locale = {
       TRANSACTION_HISTORY_REFRESH: 'Refresh data'
     },
     ERRORS: {
+      BUSINESS_REQUIRED: 'Business Required to Make Operation',
       19001: 'Internal server error',
       19002: 'Permission denied',
       19003: 'You Don\'t have Enough information about Your Wallet. Please Restart Your Credentials'

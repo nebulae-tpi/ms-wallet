@@ -3,8 +3,8 @@ import { WalletService } from '../wallet.service';
 ////////// RXJS ///////////
 // tslint:disable-next-line:import-blacklist
 import * as Rx from 'rxjs/Rx';
-import {  mergeMap, takeUntil, tap, map, toArray, filter } from 'rxjs/operators';
-import { Subject, BehaviorSubject } from 'rxjs';
+import {  mergeMap, takeUntil, tap, map, toArray, filter, startWith, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Subject, Observable } from 'rxjs';
 
 ////////// ANGULAR //////////
 import { Component, OnInit, OnDestroy} from '@angular/core';
@@ -24,8 +24,10 @@ import { locale as spanish } from '../i18n/es';
 
 ////////// COMPONENTS /////////
 import { DialogComponent } from '../dialog/dialog.component';
+import { ToolbarService } from '../../../toolbar/toolbar.service';
 
 @Component({
+// tslint:disable-next-line: component-selector
   selector: 'app-manual-pocket-adjustment',
   templateUrl: './manual-pocket-adjustment.component.html',
   styleUrls: ['./manual-pocket-adjustment.component.scss']
@@ -34,10 +36,12 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
   private ngUnsubscribe = new Subject();
   manualBalanceAdjustmentsForm: FormGroup;
   selectedBusinessData: any = null;
-  allBusiness: any = [];
   wallet: any = null;
   value;
-  private selectedBusinessSubject$ = new Subject();
+
+  businessQueryFiltered$: Observable<any[]>; // Wallet autocomplete supplier
+  selectedWallet: any = null;
+  selectedBusinessId: any;
 
   constructor(
     private walletService: WalletService,
@@ -47,65 +51,60 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
     private formBuilder: FormBuilder,
     private translationLoader: FuseTranslationLoaderService,
     private translate: TranslateService,
+    private toolbarService: ToolbarService,
   ) {
     this.translationLoader.loadTranslations(english, spanish);
   }
 
   ngOnInit() {
-    this.manualBalanceAdjustmentsForm = this.createManualBalanceAdjustmentForm();
-    this.loadBusinessData();
-    this.loadWalletData();
+    this.createManualBalanceAdjustmentForm(); // form initializer
+    this.loadWalletFilter();            // BusinessQueryFiltered$ initializer
+    this.listenBusinessChanges();
   }
 
-  /**
-   * Loads all the information needed for the form (business)
-   */
-  loadBusinessData(){
-    this.getAllBusiness$().pipe(
-      mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
-      filter((resp: any) => !resp.errors || resp.errors.length === 0),
-      takeUntil(this.ngUnsubscribe)
-    ).subscribe(businessData => {
-      this.allBusiness = businessData;
-    });
-
-  }
-
-  /**
-   * Get the wallet info according to the selected business
-   */
-  loadWalletData(){
-    this.selectedBusinessSubject$
+  listenBusinessChanges(){
+    this.toolbarService.onSelectedBusiness$
     .pipe(
-      mergeMap(selectedBusiness => this.getWallet$(selectedBusiness)),
-      mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
-      filter((resp: any) => !resp.errors || resp.errors.length === 0),
-      takeUntil(this.ngUnsubscribe)
-    ).subscribe(wallet => {
-      console.log('loadWalletData => ', wallet);
-
-      this.wallet = wallet;
-    });
+      tap(bu => {
+        this.selectedBusinessId = (bu && bu.id) ? bu.id : undefined;
+        if(this.manualBalanceAdjustmentsForm){
+          this.manualBalanceAdjustmentsForm.get('wallet').setValue(null);
+        }
+      })
+    )
+    .subscribe();
   }
 
-  /**
-   * Creates an observable of business
-   */
-  getAllBusiness$() {
-    return this.walletService.getBusinesses$().pipe(
-      mergeMap(res => {
-        console.log('getAllBusiness => ', res);
-        return Rx.Observable.from(res.data.getWalletBusinesses);
-      }),
-      map((business: any) => {
-        return {
-          _id: business._id,
-          name: business.name
-        };
-      }),
-      toArray()
+
+
+  loadWalletFilter() {
+    this.businessQueryFiltered$ = this.manualBalanceAdjustmentsForm.get('wallet').valueChanges.pipe(
+      startWith(undefined),
+      filter(filterValue  => typeof filterValue === 'string'),
+      debounceTime(500),
+      distinctUntilChanged(),
+      mergeMap((filterText: String) => this.getWalletsFiltered$(filterText, 10))
     );
   }
+
+  getWalletsFiltered$(filterText: String, limit: number): Observable<any[]> {
+    return this.walletService.getWalletsByFilter(filterText, this.selectedBusinessId, limit)
+      .pipe(
+        mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+        filter(resp => !resp.errors),
+        mergeMap(result => Observable.from(result.data.getWalletsByFilter)),
+        toArray()
+      );
+  }
+
+   /**
+   * Listens when a new wallet have been selected
+   * @param wallet  selected wallet
+   */
+  onSelectWalletEvent(wallet) {
+    console.log('onSelectWalletEvent => ', wallet);
+  }
+
 
   /**
    * Gets the wallet info associated with the business
@@ -133,11 +132,24 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
    * Creates the business detail form and its validations
    */
   createManualBalanceAdjustmentForm() {
-    return this.formBuilder.group({
+    this.manualBalanceAdjustmentsForm = this.formBuilder.group({
       value: new FormControl(null, [Validators.required, Validators.min(1)]),
       notes: new FormControl(null, [Validators.minLength(20), Validators.maxLength(200), Validators.required]),
-      business: new FormControl(null, Validators.required),
+      wallet: new FormControl(null, [Validators.required, this.validateWalletSelection ]),
     });
+  }
+
+  displayFn(wallet): string | undefined {
+    return wallet ? `${wallet.fullname}: ${wallet.documentId} (${this.translate.instant('WALLET.ENTITY_TYPES.' + wallet.type)})` : '';
+  }
+
+  displayFnWrapper() {
+    return (offer) => this.displayFn(offer);
+  }
+
+  validateWalletSelection(c: FormControl){
+    if ( typeof c.value === 'string' || !c.value ){ return { walletSelected: { valid: false } }; }
+    return null;
   }
 
   /**
@@ -156,30 +168,38 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
     .afterClosed()
     .pipe(
       filter(accepted => accepted),
-      map(accepted => {
+      map(() => {
         const data = this.manualBalanceAdjustmentsForm.getRawValue();
         const manualBalanceAdjustment = {
           adjustmentType,
-          businessId: data.business._id,
+          walletId: data.wallet._id,
+          businessWalletId: this.selectedBusinessId,
           value: this.value,
           notes: data.notes
         };
+        console.log(manualBalanceAdjustment);
         return manualBalanceAdjustment;
       }),
-      mergeMap(manualBalanceAdjustment => this.manualPocketAdjustmentService.makeManualBalanceAdjustment$(manualBalanceAdjustment)),
-      mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
-      filter((resp: any) => !resp.errors || resp.errors.length === 0)
-    ).subscribe(res => {
+      filter(mba => {
+        if (mba && !mba.businessWalletId) {
+          this.showMessageSnackbar('ERRORS.BUSINESS_REQUIRED')
+          return false
+        }
+        else { return true }
+      }),
+      mergeMap(mba => this.manualPocketAdjustmentService.makeManualBalanceAdjustment$(mba)),
+      // mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+      // filter((resp: any) => !resp.errors || resp.errors.length === 0)
+    ).subscribe(() => {
       formDirective.resetForm();
       this.manualBalanceAdjustmentsForm.reset();
       this.snackBar.open(this.translationLoader.getTranslate().instant('WALLET.EXECUTED_OPERATION'),
-      this.translationLoader.getTranslate().instant('WALLET.CLOSE'), {
-        duration: 2000
-      });
+        this.translationLoader.getTranslate().instant('WALLET.CLOSE'), {
+          duration: 5000
+        });
     },
-    error => {
-      console.log('Error realizando operación ==> ', error);
-    });
+      error => console.log('Error realizando operación ==> ', error)
+    );
 
 
 
@@ -199,14 +219,6 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
     //   console.log("Error realizando operación ==> ", error);
     // })
 
-  }
-
-    /**
-   * Listens when a new business have been selected
-   * @param business  selected business
-   */
-  onSelectBusinessEvent(business) {
-    this.selectedBusinessSubject$.next(business);
   }
 
     /**

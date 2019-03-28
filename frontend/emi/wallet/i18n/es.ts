@@ -10,6 +10,7 @@ export const locale = {
       DEPOSIT: 'Deposito',
       SELECT_AGENT: 'Seleccione unidad de negocio:',
       MAX_CHARACTER_NOTES: 'Máximo 200 caracteres',
+      WALLET_REQUIRED: 'Selecciona Una Billetera Válida',
       MIN_VALUE_REQUIRED: 'El valor debe ser un valor mayor a cero.',
       MAX_VALUE_REQUIRED: 'El valor no debe superar los 20.000.000',
       VALUE_REQUIRED: 'Valor requerido',
@@ -85,6 +86,7 @@ export const locale = {
       TRANSACTION_HISTORY_REFRESH: 'Refrescar información'
     },
     ERRORS: {
+      BUSINESS_REQUIRED: 'Selecciona Una Unidad De Negocio Para Realiar la Operación',
       19001: 'Error interno de servidor',
       19002: 'Permiso denegado.',
       19003: 'No Tienes Informacion Suficiente de tu Billetera. Por Favor Reinicia tus Credenciales',

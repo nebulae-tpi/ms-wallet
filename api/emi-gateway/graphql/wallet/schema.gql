@@ -40,8 +40,8 @@ type WalletTransaction {
   _id: ID!
   "Timestamp where the transaction was created"
   timestamp: BigInt!
-  "ID of the business associated with the transaction"
-  businessId: String!
+  "ID of the wallet associated with the transaction"
+  walletId: String
   "Transaction type"
   type: String!
   "Transaction concept"
@@ -108,7 +108,9 @@ input ProductBonusConfigInput {
 
 input ManualBalanceAdjustmentInput {
   "Business ID"
-  businessId: String!
+  businessWalletId: String!
+  "Wallet ID"
+  walletId: String!
   "Value"
   value: Float!
   "Adjustment type"

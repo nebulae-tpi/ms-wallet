@@ -88,7 +88,7 @@ export const getWalletTransactionsHistory = gql`
     getWalletTransactionsHistory(filterInput: $filterInput, paginationInput: $paginationInput) {
       _id
       timestamp
-      businessId
+      walletId
       type
       concept
       pocket
