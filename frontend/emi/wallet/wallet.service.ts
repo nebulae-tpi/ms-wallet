@@ -109,19 +109,16 @@ export class WalletService {
 
   /**
    * Receives an event with the last wallet state when a wallet has been updated.
-   * @param businessId 
+   * @param walletId 
    */
-  getWalletPocketUpdatedSubscription$(businessId): Observable<any> {
+  getWalletPocketUpdatedSubscription$(walletId: string): Observable<any> {
     return this.gateway.apollo
       .subscribe({
         query: walletPocketUpdated,
-        variables: {
-          businessId: businessId
-        },
+        variables: { walletId },
       })
       .map(resp => {
-        console.log('resp.data.walletPocketUpdated => ', resp);
-        return (resp && resp.data && resp.data.walletPocketUpdated) ? resp.data.walletPocketUpdated : null
+        return (resp && resp.data ) ? resp.data.walletPocketUpdated : null
       });
   }
 }

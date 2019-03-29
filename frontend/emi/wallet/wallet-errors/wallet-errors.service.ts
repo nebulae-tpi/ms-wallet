@@ -136,8 +136,7 @@ export class WalletErrorsService {
         },
       })
       .map(resp => {
-        console.log('resp.data.walletPocketUpdated => ', resp);
-        return resp.data.walletPocketUpdated;
+        return (resp && resp.data ) ? resp.data.walletPocketUpdated :null
       });
   }
 }

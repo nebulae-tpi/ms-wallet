@@ -177,7 +177,6 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
           value: this.value,
           notes: data.notes
         };
-        console.log(manualBalanceAdjustment);
         return manualBalanceAdjustment;
       }),
       filter(mba => {

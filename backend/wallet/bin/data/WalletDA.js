@@ -226,7 +226,6 @@ class WalletDA {
   }
 
   static updateAmount$(walletId, pocket, amount){
-    console.log("updateAmount$", {walletId, pocket, amount});
     const incPath = { };
     incPath[`pockets.${pocket}`] = amount;
     const collection = mongoDB.db.collection(COLLECTION_NAME);

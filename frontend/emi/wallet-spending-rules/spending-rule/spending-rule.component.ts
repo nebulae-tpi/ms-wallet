@@ -223,9 +223,8 @@ export class SpendingRuleComponent implements OnInit, OnDestroy {
   }
 
   validateComparatorValue(formsGroup: FormGroup): {[s: string]: boolean} {
-    console.log('####################', formsGroup);
     if ( (formsGroup.controls.comparator.value !== 'INS' && formsGroup.controls.comparator.value !== 'ENOUGH' ) && formsGroup.controls.comparator.value.value == null  ){
-      console.log('return {"valueRequired": true };');
+      
       return {'valueRequired': true };
     }
 

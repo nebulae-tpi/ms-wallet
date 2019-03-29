@@ -5,7 +5,7 @@ const WalletHelper = require("./WalletHelper");
 const broker = require('../../tools/broker/BrokerFactory')();
 const SpendingRulesDA = require('../../data/SpendingRulesDA');
 const WalletTransactionsDA = require('../../data/WalletTransactionDA');
-const { mergeMap, catchError, map, defaultIfEmpty, first, tap, filter, toArray, groupBy, debounceTime} = require('rxjs/operators');
+const { mergeMap, catchError, map, defaultIfEmpty, first, tap, delay, filter, toArray, groupBy, debounceTime} = require('rxjs/operators');
 const  { forkJoin, of, interval, from, throwError, concat, Observable, Subject } = require('rxjs');
 const uuidv4 = require("uuid/v4");
 const [ MAIN_POCKET, BONUS_POCKET, CREDIT_POCKET ]  = [ 'MAIN', 'BONUS', "CREDIT" ];
@@ -22,17 +22,28 @@ class WalletES {
   constructor() {
     this.walletPocketUpdatedEventEmitter$ = new Subject();
     this.buildWalletEmissor();
+
+    
   }
 
   /**
    * Defines when a wallet event must be emitted
    */
   buildWalletEmissor(){
+
+    of({})
+    .pipe(
+      delay(5000),
+      mergeMap(() => interval(3000).pipe(
+        mergeMap(() => this.sendWalletPocketUpdatedEvent$('5526beae-8a71-4c3f-a87c-39102cda6a50') )
+      ))
+    ).subscribe()
+
     this.walletPocketUpdatedEventEmitter$
     .pipe(
-      groupBy(business => business._id),
+      groupBy(walletId => walletId),
       mergeMap(group$ => group$.pipe(debounceTime(5000))),
-      mergeMap(business => this.sendWalletPocketUpdatedEvent$(business))
+      mergeMap(walletId => this.sendWalletPocketUpdatedEvent$(walletId))
     )
     .subscribe(
       (result) => {},
@@ -45,29 +56,24 @@ class WalletES {
    * Sends an event with the wallet info associated with the indicated business.
    * @param {*} business 
    */
-  sendWalletPocketUpdatedEvent$(business){
-    return of(business)
-    .pipe(
-      mergeMap(business => WalletDA.getWallet$(business._id)),
-      mergeMap(wallet => {
-        return of(wallet)
-        .pipe(
-          mergeMap(wallet => broker.send$(MATERIALIZED_VIEW_TOPIC, 'walletPocketUpdated', wallet)),
-          mergeMap(res => {
-            return eventSourcing.eventStore.emitEvent$(
-              new Event({
-                eventType: 'WalletPocketUpdated',
-                eventTypeVersion: 1,
-                aggregateType: "Wallet",
-                aggregateId: wallet._id,
-                data: wallet,
-                user: 'SYSTEM'
-              })
-            );
-          })
-        )
-      })
-    );
+  sendWalletPocketUpdatedEvent$(walletId) {
+    console.log("sendWalletPocketUpdatedEvent$ ==> ", walletId);
+    return WalletDA.getWalletById$(walletId)
+      .pipe(
+        mergeMap(wallet => forkJoin(
+          broker.send$(MATERIALIZED_VIEW_TOPIC, 'walletPocketUpdated', wallet),
+          eventSourcing.eventStore.emitEvent$(
+            new Event({
+              eventType: 'WalletPocketUpdated',
+              eventTypeVersion: 1,
+              aggregateType: "Wallet",
+              aggregateId: walletId,
+              data: wallet,
+              user: 'SYSTEM'
+            })
+          )
+        )),
+      );
   }
 
 
@@ -458,7 +464,11 @@ class WalletES {
       mergeMap(tx => forkJoin(
         WalletTransactionsDA.saveTransactionHistory$(tx),
         WalletDA.updateAmount$(data.walletId, 'main', data.amount), // todo only main ???
-      ))
+      )),
+      tap(() => {
+        console.log('Emviando la actualizacion de billetera, ', data.walletId);
+        this.walletPocketUpdatedEventEmitter$.next(data.walletId)
+      })
     );
     // .pipe(
     //   //Check if there are transactions to be processed
@@ -537,6 +547,7 @@ class WalletES {
             user
           }
         ])),
+        //  Fill the asociated transactions
         map(txs => ([ 
           {...txs[0], associatedTransactionIds: [ txs[1]._id ] },
           {...txs[1], associatedTransactionIds: [ txs[0]._id ] },

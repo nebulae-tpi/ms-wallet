@@ -186,9 +186,12 @@ export const makeManualBalanceAdjustment = gql`
 
 //SUBSCRIPTIONS
 export const walletPocketUpdated = gql`
-  subscription walletPocketUpdated($businessId: String!) {
-    walletPocketUpdated(businessId: $businessId) {
+  subscription walletPocketUpdated($walletId: String!) {
+    walletPocketUpdated(walletId: $walletId) {
       _id
+      documentId
+      type
+      fullname
       pockets {
         main
         bonus

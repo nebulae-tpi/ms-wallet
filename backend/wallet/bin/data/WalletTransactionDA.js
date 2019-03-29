@@ -122,7 +122,6 @@ class WalletTransactionDA {
         query.concept = filter.transactionConcept;
       }
 
-      console.log('Query => ', JSON.stringify(query));
       const cursor = collection.find(query).skip(pagination.count * pagination.page).limit(pagination.count).sort({timestamp: pagination.sort});
       let obj = await this.extractNextFromMongoCursor(cursor);
       while (obj) {

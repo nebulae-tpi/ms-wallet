@@ -406,7 +406,7 @@ module.exports = {
           //Checks the roles of the user, if the user does not have at least one of the required roles, an error will be thrown
           RoleValidator.checkAndThrowError(
             context.authToken.realm_access.roles,
-            ["PLATFORM-ADMIN", "BUSINESS-OWNER", "POS"],
+            ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"],
             CONTEXT_NAME,
             "walletPocketUpdated",
             PERMISSION_DENIED_ERROR_CODE,
@@ -415,10 +415,7 @@ module.exports = {
 
           return pubsub.asyncIterator("walletPocketUpdated");
         },
-        (payload, variables, context, info) => {
-          //console.log('payload => ', payload, variables.businessId, (payload.businessId == variables.businessId));
-          return payload.walletPocketUpdated.businessId == variables.businessId;
-        }
+        (payload, variables, context, info) => payload.walletPocketUpdated._id == variables.walletId
       )
     }
   }
@@ -447,7 +444,6 @@ eventDescriptors.forEach(descriptor => {
         .getMaterializedViewsUpdates$([descriptor.backendEventName])
         .subscribe(
             evt => {
-              console.log('getMaterializedViewsUpdates => ', descriptor.backendEventName);
                 if (descriptor.onEvent) {
                     descriptor.onEvent(evt, descriptor);
                 }
