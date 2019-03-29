@@ -1,6 +1,6 @@
 ////////// ANGULAR //////////
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 ////////// RXJS ///////////
 import {
@@ -8,19 +8,19 @@ import {
   mergeMap,
   toArray,
   tap
-} from "rxjs/operators";
-import { Subject, fromEvent, from, of, Observable } from "rxjs";
+} from 'rxjs/operators';
+import { Subject, fromEvent, from, of, Observable } from 'rxjs';
 
 //////////// Services ////////////
-import { KeycloakService } from "keycloak-angular";
-import { WalletService } from "./../wallet.service";
-import { TransactionHistoryDetailService } from "./transaction-history-detail.service";
+import { KeycloakService } from 'keycloak-angular';
+import { WalletService } from './../wallet.service';
+import { TransactionHistoryDetailService } from './transaction-history-detail.service';
 
 //////////// i18n ////////////
-import { FuseTranslationLoaderService } from "../../../../core/services/translation-loader.service";
-import { TranslateService } from "@ngx-translate/core";
-import { locale as english } from "../i18n/en";
-import { locale as spanish } from "../i18n/es";
+import { FuseTranslationLoaderService } from '../../../../core/services/translation-loader.service';
+import { TranslateService } from '@ngx-translate/core';
+import { locale as english } from '../i18n/en';
+import { locale as spanish } from '../i18n/es';
 
 //////////// ANGULAR MATERIAL ///////////
 import {
@@ -28,13 +28,14 @@ import {
   MatSort,
   MatTableDataSource,
   MatSnackBar
-} from "@angular/material";
-import { fuseAnimations } from "../../../../core/animations";
+} from '@angular/material';
+import { fuseAnimations } from '../../../../core/animations';
 
 @Component({
-  selector: "app-transaction-history-detail",
-  templateUrl: "./transaction-history-detail.component.html",
-  styleUrls: ["./transaction-history-detail.component.scss"]
+// tslint:disable-next-line: component-selector
+  selector: 'app-transaction-history-detail',
+  templateUrl: './transaction-history-detail.component.html',
+  styleUrls: ['./transaction-history-detail.component.scss']
 })
 export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
   private ngUnsubscribe = new Subject();
@@ -43,12 +44,12 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource();
   // Columns to show in the table
   displayedColumns = [
-    "timestamp",
-    "type",
-    "concept",
-    "amount",
-    "pocket",
-    "user"
+    'timestamp',
+    'type',
+    'concept',
+    'amount',
+    'pocket',
+    'user'
   ];
 
   userRoles: any;
@@ -107,11 +108,11 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
 
           console.log('Transacciones asociadas', tx.associatedTransactionIds);
 
-          return this.canViewRelatedtransactions 
+          return this.canViewRelatedtransactions
           ? this.transactionHistoryDetailService.getAssociatedTransactionsHistoryByTransactionHistoryId$(tx._id)
-          : of([])
+          : of([]);
         }),
-        map(r => ( r && r.data && r.data.getAssociatedTransactionsHistoryByTransactionHistoryId)),    
+        map((r: any) => ( r && r.data && r.data.getAssociatedTransactionsHistoryByTransactionHistoryId)),
         tap(atxs => {
           console.log('ATXS LIST ==>', atxs);
           this.dataSource.data = atxs;
