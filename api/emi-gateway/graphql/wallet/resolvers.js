@@ -63,7 +63,7 @@ module.exports = {
         "getWalletTransactionsHistoryAmount",
         PERMISSION_DENIED_ERROR_CODE,
         "Permission denied",
-        ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+        ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       )
         .pipe(
           mergeMap(() => broker.forwardAndGetReply$(
@@ -82,7 +82,7 @@ module.exports = {
         "getWalletTransactionsHistoryById",
         PERMISSION_DENIED_ERROR_CODE,
         "Permission denied",
-        ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+        ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       )
       .pipe(
         mergeMap(() =>  broker.forwardAndGetReply$(
@@ -123,7 +123,7 @@ module.exports = {
         "getWallet",
         PERMISSION_DENIED_ERROR_CODE,
         "Permission denied",
-        ["PLATFORM-ADMIN", "BUSINESS-OWNER", "POS"]
+        ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       )
       .pipe(
         mergeMap(() => broker.forwardAndGetReply$(
@@ -286,7 +286,7 @@ module.exports = {
         "typeAndConcepts",
         PERMISSION_DENIED_ERROR_CODE,
         "Permission denied",
-        ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+        ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       )
       .pipe(
         mergeMap(() => broker.forwardAndGetReply$(

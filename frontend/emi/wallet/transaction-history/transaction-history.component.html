@@ -147,9 +147,9 @@
             <input *ngIf="canChangeWallet" [placeholder]="'WALLET.SELECT_WALLET' | translate" [matAutocomplete]="auto"
                [(value)]="selectedWallet" [formControl]="walletFilterCtrl" fxFlex>
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)='onSelectWalletEvent($event.option.value)'
-              [displayWith]="displayFn">
+              [displayWith]="displayFnWrapper()">
               <mat-option *ngFor="let wallet of businessQueryFiltered$ | async" [value]="wallet">
-                {{ wallet.fullname }}:{{ ' ' + wallet.documentId }}
+                {{ wallet.fullname }}:{{ ' ' + wallet.documentId }} ({{ 'WALLET.ENTITY_TYPES.' + wallet.type | translate }})
               </mat-option>
             </mat-autocomplete>
           </div>
@@ -163,82 +163,58 @@
           fusePerfectScrollbar>
           <!-- Timestamp Column -->
           <ng-container cdkColumnDef="timestamp">
-            <mat-header-cell *cdkHeaderCellDef>{{
-                "WALLET.TIMESTAMP" | translate
-              }}</mat-header-cell>
+            <mat-header-cell *cdkHeaderCellDef>{{ "WALLET.TIMESTAMP" | translate}}</mat-header-cell>
             <mat-cell *cdkCellDef="let transaction">
-              <p class="text-truncate">
-                {{ transaction.timestamp | date: "dd/MM/y HH:mm:ss" }}
-              </p>
+              <div>{{ transaction.timestamp | date: "dd/MM/y HH:mm:ss" }}</div>
             </mat-cell>
           </ng-container>
 
           <!-- From Column -->
           <ng-container cdkColumnDef="type">
-            <mat-header-cell *cdkHeaderCellDef>{{
-                "WALLET.TRANSACTION_TYPE" | translate
-              }}</mat-header-cell>
+            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_TYPE" | translate}}</mat-header-cell>
             <mat-cell *cdkCellDef="let transaction">
-              <p class="text-truncate">
-                {{ "WALLET.TYPES." + transaction.type | translate }}
-              </p>
+              <div>{{ "WALLET.TYPES." + transaction.type | translate }}</div>
             </mat-cell>
           </ng-container>
 
           <!-- Concept Column -->
           <ng-container cdkColumnDef="concept">
-            <mat-header-cell *cdkHeaderCellDef>{{
-                "WALLET.TRANSACTION_CONCEPT" | translate
-              }}</mat-header-cell>
+            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_CONCEPT" | translate }}</mat-header-cell>
             <mat-cell *cdkCellDef="let transaction">
-              <p class="text-truncate">
-                {{ "WALLET.CONCEPTS." + transaction.concept | translate }}
-              </p>
+              <div>{{ "WALLET.CONCEPTS." + transaction.concept | translate }}</div>
             </mat-cell>
           </ng-container>
 
           <!-- Value Column -->
           <ng-container cdkColumnDef="value">
-            <mat-header-cell *cdkHeaderCellDef>{{
-                "WALLET.TRANSACTION_VALUE" | translate
-              }}</mat-header-cell>
+            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_VALUE" | translate}}</mat-header-cell>
             <mat-cell *cdkCellDef="let transaction">
-              <p class="text-truncate" [ngClass]="{'green-fg':transaction.value > 0, 'red-fg':transaction.value < 0}">
-                {{ transaction.value | currency }}
-              </p>
+              <div [ngClass]="{'green-fg':transaction.amount > 0, 'red-fg':transaction.amount < 0}">{{ transaction.amount | currency }}</div>
             </mat-cell>
           </ng-container>
 
           <!-- Pocket Column -->
           <ng-container cdkColumnDef="pocket">
-            <mat-header-cell *cdkHeaderCellDef>{{
-                "WALLET.TRANSACTION_POCKET" | translate
-              }}</mat-header-cell>
+            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_POCKET" | translate}}</mat-header-cell>
             <mat-cell *cdkCellDef="let transaction">
-              <p class="text-truncate">
-                {{ "WALLET." + transaction.pocket | translate }}
-              </p>
+              <div>{{ "WALLET." + transaction.pocket | translate }}</div>
             </mat-cell>
           </ng-container>
 
           <!-- User Column -->
           <ng-container cdkColumnDef="user">
-            <mat-header-cell *cdkHeaderCellDef>{{
-                "WALLET.TRANSACTION_USER" | translate
-              }}</mat-header-cell>
+            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_USER" | translate}}</mat-header-cell>
             <mat-cell *cdkCellDef="let transaction">
-              <p class="text-truncate">{{ transaction.user }}</p>
+              <div>{{ transaction.user }}</div>
             </mat-cell>
           </ng-container>
 
           <mat-header-row *cdkHeaderRowDef="displayedColumns"></mat-header-row>
 
-          <mat-row *cdkRowDef="let transaction; columns: displayedColumns" class="transactions"
+          <mat-row *cdkRowDef="let transaction; columns: displayedColumns" class="item"
             (click)="selectTransactionHistoryRow(transaction)" [ngClass]="{
-                highlight:
-                  selectedTransactionHistory &&
-                  selectedTransactionHistory._id == transaction._id
-              }" [routerLink]="transaction._id" matRipple>
+                highlight: selectedTransactionHistory && selectedTransactionHistory._id == transaction._id }"
+                [routerLink]="transaction._id" matRipple>
           </mat-row>
         </mat-table>
         <mat-paginator #paginator [length]="tableSize" [pageIndex]="page" [pageSize]="count"

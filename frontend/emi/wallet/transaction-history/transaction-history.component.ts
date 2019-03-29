@@ -98,7 +98,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   // isPlatformAdmin: Boolean = false;
   canChangeWallet = false;
 
-  RolesToChangeWallet = ['PLATFORM-ADMIN', 'BUSINESS-OWNER'];
+  rolesToChangeWallet = ['PLATFORM-ADMIN', 'BUSINESS-OWNER'];
 
   businessQueryFiltered$: Observable<any[]>; // Wallet autocomplete supplier
 
@@ -155,12 +155,12 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     this.buildFilterForm();       // Initialize the filter form in the side nav
     this.loadRoleData();          // Load the roles of the user
     this.onLangChange();          // Language listener to update the time filter
-    this.listenbusinessChanges(); // Listen busineses changes
+    this.listenbusinessChanges(); // Listen busineses changes in toolbar
     this.loadTypesAndConcepts();  // Load the types and concepts to apply in filter
     this.loadWalletFilter();      // BusinessQueryFiltered$ initializer
     this.detectFilterAndPaginatorChanges(); // detects the changes in filter and paginator and sends to service
     this.loadDataInForm();        // Load data in filter form and paginator using data saved in the service
-    // this.loadWalletData();        // create the listener in change wallet to listen the wallet update subscription
+    this.loadWalletData();        // create the listener in change wallet to listen the wallet update subscription
     this.refreshTransactionHistoryTable(); // create the listener fo filters and business  and wallet selection to update the data source
   }
 
@@ -200,8 +200,13 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     return type1 && type2 ? type1.type === type2.type : type1 === type2;
   }
 
-  displayFn(wallet) {
-    return wallet ? `${wallet.fullname} (${wallet.documentId})` : '';
+ 
+  displayFn(wallet): string | undefined {
+    return wallet ? `${wallet.fullname}: ${wallet.documentId} (${this.translate.instant('WALLET.ENTITY_TYPES.' + wallet.type)})` : '';
+  }
+
+  displayFnWrapper() {
+    return (offer) => this.displayFn(offer);
   }
 
   /**
@@ -214,8 +219,8 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     )
       .pipe(take(1))
       .subscribe(([filterAndPaginator, selectedWallet]) => {
-        console.log(`### FilterAndPaginator ==>`, filterAndPaginator);
-        console.log('### selectedWallet     ==> ', selectedWallet);
+        // console.log(`### FilterAndPaginator ==>`, filterAndPaginator);
+        // console.log('### selectedWallet     ==> ', selectedWallet);
         if (filterAndPaginator) {
           if (filterAndPaginator.filter) {
             const filterData: any = filterAndPaginator.filter;
@@ -239,6 +244,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
 
         if (selectedWallet) {
           this.selectedWallet = selectedWallet;
+          this.walletData.pockets = selectedWallet.pockets;
           this.walletFilterCtrl.setValue(this.selectedWallet);
         }
         this.filterForm.enable({ emitEvent: true });
@@ -297,15 +303,15 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   loadWalletData() {
     this.transactionHistoryService.selectedWalletEvent$
       .pipe(
-        filter(selectedBusiness => selectedBusiness != null),
-        switchMap((selectedBusiness: any) => concat(
-          this.walletService.getWallet$(selectedBusiness._id)
+        filter(selectedwallet => selectedwallet != null),
+        switchMap((selectedwallet: any) => concat(
+          this.walletService.getWallet$(selectedwallet._id)
             .pipe(
               mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
               filter((resp: any) => !resp.errors || resp.errors.length === 0),
               map(result => result.data.getWallet)
             ),
-          this.walletService.getWalletPocketUpdatedSubscription$(selectedBusiness._id)
+          this.walletService.getWalletPocketUpdatedSubscription$(selectedwallet._id)
             .pipe(
               tap(wallet => this.outdatedData = true)
             )
@@ -332,8 +338,8 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(wallet => {
-        console.log('new Wallet => ', wallet);
-        this.walletData = wallet;
+        // console.log('------------------ new Wallet => ', wallet);
+        this.walletData.pockets = wallet.pockets;
       });
   }
 
@@ -428,11 +434,11 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
         debounceTime(500),
         filter(
           ([filterAndPagination, selectedWallet]) => {
-            console.log('refreshTable => ', [
-              filterAndPagination,
-              selectedWallet,
-              this.selectedBusinessId
-            ]);
+            // console.log('refreshTable => ', [
+            //   filterAndPagination,
+            //   selectedWallet,
+            //   this.selectedBusinessId
+            // ]);
             return filterAndPagination != null && selectedWallet != null;
           }
         ),
@@ -460,34 +466,26 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
         mergeMap(([filterInput, paginationInput]) =>
           forkJoin(
             this.transactionHistoryService.getTransactionsHistory$(filterInput, paginationInput)
-              .pipe(mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp))),
-            // this.transactionHistoryService.getTransactionsHistoryAmount$(filterInput)
-            //   .pipe(mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)))
+              .pipe(
+                mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+                map(r => (r && r.data && r.data.getWalletTransactionsHistory ) ? r.data.getWalletTransactionsHistory: [])
+              ),
+            this.transactionHistoryService.getTransactionsHistoryAmount$(filterInput)
+              .pipe(
+                mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+                map(r => (r && r.data && r.data.getWalletTransactionsHistoryAmount) ? r.data.getWalletTransactionsHistoryAmount : 0)
+              )
           )
         ),
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(([transactionsHistory, transactionsHistoryAmount]) => {
-        console.log( 'GENERANDO OBJETOS PARA REALIZAR LA QUERY', transactionsHistory, transactionsHistoryAmount);
-        this.outdatedData = false;
-        // if (transactionsHistory.data.getWalletTransactionsHistory) {
-        //   transactionsHistory.data.getWalletTransactionsHistory.sort(
-        //     function(transactionsHistory1, transactionsHistory2) {
-        //       return (
-        //         transactionsHistory2.timestamp -
-        //           transactionsHistory1.timestamp ||
-        //         (transactionsHistory2.pocket < transactionsHistory1.pocket
-        //           ? -1
-        //           : 1)
-        //       );
-        //     }
-        //   );
-        // }
+      .subscribe(([txList, txListSize]) => {
+        // console.log( 'GENERANDO OBJETOS PARA REALIZAR LA QUERY', txList, txListSize);
+        this.outdatedData = false; 
+        txList.sort((a, b) => b.timestamp - a.timestamp || (a.pocket < b.pocket ? -1 : 1));
 
-        // this.dataSource.data =
-        //   transactionsHistory.data.getWalletTransactionsHistory;
-        // this.tableSize =
-        //   transactionsHistoryAmount.data.getWalletTransactionsHistoryAmount;
+        this.dataSource.data = txList;
+        this.tableSize = txListSize
       });
   }
 
@@ -498,7 +496,6 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     this.checkIfUserCanChangeWallet$()
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(response => {
-        console.log('checkIfUserCanChangeWallet', response);
         this.canChangeWallet = response;
       });
   }
@@ -516,7 +513,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
   checkIfUserCanChangeWallet$() {
     return Rx.Observable.of(this.keycloakService.getUserRoles(true))
     .pipe(
-      map((userRoles: string[]) => userRoles.filter(value => -1 !== this.RolesToChangeWallet.indexOf(value)).length),
+      map((userRoles: string[]) => userRoles.filter(value => -1 !== this.rolesToChangeWallet.indexOf(value)).length),
       map(commonRoles => commonRoles > 0)
     );
   }
@@ -525,7 +522,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     this.businessQueryFiltered$ = this.checkIfUserCanChangeWallet$()
     .pipe(
       mergeMap(canChangeWallet => {
-        console.log('canChangeWallet => ', canChangeWallet);
+        // console.log('canChangeWallet => ', canChangeWallet);
         if (canChangeWallet) {
           return this.walletFilterCtrl.valueChanges.pipe(
             startWith(undefined),
@@ -539,7 +536,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
             mergeMap(r => this.graphQlAlarmsErrorHandler$(r)),
             map(r => (r && r.data && r.data.getMyWallet) ? r.data.getMyWallet : null ),
             tap(wallet => {
-              console.log('this.walletService.getMyOwnWallet$()', wallet);
+              // console.log('this.walletService.getMyOwnWallet$()', wallet);
               this.selectedWallet = wallet;
               this.walletData.pockets = wallet.pockets;
               this.selectedWalletName = `${wallet.fullname} (${wallet.documentId})`;
@@ -577,7 +574,6 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
    * @param wallet  selected wallet
    */
   onSelectWalletEvent(wallet) {
-    console.log('onSelectWalletEvent => ', wallet);
     this.walletData.pockets = wallet.pockets;
     this.transactionHistoryService.selectWallet(wallet);
   }

@@ -26,7 +26,7 @@ export class TransactionHistoryService {
   constructor(private gateway: GatewayService) {}
 
   addFilterAndPaginatorData(filterAndPaginator) {
-    console.log(`addFilterAndPaginatorData => ${JSON.stringify(filterAndPaginator)}`);
+    // console.log(`addFilterAndPaginatorData => ${JSON.stringify(filterAndPaginator)}`);
     this._filterAndPaginator$.next(filterAndPaginator);
   }
 

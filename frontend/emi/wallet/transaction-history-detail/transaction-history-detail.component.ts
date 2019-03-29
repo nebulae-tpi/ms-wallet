@@ -7,14 +7,9 @@ import {
   map,
   mergeMap,
   toArray,
-  filter,
-  tap,
-  takeUntil,
-  startWith,
-  debounceTime,
-  distinctUntilChanged
+  tap
 } from "rxjs/operators";
-import { Subject, fromEvent, of, Observable } from "rxjs";
+import { Subject, fromEvent, from, of, Observable } from "rxjs";
 
 //////////// Services ////////////
 import { KeycloakService } from "keycloak-angular";
@@ -51,7 +46,7 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
     "timestamp",
     "type",
     "concept",
-    "value",
+    "amount",
     "pocket",
     "user"
   ];
@@ -59,7 +54,10 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
   userRoles: any;
   isPlatformAdmin: Boolean = false;
 
-  selectedTransactionHistory: any = {
+  canViewRelatedtransactions = false;
+  rolesToChangeWallet = ['PLATFORM-ADMIN', 'BUSINESS-OWNER'];
+
+  selectedTransaction: any = {
     terminal: {}
   };
   selectedBusiness: any = null;
@@ -84,6 +82,7 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
    */
   async checkIfUserIsPlatformAdmin() {
     this.userRoles = await this.keycloakService.getUserRoles(true);
+    this.canViewRelatedtransactions = this.userRoles.filter(value => -1 !== this.rolesToChangeWallet.indexOf(value)).length > 0;
     this.isPlatformAdmin = this.userRoles.some(role => role === 'PLATFORM-ADMIN');
   }
 
@@ -93,54 +92,32 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
   loadTransactionHistory() {
     this.activatedRouter.params
       .pipe(
-        mergeMap(params => {
-          return this.transactionHistoryDetailService
-          .getTransactionHistoryById$(params.id)
-          .map(
-            transactionHistory =>
-              transactionHistory.data.getWalletTransactionsHistoryById
-          );
+        mergeMap(params => this.transactionHistoryDetailService.getTransactionHistoryById$(params.id)),
+        map(response => response.data.getWalletTransactionsHistoryById),
+        map(tx => {
+          this.selectedTransaction = tx;
+          return tx;
         }),
-        mergeMap(transactionHistory => {
-          const hasAssociatedTxIds =
-            transactionHistory.associatedTransactionIds != null &&
-            transactionHistory.associatedTransactionIds.length > 0;
+        mergeMap(tx => {
+          const hasAssociatedTxIds = tx.associatedTransactionIds != null && tx.associatedTransactionIds.length > 0;
 
           if (!hasAssociatedTxIds) {
-            return of([transactionHistory]);
+            return of([tx]);
           }
 
-          return this.transactionHistoryDetailService
-            .getAssociatedTransactionsHistoryByTransactionHistoryId$(
-              transactionHistory.associatedTransactionIds
-            )
-            .pipe(
-              map(associatedTransactionHistory => [
-                transactionHistory,
-                associatedTransactionHistory.data
-                  .getAssociatedTransactionsHistoryByTransactionHistoryId
-              ])
-            );
+          console.log('Transacciones asociadas', tx.associatedTransactionIds);
+
+          return this.canViewRelatedtransactions 
+          ? this.transactionHistoryDetailService.getAssociatedTransactionsHistoryByTransactionHistoryId$(tx._id)
+          : of([])
         }),
-        mergeMap(([transactionHistory, associatedTransactionIds]) => {
-          return this.getBusinessById$(transactionHistory.businessId).map(
-            business => [transactionHistory, associatedTransactionIds, business]
-          );
+        map(r => ( r && r.data && r.data.getAssociatedTransactionsHistoryByTransactionHistoryId)),    
+        tap(atxs => {
+          console.log('ATXS LIST ==>', atxs);
+          this.dataSource.data = atxs;
         })
       )
-      .subscribe(([transactionHistory, associatedTransactionIds, business]) => {
-        this.selectedTransactionHistory = {
-          ...transactionHistory,
-          terminal: transactionHistory.terminal || {}
-        };
-        this.selectedTransactionHistory.terminal = {
-          id: this.selectedTransactionHistory.terminal.id || " ",
-          userId: this.selectedTransactionHistory.terminal.userId || " ",
-          username: this.selectedTransactionHistory.terminal.username || " "
-        };
-        this.selectedBusiness = business;
-        this.dataSource.data = associatedTransactionIds;
-      });
+      .subscribe();
   }
 
   /**
@@ -158,7 +135,7 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
    * @param transactionHistory selected transaction history
    */
   selectTransactionHistoryRow(transactionHistory) {
-    this.selectedTransactionHistory = transactionHistory;
+    this.selectedTransaction = transactionHistory;
   }
 
   ngOnDestroy() {

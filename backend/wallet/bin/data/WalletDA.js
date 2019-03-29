@@ -37,13 +37,13 @@ class WalletDA {
     return of(businessId).pipe(
       mergeMap(id => defer(() => collection.findOne({ businessId: id }))),
       mergeMap(wallet => wallet ? of(wallet) : throwError(WALLET_NO_FOUND_ERROR) ),
-      map(wallet => ({
-        ...wallet,
-        pockets: {
-          main: parseFloat( new NumberDecimal(wallet.pockets.main.bytes).toString() ),
-          bonus: parseFloat( new NumberDecimal(wallet.pockets.bonus.bytes).toString() )
-        }
-      }))
+      // map(wallet => ({
+      //   ...wallet,
+      //   pockets: {
+      //     main: parseFloat( new NumberDecimal(wallet.pockets.main.bytes).toString() ),
+      //     bonus: parseFloat( new NumberDecimal(wallet.pockets.bonus.bytes).toString() )
+      //   }
+      // }))
     );
   }
 

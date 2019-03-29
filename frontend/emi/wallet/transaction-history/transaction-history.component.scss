@@ -85,13 +85,13 @@
     overflow: auto;
 
     .mat-header-row {
-        min-height: 64px;
+        min-height: 50px;
     }
 
     .item {
         position: relative;
         cursor: pointer;
-        height: 84px;
+        height: 30px;
     }
 
     .mat-cell {
@@ -101,7 +101,7 @@
     }
 
     .mat-column-id {
-        flex: 0 1 84px;
+        flex: 0 1 30px;
     }
 
     .mat-column-buttons {
@@ -130,12 +130,6 @@
 
 .highlight{
     background: #B9BBB9;
-}
-
-.transactions {
-    position: relative;
-    cursor: pointer;
-    height: 84px;
 }
 
   // Extract the palettes you need from the theme definition.

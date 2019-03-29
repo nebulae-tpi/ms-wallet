@@ -28,7 +28,7 @@ class WalletCQRS {
    * @param {*} args.businessId business ID
    */
   getWalletsByFilter$({ args }, authToken) {
-    console.log("getWalletsByFilter$", args);
+    // console.log("getWalletsByFilter$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -37,14 +37,13 @@ class WalletCQRS {
       ["PLATFORM-ADMIN"]
       ).pipe(
           mergeMap(() => walletDA.getFilteredWallets$(args.filterText, args.businessId, args.limit)),
-          tap(r => console.log("###### RESPONSE.LENGTH ######", r.length)),
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
           catchError(err => this.handleError$(err))
       );
   }
 
   getMyWallet$({ args }, authToken) {
-    console.log("getMyWallet$", args);
+    // console.log("getMyWallet$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -53,10 +52,9 @@ class WalletCQRS {
       ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       ).pipe(
           map(() => authToken.userId || authToken.driverId || authToken.clientId),
-          tap(r => console.log('QUERING BY A WALLET WIT ID ==> ', r)),
+          // tap(r => console.log('QUERING BY A WALLET WIT ID ==> ', r)),
           mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$" ) : of(walletId) ),
           mergeMap(walletId => walletDA.getWalletById$(walletId)),
-          tap(r => console.log("###### RESPONSE ######", r)),
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
           catchError(err => this.handleError$(err))
       );
@@ -89,20 +87,20 @@ class WalletCQRS {
       "WALLET",
       "getWallet",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN", "BUSINESS-OWNER", "POS"]
+      ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
     ).pipe(
-      mergeMap(roles => {
-        const isPlatformAdmin = roles["PLATFORM-ADMIN"];
-        //If a user does not have the role to get info of a wallet from other business, we must return an error
-          if (!isPlatformAdmin && authToken.businessId != args.businessId) {
-            return this.createCustomError$(
-              PERMISSION_DENIED_ERROR,
-              'getWallet'
-            );
-          }
-          return of(roles);
-      }),
-      mergeMap(val => WalletDA.getWallet$(args.businessId)),
+      // mergeMap(roles => {
+      //   const isPlatformAdmin = roles["PLATFORM-ADMIN"];
+      //   //If a user does not have the role to get info of a wallet from other business, we must return an error
+      //     if (!isPlatformAdmin && authToken.businessId != args.businessId) {
+      //       return this.createCustomError$(
+      //         PERMISSION_DENIED_ERROR,
+      //         'getWallet'
+      //       );
+      //     }
+      //     return of(roles);
+      // }),
+      mergeMap(() => WalletDA.getWalletById$(args.walletId)),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );
@@ -150,7 +148,7 @@ class WalletCQRS {
       "WALLET",
       "getWalletTransactionHistory",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+      ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
     ).pipe(
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
@@ -164,7 +162,7 @@ class WalletCQRS {
           return of(roles);
       }),
       mergeMap(val => WalletTransactionDA.getTransactionsHistoryAmount$(args.filterInput)),
-      toArray(),
+      // tap(r => console.log("getWalletTransactionsHistoryAmount", r) ),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );
@@ -181,12 +179,12 @@ class WalletCQRS {
       "WALLET",
       "getWalletTransactionHistoryById",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+      ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
     ).pipe(
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, the query must be filtered with the businessId of the user
-        const businessId = !isPlatformAdmin? (authToken.businessId || ''): null;
+        const businessId = !isPlatformAdmin ? (authToken.businessId || ''): null;
         return WalletTransactionDA.getTransactionHistoryById$(businessId, args.id);
       }),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
@@ -200,6 +198,7 @@ class WalletCQRS {
    * @param {*} args args
    */
   getAssociatedTransactionsHistoryByTransactionHistoryId$({ args }, authToken) {    
+    console.log("getAssociatedTransactionsHistoryByTransactionHistoryId$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",
@@ -214,8 +213,7 @@ class WalletCQRS {
         return WalletTransactionDA.getTransactionHistoryById$(businessId, args.id);
       }),
       mergeMap(transactionHistory => {
-        //console.log('getAssociatedTransactionsHistoryByTransactionHistoryId1 => ', transactionHistory);
-        transactionHistory.associatedTransactionIds = [transactionHistory._id];
+        // transactionHistory.associatedTransactionIds = [transactionHistory._id];
         if(transactionHistory && transactionHistory.associatedTransactionIds && transactionHistory.associatedTransactionIds.length > 0){
           return WalletTransactionDA.getTransactionsHistoryByIds$(args.id, transactionHistory.associatedTransactionIds, transactionHistory.businessId)
         }else{
@@ -271,15 +269,7 @@ class WalletCQRS {
       .pipe(
         map(typesAndConcepts => JSON.parse(typesAndConcepts)),
         map(typesAndConceptsObj => Object.entries(typesAndConceptsObj)),
-        map(typesAndConcepts => 
-          typesAndConcepts.reduce((acc, item) => { 
-            acc.push({
-              type:  item[0],
-              concepts: item[1]
-            });
-            return acc; 
-          }, []),
-        ),
+        map(typesAndConcepts => typesAndConcepts.reduce((acc, item) => [...acc, {type:  item[0],concepts: item[1]}], [])),
         mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
         catchError(error => this.handleError$(error))
       )
@@ -324,9 +314,7 @@ class WalletCQRS {
     return of(rawRespponse).pipe(
       map(resp => ({
         data: resp,
-        result: {
-          code: 200
-        }
+        result: { code: 200 }
       }))
     )
   }

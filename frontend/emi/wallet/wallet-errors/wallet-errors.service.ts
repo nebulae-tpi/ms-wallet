@@ -80,12 +80,10 @@ export class WalletErrorsService {
    * @param businessId ID of business to filter
    * @returns {Observable}
    */
-  getWallet$(businessId) {
+  getWallet$(walletId) {
     return this.gateway.apollo.query<any>({
       query: getWallet,
-      variables: {
-        businessId: businessId
-      },
+      variables: { walletId },
       fetchPolicy: "network-only",
       errorPolicy: "all"
     });

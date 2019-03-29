@@ -47,9 +47,9 @@ type WalletTransaction {
   "Transaction concept"
   concept: String!
   "Indicates which was the used pocket"
-  pocket: String!
-  "Value associated to the transaction"
-  value: Float!
+  pocket: String
+  "Amount associated to the transaction"
+  amount: Float!
   "User that performs the operation that create the transaction"
   user: String!  
   "Notes"
@@ -260,7 +260,7 @@ type Query {
   "Get business by id"
   getWalletBusinessById(id: ID!): Business
   "Get wallet info of the business"
-  getWallet(businessId: String!): Wallet
+  getWallet(walletId: String!): Wallet
   "Get the transactions history according to the filter and the pagination"
   getWalletTransactionsHistory(filterInput: WalletTransactionsFilterInput!, paginationInput: PaginationInput!): [WalletTransaction]
   "Get the amount of transactions according to the filter"

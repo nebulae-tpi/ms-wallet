@@ -70,8 +70,8 @@ export const getWalletBusinessById = gql`
 `;
 
 export const getWallet = gql`
-  query getWallet($businessId: String!) {
-    getWallet(businessId: $businessId) {
+  query getWallet($walletId: String!) {
+    getWallet(walletId: $walletId) {
       _id
       pockets {
         main
@@ -92,7 +92,7 @@ export const getWalletTransactionsHistory = gql`
       type
       concept
       pocket
-      value
+      amount
       user
       notes
       terminal {
@@ -119,23 +119,14 @@ export const getWalletTransactionsHistoryById = gql`
     getWalletTransactionsHistoryById(id: $id) {
       _id
       timestamp
-      businessId
+      walletId
       type
       concept
       pocket
-      value
+      amount
       user
       notes
       associatedTransactionIds
-      terminal {
-        id
-        userId
-        username
-      }
-      location {
-        type
-        coordinates
-      }
     }
   }
 `;
@@ -145,22 +136,13 @@ export const getAssociatedTransactionsHistoryByTransactionHistoryId = gql`
     getAssociatedTransactionsHistoryByTransactionHistoryId(id: $id) {
       _id
       timestamp
-      businessId
+      walletId
       type
       concept
       pocket
-      value
+      amount
       user
       notes
-      terminal {
-        id
-        userId
-        username
-      }
-      location {
-        type
-        coordinates
-      }
     }
   }
 `;

@@ -42,6 +42,7 @@ class WalletTransactionDA {
    * @param {*} transactionHistoryId ID of the transaction history
    */
   static getTransactionHistoryById$(businessId, transactionHistoryId) {
+    console.log("getTransactionHistoryById$", businessId, transactionHistoryId);
     const monthYear = transactionHistoryId.substr(transactionHistoryId.length - 4);
     const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);
     return of({businessId, transactionHistoryId})
@@ -50,9 +51,9 @@ class WalletTransactionDA {
         let query = {
           _id: transactionHistoryId
         };
-        if(filter.businessId){
-          query.businessId = filter.businessId;
-        }
+        // if(filter.businessId){
+        //   query.businessId = filter.businessId;
+        // }
         return query;
       }),
       mergeMap(query => defer(() => collection.findOne(query)))
@@ -66,17 +67,13 @@ class WalletTransactionDA {
   static getTransactionsHistoryByIds$(id, transactionHistoryIds, businessId) {
     const monthYear = id.substr(id.length - 4);
     const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);
-    return of(transactionHistoryIds)
-    .pipe(
-      map(data => {
-        let query = {
-          _id: {$in: transactionHistoryIds},
-          businessId: businessId
-        };
-        return query;
-      }),
-      mergeMap(query => defer(() => collection.find(query).limit(10).toArray()))
-    );
+    const query = {
+      _id: { $in: transactionHistoryIds },
+      businessId: businessId
+    };
+    console.log("getTransactionsHistoryByIds$", query);
+
+    return defer(() => collection.find(query).limit(10).toArray());
   }
 
 /**

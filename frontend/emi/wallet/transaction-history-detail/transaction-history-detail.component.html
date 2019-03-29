@@ -7,26 +7,16 @@
   <!-- CENTER -->
   <div class="center">
     <!-- HEADER BUSINESS -->
-    <div
-      class="header white-fg"
-      fxLayout="row"
-      fxLayoutAlign="space-between center"
-    >
+    <div class="header white-fg" fxLayout="row" fxLayoutAlign="space-between center">
       <!-- APP TITLE -->
       <div fxLayout="row" fxLayoutAlign="start center">
-        <button
-          class="mr-0 mr-sm-16"
-          mat-icon-button
-          [routerLink]="'/wallet/transaction-history'"
-        >
+        <button class="mr-0 mr-sm-16" mat-icon-button [routerLink]="'/wallet/transaction-history'">
           <mat-icon>arrow_back</mat-icon>
         </button>
-
+  
         <div fxLayout="column" fxLayoutAlign="start start" *fuseIfOnDom>
           <label for="search" style="margin-bottom: 10px" class="mr-20">
-            <span class="mat-title">{{
-              "WALLET.TRANSACTION_HISTORY_DETAIL" | translate
-            }}</span>
+            <span class="mat-title">{{"WALLET.TRANSACTION_HISTORY_DETAIL" | translate}}</span>
           </label>
           <div class="subtitle" *ngIf="selectedBusiness">
             {{ selectedBusiness.name }}
@@ -36,141 +26,122 @@
       <!-- / APP TITLE -->
     </div>
     <!-- / HEADER BUSINESS -->
-
+  
     <!-- CONTENT CARD -->
     <div class="content-card mat-white-bg">
       <mat-tab-group>
         <mat-tab label="{{'WALLET.INFO' | translate}}">
-
-            <div class="tab-content p-24" fxLayout="column" fusePerfectScrollbar>
-
-                <div class="pb-16" fxLayout="row" fxLayoutAlign="start center">
-                    <mat-icon class="m-0 mr-16">attach_money</mat-icon>
-                    <div class="h2 secondary-text">{{'WALLET.TRANSACTION' | translate}}(ID: {{selectedTransactionHistory._id}})</div>
-                </div>
-
-                <div class="w-100-p" fxLayout="column" class="mat-white-bg p-24 mr-24">
-
-                    <div class="form-field" fxLayout="row" fxLayoutAlign="start center">
-                        <span class="title">{{'WALLET.TIMESTAMP' | translate}}</span>
-                        <span class="value">{{selectedTransactionHistory.timestamp | date: "dd/MM/y HH:mm:ss"}}</span>
-                    </div>
-
-                  <div fxLayout="row">
-
-                      <div class="form-field mr-16" fxLayout="row" fxLayoutAlign="start center">
-                          <span class="title">{{'WALLET.TRANSACTION_TYPE' | translate}}:</span>
-                          <span class="value">{{'WALLET.TYPES.' +selectedTransactionHistory.type | translate}}</span>
-                      </div>
-
-                      <div class="form-field" fxLayout="row" fxLayoutAlign="start center">
-                          <span class="title">{{'WALLET.TRANSACTION_CONCEPT' | translate}}:</span>
-                          <span class="value">{{'WALLET.CONCEPTS.' +selectedTransactionHistory.concept | translate}}</span>
-                      </div>
-
-                  </div>
-
-                  <div class="form-field" fxLayout="row" fxLayoutAlign="start center">
-                      <span class="title">{{'WALLET.TRANSACTION_VALUE' | translate}}:</span>
-                      <span class="value" [ngClass]="{'green-fg':selectedTransactionHistory.value > 0, 'red-fg':selectedTransactionHistory.value < 0}">{{selectedTransactionHistory.value | currency}}</span>
-                  </div>
-
-                  <div class="form-field" fxLayout="row" fxLayoutAlign="start center" *ngIf="selectedTransactionHistory.terminal">
-                      <span class="title">{{'WALLET.TRANSACTION_TERMINAL_ID' | translate}}:</span>
-                      <span class="value">{{selectedTransactionHistory.terminal.id}}</span>
-                  </div>
-
-                  <div class="form-field" fxLayout="row" fxLayoutAlign="start center" *ngIf="selectedTransactionHistory.terminal">
-                      <span class="title">{{'WALLET.TRANSACTION_TERMINAL_USER_ID' | translate}}:</span>
-                      <span class="value">{{selectedTransactionHistory.terminal.userId}}</span>
-                  </div>
-
-                  <div class="form-field" fxLayout="row" fxLayoutAlign="start center" *ngIf="selectedTransactionHistory.terminal">
-                      <span class="title">{{'WALLET.TRANSACTION_TERMINAL_USERNAME' | translate}}:</span>
-                      <span class="value">{{selectedTransactionHistory.terminal.username}}</span>
-                  </div>
-
-                  <div class="form-field" fxLayout="row" fxLayoutAlign="start center">
-                      <span class="title">{{'WALLET.TRANSACTION_USER' | translate}}:</span>
-                      <span class="value">{{selectedTransactionHistory.user}}</span>
-                  </div>
-
-                  <div class="form-field" fxLayout="row" fxLayoutAlign="start center" *ngIf="selectedTransactionHistory.notes">
-                    <span class="title">{{'WALLET.TRANSACTION_NOTES' | translate}}:</span>
-                    <span class="value">{{selectedTransactionHistory.notes}}</span>
-                </div>
-
-
-                </div>
-
-                <div class="pb-16" fxLayout="row" fxLayoutAlign="start center">
-                    <mat-icon class="m-0 mr-16">grain</mat-icon>
-                    <div class="h2 secondary-text">{{'WALLET.ASSOCIATED_TRANSACTIONS' | translate}}</div>
-                </div>
-
-                <mat-table id="associated-transactions-history-table"
-                class="item-table p-24 mr-24 mb-24"
-                #table [dataSource]="dataSource">
-
-                    <!-- Timestamp Column -->
-                    <ng-container cdkColumnDef="timestamp">
-                      <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TIMESTAMP' | translate}}</mat-header-cell>
-                      <mat-cell *cdkCellDef="let transaction">
-                        <p class="text-truncate">{{transaction.timestamp | date: 'dd/MM/y HH:mm:ss'}}</p>
-                      </mat-cell>
-                    </ng-container>
-
-                    <!-- From Column -->
-                    <ng-container cdkColumnDef="type">
-                      <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TRANSACTION_TYPE' | translate}}</mat-header-cell>
-                      <mat-cell *cdkCellDef="let transaction">
-                        <p class="text-truncate">{{'WALLET.TYPES.'+transaction.type | translate}}</p>
-                      </mat-cell>
-                    </ng-container>
-
-                    <!-- Concept Column -->
-                    <ng-container cdkColumnDef="concept">
-                      <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TRANSACTION_CONCEPT' | translate}}</mat-header-cell>
-                      <mat-cell *cdkCellDef="let transaction">
-                        <p class="text-truncate">{{'WALLET.CONCEPTS.'+transaction.concept | translate}}</p>
-                      </mat-cell>
-                    </ng-container>
-
-                    <!-- Value Column -->
-                    <ng-container cdkColumnDef="value">
-                      <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TRANSACTION_VALUE' | translate}}</mat-header-cell>
-                      <mat-cell *cdkCellDef="let transaction">
-                        <p class="text-truncate" [ngClass]="{'green-fg':transaction.value > 0, 'red-fg':transaction.value < 0}">{{transaction.value | currency}}</p>
-                      </mat-cell>
-                    </ng-container>
-
-                    <!-- Pocket Column -->
-                    <ng-container cdkColumnDef="pocket">
-                      <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TRANSACTION_POCKET' | translate}}</mat-header-cell>
-                      <mat-cell *cdkCellDef="let transaction">
-                        <p class="text-truncate">{{'WALLET.'+transaction.pocket | translate}}</p>
-                      </mat-cell>
-                    </ng-container>
-
-                    <!-- User Column -->
-                    <ng-container cdkColumnDef="user">
-                      <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TRANSACTION_USER' | translate}}</mat-header-cell>
-                      <mat-cell *cdkCellDef="let transaction">
-                        <p class="text-truncate">{{transaction.user}}</p>
-                      </mat-cell>
-                    </ng-container>
-
-                    <mat-header-row *cdkHeaderRowDef="displayedColumns"></mat-header-row>
-
-                    <mat-row *cdkRowDef="let transaction; columns: displayedColumns;" class="transactions"
-                    (click)="selectTransactionHistoryRow(transaction)" [ngClass]="{'highlight': selectedTransactionHistory && selectedTransactionHistory._id == transaction._id}"
-                    [routerLink]="['../', transaction._id]" matRipple>
-                    </mat-row>
-
-                  </mat-table>
-
+  
+          <div class="tab-content p-24" fxLayout="row wrap" fusePerfectScrollbar>
+          
+            <div fxFlex="100" class="pb-16" fxLayoutAlign="start center">
+              <mat-icon class="m-0 mr-16">attach_money</mat-icon>
+              <div class="h2 secondary-text">{{'WALLET.TRANSACTION' | translate}}(ID: {{selectedTransaction._id}})
+              </div>
             </div>
-
+          
+          
+            <div fxFlex.gt-xs="50" fxFlex="100" class="form-field" fxLayout.gt-xs="row" fxLayout="column" >
+              <span class="title">{{'WALLET.TIMESTAMP' | translate}}</span>
+              <span class="value">{{selectedTransaction.timestamp | date: "dd/MM/y HH:mm:ss"}}</span>
+            </div>
+                   
+          
+            <div fxFlex.gt-xs="50" fxFlex="100" class="form-field" fxLayout.gt-xs="row" fxLayout="column" >
+              <span class="title">{{'WALLET.TRANSACTION_TYPE' | translate}}:</span>
+              <span class="value">{{'WALLET.TYPES.' +selectedTransaction.type | translate}}</span>
+            </div>
+          
+            <div fxFlex.gt-xs="50" fxFlex="100" class="form-field" fxLayout.gt-xs="row" fxLayout="column" >
+              <span class="title">{{'WALLET.TRANSACTION_CONCEPT' | translate}}:</span>
+              <span class="value">{{'WALLET.CONCEPTS.' +selectedTransaction.concept | translate}}</span>
+            </div>
+          
+            <div fxFlex.gt-xs="50" fxFlex="100" class="form-field" >
+              <span class="title">{{'WALLET.TRANSACTION_VALUE' | translate}}:</span>
+              <span class="value"
+                [ngClass]="{'green-fg':selectedTransaction.amount > 0, 'red-fg':selectedTransaction.amount < 0}">{{selectedTransaction.amount | currency}}</span>
+            </div>
+                                
+            <div fxFlex.gt-xs="50" fxFlex="100" fxLayout.gt-xs="row" fxLayout="column" class="form-field" >
+              <span class="title">{{'WALLET.TRANSACTION_USER' | translate}}:</span>
+              <span class="value">{{selectedTransaction.user}}</span>
+            </div>
+          
+            <div fxFlex.gt-xs="50" fxFlex="100" class="form-field" fxLayout.gt-xs="row" fxLayout="column" *ngIf="selectedTransaction.notes">
+              <span class="title">{{'WALLET.TRANSACTION_NOTES' | translate}}:</span>
+              <span class="value">{{selectedTransaction.notes}}</span>
+            </div>
+          
+          
+            <div fxFlex="100" *ngIf="canViewRelatedtransactions" class="pb-16" fxLayout.gt-xs="row" fxLayout="column" >
+              <mat-icon class="m-0 mr-16">grain</mat-icon>
+              <div class="h2 secondary-text">{{'WALLET.ASSOCIATED_TRANSACTIONS' | translate}}</div>
+            </div>
+          
+            <mat-table  *ngIf="canViewRelatedtransactions"  id="associated-transactions-history-table"
+              class="item-table" #table [dataSource]="dataSource">
+          
+              <!-- Timestamp Column -->
+              <ng-container cdkColumnDef="timestamp">
+                <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TIMESTAMP' | translate}}</mat-header-cell>
+                <mat-cell *cdkCellDef="let transaction">
+                  <div>{{transaction.timestamp | date: 'dd/MM/y HH:mm:ss'}}</div>
+                </mat-cell>
+              </ng-container>
+          
+              <!-- TYPE Column -->
+              <ng-container cdkColumnDef="type">
+                <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TRANSACTION_TYPE' | translate}}</mat-header-cell>
+                <mat-cell *cdkCellDef="let transaction">
+                  <div>{{'WALLET.TYPES.'+transaction.type | translate}}</div>
+                </mat-cell>
+              </ng-container>
+          
+              <!-- Concept Column -->
+              <ng-container cdkColumnDef="concept">
+                <mat-header-cell fxHide fxShow.gt-xs *cdkHeaderCellDef>{{'WALLET.TRANSACTION_CONCEPT' | translate}}</mat-header-cell>
+                <mat-cell fxHide fxShow.gt-xs *cdkCellDef="let transaction">
+                  <div>{{'WALLET.CONCEPTS.'+transaction.concept | translate}}</div>
+                </mat-cell>
+              </ng-container>
+          
+              <!-- Value Column -->
+              <ng-container cdkColumnDef="amount">
+                <mat-header-cell *cdkHeaderCellDef>{{'WALLET.TRANSACTION_VALUE' | translate}}</mat-header-cell>
+                <mat-cell *cdkCellDef="let transaction">
+                  <p  [ngClass]="{'green-fg':transaction.amount > 0, 'red-fg':transaction.amount < 0}">
+                    {{transaction.amount | currency}}</p>
+                </mat-cell>
+              </ng-container>
+          
+              <!-- Pocket Column -->
+              <ng-container cdkColumnDef="pocket">
+                <mat-header-cell fxHide fxShow.gt-xs *cdkHeaderCellDef>{{'WALLET.TRANSACTION_POCKET' | translate}}</mat-header-cell>
+                <mat-cell fxHide fxShow.gt-xs *cdkCellDef="let transaction">
+                  <div>{{'WALLET.'+transaction.pocket | translate}}</div>
+                </mat-cell>
+              </ng-container>
+          
+              <!-- User Column -->
+              <ng-container cdkColumnDef="user">
+                <mat-header-cell fxHide fxShow.gt-xs *cdkHeaderCellDef>{{'WALLET.TRANSACTION_USER' | translate}}</mat-header-cell>
+                <mat-cell fxHide fxShow.gt-xs *cdkCellDef="let transaction">
+                  <div>{{transaction.user}}</div>
+                </mat-cell>
+              </ng-container>
+          
+              <mat-header-row *cdkHeaderRowDef="displayedColumns"></mat-header-row>
+          
+              <mat-row *cdkRowDef="let transaction; columns: displayedColumns;" class="item"
+                (click)="selectTransactionHistoryRow(transaction)"
+                [routerLink]="['../', transaction._id]" matRipple>
+              </mat-row>
+          
+            </mat-table>
+          
+          </div>
+  
         </mat-tab>
       </mat-tab-group>
     </div>
