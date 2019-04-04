@@ -13,7 +13,7 @@ spec:
         app: wallet
     spec:      
       containers:
-      - image: DOCKERHUB/wallet.backend.wallet:0.0.4
+      - image: DOCKERHUB/wallet.backend.wallet:0.0.6
         name: wallet
         volumeMounts:
         - name: google-application-credentials

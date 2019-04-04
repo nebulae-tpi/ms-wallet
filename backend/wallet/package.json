@@ -30,7 +30,7 @@
     "mocha": "^5.0.5"
   },
   "dependencies": {
-    "@nebulae/event-store": "^1.0.0",
+    "@nebulae/event-store": "^1.1.2",
     "async-mqtt": "^1.0.1",
     "datejs": "^1.0.0-rc3",
     "dotenv": "^5.0.1",
