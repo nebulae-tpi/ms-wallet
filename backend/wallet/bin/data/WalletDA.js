@@ -3,8 +3,8 @@ let mongoDB = undefined;
 const COLLECTION_NAME = "Wallet";
 const { CustomError } = require("../tools/customError");
 const NumberDecimal = require("mongodb").Decimal128;
-const { mergeMap, map} = require("rxjs/operators");
-const { Observable, of, defer, throwError, catchError } = require("rxjs");
+const { mergeMap, map, catchError} = require("rxjs/operators");
+const { Observable, of, defer, throwError } = require("rxjs");
 
 const WALLET_NO_FOUND_ERROR = new CustomError(
   "Wallet no found",
