@@ -5,7 +5,7 @@ const Rx = require("rxjs");
 const COLLECTION_NAME = "SpendingRules";
 const { CustomError } = require("../tools/customError");
 const { defer, of } = require('rxjs');
-const { map, mergeMap } = require('rxjs/operators');
+const { map, mergeMap, catchError } = require('rxjs/operators');
 
 class SpendingRules {
 
@@ -150,10 +150,17 @@ class SpendingRules {
      */
     static createNewWalletSpendingRule$(spendingRule) {
         const collection = mongoDB.db.collection(COLLECTION_NAME);
-        return of(spendingRule)
+
+        return defer(() => collection.insertOne(spendingRule))
             .pipe(
-                mergeMap(spendingRule => defer(() => collection.insertOne(spendingRule)))
-            );
+                catchError(err => {
+                    if (err.code == 11000) {
+                        console.log(err.message);
+                        return of(null);
+                    }
+                    return throwError(err);
+                })
+            )
     }
 
     static updateNewWalletSpendingRule$(spendingRule, setOnInset) {
