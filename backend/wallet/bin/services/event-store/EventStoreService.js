@@ -15,7 +15,7 @@ let instance;
 /**
  * Micro-BackEnd key
  */
-const mbeKey = "ms-wallet_mbe_wallet_3";
+const mbeKey = "ms-wallet_mbe_wallet_4";
 
 class EventStoreService {
   constructor() {
@@ -168,26 +168,26 @@ class EventStoreService {
         obj: wallet.eventSourcing 
       },
       // WALLET SPENDING RULES
-      SpendingRuleUpdated:{
-        fn: spendingRule.eventSourcing.handleSpendingRuleUpdated$,
-        obj: spendingRule.eventSourcing
-      },
-      WalletSpendingCommited: {
-        fn: wallet.eventSourcing.handleWalletSpendingCommited$,
-        obj: wallet.eventSourcing
-      },
-      WalletDepositCommited: {
-        fn: wallet.eventSourcing.handleWalletDepositCommited$,
-        obj: wallet.eventSourcing
-      },
-      WalletTransactionExecuted: {
-        fn: wallet.eventSourcing.handleWalletTransactionExecuted$,
-        obj: wallet.eventSourcing
-      },
-      CreateIndexesWalletTriggered: { 
-        fn: wallet.eventSourcing.createIndexesWallet$, 
-        obj: wallet.eventSourcing 
-      },
+      // SpendingRuleUpdated:{
+      //   fn: spendingRule.eventSourcing.handleSpendingRuleUpdated$,
+      //   obj: spendingRule.eventSourcing
+      // },
+      // WalletSpendingCommited: {
+      //   fn: wallet.eventSourcing.handleWalletSpendingCommited$,
+      //   obj: wallet.eventSourcing
+      // },
+      // WalletDepositCommited: {
+      //   fn: wallet.eventSourcing.handleWalletDepositCommited$,
+      //   obj: wallet.eventSourcing
+      // },
+      // WalletTransactionExecuted: {
+      //   fn: wallet.eventSourcing.handleWalletTransactionExecuted$,
+      //   obj: wallet.eventSourcing
+      // },
+      // CreateIndexesWalletTriggered: { 
+      //   fn: wallet.eventSourcing.createIndexesWallet$, 
+      //   obj: wallet.eventSourcing 
+      // },
     };
     
   }
@@ -215,26 +215,26 @@ class EventStoreService {
       { aggregateType: "Wallet", eventType: "WalletTransactionCommited" },
 
       // WALLET SPENDING RULES      
-      {
-        aggregateType: "SpendingRule",
-        eventType: "SpendingRuleUpdated"
-      },
-      {
-        aggregateType: "Wallet",
-        eventType: "WalletSpendingCommited"
-      },
-      {
-        aggregateType: "Wallet",
-        eventType: "WalletDepositCommited"
-      },
-      {
-        aggregateType: "Wallet",
-        eventType: "WalletTransactionExecuted"
-      },
-      {
-        aggregateType: "Cronjob",
-        eventType: "CreateIndexesWalletTriggered"
-      }
+      // {
+      //   aggregateType: "SpendingRule",
+      //   eventType: "SpendingRuleUpdated"
+      // },
+      // {
+      //   aggregateType: "Wallet",
+      //   eventType: "WalletSpendingCommited"
+      // },
+      // {
+      //   aggregateType: "Wallet",
+      //   eventType: "WalletDepositCommited"
+      // },
+      // {
+      //   aggregateType: "Wallet",
+      //   eventType: "WalletTransactionExecuted"
+      // },
+      // {
+      //   aggregateType: "Cronjob",
+      //   eventType: "CreateIndexesWalletTriggered"
+      // }
     ]
   }
 }

@@ -20,15 +20,7 @@ class BusinessES {
    * @param {*} event business created event
    */
   handleBusinessCreated$({aid, data}) {
-    // return forkJoin(
-    //   BusinessDA.persistBusiness$(data),
-    //   spendingRules.eventSourcing.handleBusinessCreated$(data),
-    //   wallet.eventSourcing.handleBusinessCreated$(businessCreatedEvent)
-    // );
-
-
-    // NEW HANDLER
-
+    console.log("handleBusinessCreated$", aid);
     return of(data)
       .pipe(
         // create the default wallet state
@@ -50,27 +42,14 @@ class BusinessES {
    * updates Wallet and WSR if necessary for the business edited
    * @param {*} evt business general info updated event
    */
-  handleBusinessGeneralInfoUpdated$(evt) {
-    // return of(evt.data)
-    //   .pipe(
-    //     mergeMap(businessUpdated => forkJoin(
-    //       BusinessDA.updateBusinessGeneralInfo$(
-    //         evt.aid,
-    //         businessUpdated
-    //       ),
-    //       spendingRules.eventSourcing.handleBusinessGeneralInfoUpdated$(evt.aid, businessUpdated.name ),
-    //       wallet.eventSourcing.handleBusinessGeneralInfoUpdated$(evt)
-    //     )
-    //     )
-    //   );
-
-    // NEW HANDLER 
+  handleBusinessGeneralInfoUpdated$({aid, data, user}) {
+    console.log("handleBusinessGeneralInfoUpdated$", aid);
 
     return of(data)
       .pipe(
         map(rawdata => ({
           _id: aid,
-          businessId: rawdata.aid, // todo
+          businessId: aid, // todo
           type: 'BUSINESS',
           fullname: rawdata.generalInfo.name,
           documentId: rawdata.generalInfo.documentId
