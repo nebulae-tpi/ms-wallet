@@ -52,11 +52,11 @@ class MongoDB {
      */
     createIndexes$() {
         return Observable.create(async (observer) => {
-            observer.next('Creating index for wallet.Wallet => ({ businessId: 1}, { unique: true })  ');
-            await this.db.collection('Wallet').createIndex( { businessId: 1}, { unique: true }); 
+            // observer.next('Creating index for wallet.Wallet => ({ businessId: 1}, { unique: true })  ');
+            // await this.db.collection('Wallet').createIndex( { businessId: 1}, { unique: true }); 
 
-            observer.next('Creating index for wallet.Business => ({id: 1, name: 1})  ');
-            await this.db.collection('Business').createIndex( { id: 1, name: 1 }); 
+            // observer.next('Creating index for wallet.Business => ({id: 1, name: 1})  ');
+            // await this.db.collection('Business').createIndex( { id: 1, name: 1 }); 
 
             observer.next('All indexes created');
             observer.complete();
