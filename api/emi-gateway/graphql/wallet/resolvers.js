@@ -397,6 +397,7 @@ module.exports = {
       ).toPromise();
     }
   },
+  
   //// SUBSCRIPTIONS ///////
   Subscription: {
     walletPocketUpdated: {
