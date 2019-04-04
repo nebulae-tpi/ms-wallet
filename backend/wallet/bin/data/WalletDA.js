@@ -4,7 +4,7 @@ const COLLECTION_NAME = "Wallet";
 const { CustomError } = require("../tools/customError");
 const NumberDecimal = require("mongodb").Decimal128;
 const { mergeMap, map} = require("rxjs/operators");
-const { Observable, of, defer, throwError } = require("rxjs");
+const { Observable, of, defer, throwError, catchError } = require("rxjs");
 
 const WALLET_NO_FOUND_ERROR = new CustomError(
   "Wallet no found",
@@ -186,7 +186,16 @@ class WalletDA {
 
   static createNeWallet$(wallet) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return defer(() => collection.insertOne(wallet));
+    return defer(() => collection.insertOne(wallet))
+    .pipe(
+      catchError(err => {
+        if(err.code == 11000){
+          console.log(err.message);
+          return of(null);
+        }
+        return throwError(err);        
+      })
+    )
   }
 
   static updateWallet$(wallet, setOnInsert) {
