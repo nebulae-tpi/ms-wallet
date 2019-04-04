@@ -28,7 +28,7 @@ class WalletCQRS {
    * @param {*} args.businessId business ID
    */
   getWalletsByFilter$({ args }, authToken) {
-    // console.log("getWalletsByFilter$", args);
+    console.log("getWalletsByFilter$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",

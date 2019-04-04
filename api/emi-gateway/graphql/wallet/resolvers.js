@@ -398,6 +398,7 @@ module.exports = {
     }
   },
   
+  
   //// SUBSCRIPTIONS ///////
   Subscription: {
     walletPocketUpdated: {

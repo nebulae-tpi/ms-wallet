@@ -221,11 +221,10 @@ class WalletDA {
     if (businessId) {
       filter.businessId = businessId;
     }
-    return defer(() =>
-      collection
-        .find(filter)
-        .limit(limit)
-        .toArray()
+    return defer(() => collection
+      .find(filter)
+      .limit(limit)
+      .toArray()
     );
   }
 
