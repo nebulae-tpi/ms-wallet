@@ -234,14 +234,15 @@ class WalletDA {
     return defer(() => collection.findOne({ _id: walletId }));
   }
 
-  static updateAmount$(walletId, pocket, amount){
-    const incPath = { };
+  static updateAmount$(walletId, pocket, amount) {
+    console.log("updateAmount$", walletId, amount);
+    const incPath = {};
     incPath[`pockets.${pocket}`] = amount;
     const collection = mongoDB.db.collection(COLLECTION_NAME);
     return defer(() => collection.updateOne(
-      {_id: walletId},
+      { _id: walletId },
       { $inc: incPath }
-      ))
+    ))
 
   }
 }

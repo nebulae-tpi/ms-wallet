@@ -15,7 +15,7 @@ let instance;
 /**
  * Micro-BackEnd key
  */
-const mbeKey = "ms-wallet_mbe_wallet_9";
+const mbeKey = "ms-wallet_mbe_wallet_10";
 
 class EventStoreService {
   constructor() {
@@ -180,10 +180,10 @@ class EventStoreService {
       //   fn: wallet.eventSourcing.handleWalletDepositCommited$,
       //   obj: wallet.eventSourcing
       // },
-      // WalletTransactionExecuted: {
-      //   fn: wallet.eventSourcing.handleWalletTransactionExecuted$,
-      //   obj: wallet.eventSourcing
-      // },
+      WalletTransactionExecuted: {
+        fn: wallet.eventSourcing.handleWalletTransactionExecuted$,
+        obj: wallet.eventSourcing
+      },
       // CreateIndexesWalletTriggered: { 
       //   fn: wallet.eventSourcing.createIndexesWallet$, 
       //   obj: wallet.eventSourcing 
@@ -227,10 +227,10 @@ class EventStoreService {
       //   aggregateType: "Wallet",
       //   eventType: "WalletDepositCommited"
       // },
-      // {
-      //   aggregateType: "Wallet",
-      //   eventType: "WalletTransactionExecuted"
-      // },
+      {
+        aggregateType: "Wallet",
+        eventType: "WalletTransactionExecuted"
+      },
       // {
       //   aggregateType: "Cronjob",
       //   eventType: "CreateIndexesWalletTriggered"
