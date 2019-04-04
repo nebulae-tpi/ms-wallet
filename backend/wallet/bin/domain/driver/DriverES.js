@@ -28,8 +28,8 @@ class DriverES {
           _id: aid,
           businessId: rawdata.businessId,
           type: 'DRIVER',
-          fullname: `${rawdata.generalInfo.name} ${rawdata.generalInfo.lastname}`,
-          documentId: rawdata.generalInfo.document,
+          fullname: `${(rawdata.generalInfo||{}).name} ${(rawdata.generalInfo||{}).lastname}`,
+          documentId: (rawdata.generalInfo||{}).document,
           pockets: { main: 0, credit: 0, bonus: 0 }
         })),
         mergeMap(wallet => walletDA.createNeWallet$(wallet)),
@@ -46,7 +46,7 @@ class DriverES {
           _id: aid,
           businessId: rawdata.businessId, // todo
           type: 'DRIVER',
-          fullname: `${rawdata.generalInfo.name} ${rawdata.generalInfo.lastname}`,
+          fullname: `${(rawdata.generalInfo||{}).name} ${(rawdata.generalInfo||{}).lastname}`,
           documentId: rawdata.generalInfo.document
         })),
         mergeMap(wallet => walletDA.updateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } } )),

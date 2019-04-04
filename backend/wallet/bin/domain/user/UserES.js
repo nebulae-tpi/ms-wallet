@@ -27,8 +27,8 @@ class UserES {
           _id: aid,
           businessId: rawdata.businessId,
           type: 'USER',
-          fullname: `${rawdata.generalInfo.name} ${rawdata.generalInfo.lastname}`,
-          documentId: rawdata.generalInfo.documentId,
+          fullname: `${(rawdata.generalInfo||{}).name} ${(rawdata.generalInfo||{}).lastname}`,
+          documentId: (rawdata.generalInfo||{}).documentId,
           pockets: { main: 0, credit: 0, bonus: 0 }
         })),
         mergeMap(wallet => walletDA.createNeWallet$(wallet)),
@@ -44,8 +44,8 @@ class UserES {
           _id: aid,
           businessId: rawdata.businessId, // todo
           type: 'USER',
-          fullname: `${rawdata.generalInfo.name} ${rawdata.generalInfo.lastname}`,
-          documentId: rawdata.generalInfo.documentid
+          fullname: `${(rawdata.generalInfo||{}).name} ${(rawdata.generalInfo||{}).lastname}`,
+          documentId: (rawdata.generalInfo||{}).documentid
         })),
         mergeMap(wallet => walletDA.updateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } } )),
         mergeMap(mResult => (mResult && mResult.result && mResult.result.inserted == 1)
