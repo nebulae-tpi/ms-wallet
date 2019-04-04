@@ -71,7 +71,7 @@
                 "path": "wallet-errors",
                 "loadChildren": "./main/content/wallet/wallet.module#WalletModule",
                 "priority": 1000,
-                "roles" : ["PLATFORM-ADMIN"],
+                "roles" : ["SYSADMIN"],
                 "default" : false
             }            
         ],
@@ -121,7 +121,7 @@
                 "path": "wallet-spending-rules",
                 "loadChildren": "./main/content/wallet-spending-rules/wallet-spending-rules.module#WalletSpengingRulesModule",
                 "priority": 2000,
-                "roles" : ["PLATFORM-ADMIN"],
+                "roles" : ["SYSADMIN"],
                 "default" : false
             }            
         ],

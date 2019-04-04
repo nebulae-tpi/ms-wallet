@@ -31,14 +31,6 @@ class WalletES {
    */
   buildWalletEmissor(){
 
-    of({})
-    .pipe(
-      delay(5000),
-      mergeMap(() => interval(3000).pipe(
-        mergeMap(() => this.sendWalletPocketUpdatedEvent$('5526beae-8a71-4c3f-a87c-39102cda6a50') )
-      ))
-    ).subscribe()
-
     this.walletPocketUpdatedEventEmitter$
     .pipe(
       groupBy(walletId => walletId),
