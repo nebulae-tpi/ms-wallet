@@ -33,8 +33,9 @@ class UserES {
           pockets: { main: 0, credit: 0, bonus: 0 }
         })),
         mergeMap(wallet => walletDA.createNeWallet$(wallet)),
-        // create the default wallet spending Rule
-        mergeMap(() => WalletSpendingRuleDA.createNewWalletSpendingRule$(defaultWSR))
+        mergeMap(r => ( r && r.ops && r.insertedCount == 1) ? this.emitWalletCreatedOrUpdated$(r.ops[0]) : of({})),
+        mergeMap(() => WalletSpendingRuleDA.createNewWalletSpendingRule$({ walletId: aid, businessId: data.businessId,  ...defaultWSR})),
+        
       );
   }
   
@@ -48,14 +49,32 @@ class UserES {
           businessId: rawdata.businessId, // todo
           type: 'USER',
           fullname: `${(rawdata.generalInfo||{}).name} ${(rawdata.generalInfo||{}).lastname}`,
-          documentId: (rawdata.generalInfo||{}).documentid
+          documentId: (rawdata.generalInfo||{}).documentId
         })),
-        mergeMap(wallet => walletDA.updateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } } )),
-        mergeMap(mResult => (mResult && mResult.result && mResult.result.inserted == 1)
-          ? WalletSpendingRuleDA.updateNewWalletSpendingRule$({}, defaultWSR)
+        mergeMap(wallet => walletDA.findAndUpdateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } } )),
+        mergeMap(r => (r && r.value)
+          ? this.emitWalletCreatedOrUpdated$(r.value).pipe(mapTo(r.lastErrorObject))
+          : of(r.lastErrorObject)
+        ),
+        mergeMap(({upserted}) => upserted
+          ? WalletSpendingRuleDA.updateNewWalletSpendingRule$({ walletId: aid, businessId:data.businessId,  ...defaultWSR})
           : of(null)
         )
       );
+  }
+
+  emitWalletCreatedOrUpdated$(wallet){
+    console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
+    return eventSourcing.eventStore.emitEvent$(
+      new Event({
+        eventType: "WalletUpdated",
+        eventTypeVersion: 1,
+        aggregateType: "Wallet",
+        aggregateId: wallet._id,
+        data: wallet,
+        user: "SYSTEM"
+      })
+    )
   }
 
 

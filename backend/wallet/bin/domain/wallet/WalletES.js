@@ -56,7 +56,7 @@ class WalletES {
           broker.send$(MATERIALIZED_VIEW_TOPIC, 'walletPocketUpdated', wallet),
           eventSourcing.eventStore.emitEvent$(
             new Event({
-              eventType: 'WalletPocketUpdated',
+              eventType: 'WalletUpdated',
               eventTypeVersion: 1,
               aggregateType: "Wallet",
               aggregateId: walletId,

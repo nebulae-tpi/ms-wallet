@@ -2,17 +2,41 @@ const Rx = require("rxjs");
 const BusinessDA = require("../../data/BusinessDA");
 const spendingRules = require('../spending-rules');
 const wallet = require('../wallet');
-const { take, mergeMap, tap, catchError, map } = require('rxjs/operators');
+const { take, mergeMap, tap, catchError, map, delay, mapTo } = require('rxjs/operators');
 const  { forkJoin, of, interval } = require('rxjs');
 
 const walletDA = require("../../data/WalletDA");
 const WalletSpendingRuleDA = require('../../data/SpendingRulesDA');
 const defaultWSR = process.env.WSR_BUSINESS || {};
+const eventSourcing = require("../../tools/EventSourcing")();
+const Event = require("@nebulae/event-store").Event;
 
 let instance;
 
 class BusinessES {
   constructor() {
+    // of({})
+    //   .pipe(
+    //     delay(2000),
+    //     mergeMap(() => eventSourcing.eventStore.emitEvent$(
+    //       new Event({
+    //         eventType: "UserGeneralInfoUpdated",
+    //         eventTypeVersion: 1,
+    //         aggregateType: "User",
+    //         aggregateId: "sd989845--14-g4--f0-6-g4-6-45-f4o9",
+    //         data: { 
+    //           businessId: "4j5hb34g5j345--gg6w-",
+    //           generalInfo: {
+    //             name: 'Nombre',
+    //             lastname: 'Nombre',
+    //             documentId: 'documento ID'
+    //           }
+    //         },
+    //         user: "SYSTEM"
+    //       })
+    //     ))
+    //   )
+    // .subscribe()
   }
 
   /**
@@ -33,8 +57,8 @@ class BusinessES {
           pockets: { main: 0, credit: 0, bonus: 0 }
         })),
         mergeMap(wallet => walletDA.createNeWallet$(wallet)),
-        // create the default wallet spending Rule
-        mergeMap(() => WalletSpendingRuleDA.createNewWalletSpendingRule$(defaultWSR))
+        mergeMap(r => ( r && r.ops && r.insertedCount == 1) ? this.emitWalletCreatedOrUpdated$(r.ops[0]) : of({})),
+        mergeMap(() => WalletSpendingRuleDA.createNewWalletSpendingRule$({ walletId: aid, businessId:aid,  ...defaultWSR}))
       );
   }
 
@@ -44,7 +68,6 @@ class BusinessES {
    */
   handleBusinessGeneralInfoUpdated$({aid, data, user}) {
     console.log("handleBusinessGeneralInfoUpdated$", aid);
-
     return of(data)
       .pipe(
         map(rawdata => ({
@@ -54,12 +77,30 @@ class BusinessES {
           fullname: (rawdata.generalInfo || {}).name,
           documentId: (rawdata.generalInfo || {}).documentId
         })),
-        mergeMap(wallet => walletDA.updateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } })),
-        mergeMap(mResult => (mResult && mResult.result && mResult.result.inserted == 1)
-          ? WalletSpendingRuleDA.updateNewWalletSpendingRule$({}, defaultWSR)
+        mergeMap(wallet => walletDA.findAndUpdateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } })),
+        mergeMap(r => (r && r.value)
+          ? this.emitWalletCreatedOrUpdated$(r.value).pipe(mapTo(r.lastErrorObject))
+          : of(r.lastErrorObject)
+        ),
+        mergeMap(({upserted}) => upserted
+          ? WalletSpendingRuleDA.updateNewWalletSpendingRule$({ walletId: aid, businessId:aid,  ...defaultWSR})
           : of(null)
         )
       );
+  }
+
+  emitWalletCreatedOrUpdated$(wallet){
+    console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
+    return eventSourcing.eventStore.emitEvent$(
+      new Event({
+        eventType: "WalletUpdated",
+        eventTypeVersion: 1,
+        aggregateType: "Wallet",
+        aggregateId: wallet._id,
+        data: wallet,
+        user: "SYSTEM"
+      })
+    )
   }
 
   /**

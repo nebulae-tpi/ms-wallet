@@ -198,13 +198,13 @@ class WalletDA {
     )
   }
 
-  static updateWallet$(wallet, setOnInsert) {
+  static findAndUpdateWallet$(wallet, setOnInsert) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
     return defer(() =>
-      collection.updateOne(
+      collection.findOneAndUpdate(
         { _id: wallet._id },
         { $set: { ...wallet }, $setOnInsert: { ...setOnInsert } },
-        { upsert: true }
+        { upsert: true, returnOriginal: false }
       )
     );
   }
