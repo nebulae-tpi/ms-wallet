@@ -13,7 +13,7 @@ spec:
         app: wallet
     spec:      
       containers:
-      - image: DOCKERHUB/wallet.backend.wallet:0.0.8
+      - image: DOCKERHUB/wallet.backend.wallet:0.0.9
         name: wallet
         volumeMounts:
         - name: google-application-credentials
@@ -58,7 +58,7 @@ spec:
           value: PUBSUB
         # RESET LOCK INITIALIZE BACKED
         - name: LOCKVERSION
-          value: "04_04_19__2"
+          value: "04_04_19__3"
         # PRODUCTS AND CONCEPTS TYPES
         - name: WALLET_TRANSACTION_TYPES_CONCEPTS
           value: '{"SALE": ["RECARGA_CIVICA"], "MOVEMENT": ["WITHDRAWAL", "DEPOSIT"]}'

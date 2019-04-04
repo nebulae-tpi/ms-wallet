@@ -58,6 +58,7 @@ class MongoDB {
             // observer.next('Creating index for wallet.Business => ({id: 1, name: 1})  ');
             // await this.db.collection('Business').createIndex( { id: 1, name: 1 }); 
 
+
             observer.next('All indexes created');
             observer.complete();
         });
