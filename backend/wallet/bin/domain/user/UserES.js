@@ -20,6 +20,7 @@ class UserES {
   }
 
   handleUserCreated$({aid, data}){
+    console.log("handleUserCreated$", aid);
     return of(data)
       .pipe(
         // create the default wallet state
@@ -38,6 +39,8 @@ class UserES {
   }
   
   handleUserGeneralInfoUpdated$({aid, data}){
+    console.log("handleUserGeneralInfoUpdated$", aid);
+
     return of(data)
       .pipe(
         map(rawdata => ({
