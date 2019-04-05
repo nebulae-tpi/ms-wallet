@@ -14,6 +14,7 @@ const { handleError$ } = require('../../tools/GraphqlResponseTools');
 
 const CONTEXT_NAME = 'WALLET';
 
+
 function getResponseFromBackEnd$(response) {
   return of(response).pipe(
     map(resp => {

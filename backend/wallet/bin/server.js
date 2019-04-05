@@ -5,6 +5,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
+
 const eventSourcing = require('./tools/EventSourcing')();
 const eventStoreService = require('./services/event-store/EventStoreService')();
 const mongoDB = require('./data/MongoDB').singleton();
@@ -16,7 +17,6 @@ const SpendingRulesDA = require('./data/SpendingRulesDA');
 const graphQlService_emi = require('./services/emi-gateway/GraphQlService')();
 // const graphQlService_sales = require('./services/sales-gateway/GraphQlService')();
 const { concat, forkJoin} = require('rxjs');
-
 
 const start = () => {
     concat(
