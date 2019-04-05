@@ -1,0 +1,44 @@
+type MqttParams {
+  "MQTT server URL"
+  url: String
+  "MQTT server port"
+  port: Int
+  "MQTT Client ID"
+  clientId: String
+  "MQTT connection user"
+  user: String,
+  "MQTT connection password"
+  password: String,  
+  "order"
+  order: Int
+}
+
+type GoogleMapsParams {
+  googleMapsAndroidKey: String,
+  googleMapsBrowserKey: String
+}
+
+type Params {
+   MqttParams: [MqttParams]
+   GoogleMapsParams: GoogleMapsParams
+}
+
+type ClientMessageTranslation {
+  es: String
+  en: String
+}
+
+type PredefinedMessages {
+  "Predefined message code"
+  code: String!
+  type: String!
+  translation: ClientMessageTranslation
+}
+
+"Business Contact info"
+type Query {
+   Params: Params @requireAuth
+   MqttParams: [MqttParams] @requireAuth
+   GoogleMapsParams: GoogleMapsParams @requireAuth
+   PredefinedMessages: [PredefinedMessages] @requireAuth
+}

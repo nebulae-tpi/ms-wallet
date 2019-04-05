@@ -1,0 +1,55 @@
+"Wallet info"
+type Pocket {
+  "Main pocket"
+  main: Float
+  "bonus pocket"
+  bonus: Float
+}
+
+"Wallet transaction info"
+type WalletTransaction {
+  "Wallet ID"
+  _id: ID!
+  "Timestamp where the transaction was created"
+  timestamp: BigInt!
+  "Transaction type"
+  type: String!
+  "Transaction concept"
+  concept: String!
+  "Indicates which was the used pocket"
+  pocket: String!
+  "Value associated to the transaction"
+  amount: Float!
+  "User that performs the operation that create the transaction"
+  user: String!  
+  "Notes"
+  notes: String
+}
+
+
+enum SpendingStateEnum {
+  ALLOWED
+  FORBIDDEN
+}
+
+
+"Error info"
+type Error {
+  "Error ID"
+  _id: ID!
+  "Timestamp"
+  timestamp: BigInt
+  "Error type"
+  type: String
+  "Error"
+  error: String!
+  "Event"
+  event: String!
+}
+
+
+type Query {
+  "Gets the wallet transaction history list"
+  WalletTransactionHistory(year: Int!, month: Int!, page: Int!, count: Int!): [WalletTransaction]
+}
+

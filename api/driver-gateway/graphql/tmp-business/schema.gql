@@ -1,0 +1,12 @@
+type BusinessContactInfo {
+  name: String
+  whatsapp: BigInt
+  phone: BigInt
+  zello: String
+  defaultLocation: String    
+}
+
+"Business Contact info"
+type Query{
+   BusinessContactInfo: BusinessContactInfo @requireAuth
+}
