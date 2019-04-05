@@ -65,6 +65,7 @@ export class WalletService {
         errorPolicy: 'all'
       });
   }
+  
 
   /**
    * get the business which the user belongs

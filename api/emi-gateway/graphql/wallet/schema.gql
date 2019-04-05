@@ -245,7 +245,6 @@ type Error {
   event: String!
 }
 
-
 type Query {
   "Gets the businesses by id or name. If limit is applied the query will be limited to the amount defined"
   getBusinessByFilter(filterText: String, limit: Int): [Business]
