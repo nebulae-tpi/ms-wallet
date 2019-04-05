@@ -121,6 +121,5 @@ export class WalletService {
         return (resp && resp.data ) ? resp.data.walletPocketUpdated : null
       });      
   }
- 
-  
+   
 }

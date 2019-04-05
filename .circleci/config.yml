@@ -219,7 +219,7 @@ jobs:
             mkdir ~/nebulae/backend
             cp ~/nebulae/go/mbinit ~/nebulae/repo/backend/wallet/
             export DOCKERHUB_IMAGE=wallet.backend.wallet
-            export DOCKERHUB_TAG=0.0.19
+            export DOCKERHUB_TAG=0.0.20
             gitChanged backend/wallet || docker build  -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest ~/nebulae/repo/backend/wallet/
             gitChanged backend/wallet || docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS
             gitChanged backend/wallet || docker push $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG
@@ -336,6 +336,15 @@ workflows:
       - build-api-emi:
           context: TPI_PROD
           name: build-api-prod
+          requires:
+            - prepare
+          filters:
+            branches:
+              only:
+                - master
+      - build-api-driver:
+          context: TPI_PROD
+          name: build-api-driver-prod
           requires:
             - prepare
           filters:
