@@ -61,6 +61,8 @@ export const locale = {
         VEHICLE_SUBSCRIPTION: 'Vehicle Subscription',
         WITHDRAWAL: 'Withdrawal',
         DEPOSIT: 'Deposit',
+        CLIENT_AGREEMENT_PAYMENT: 'Payment',
+        CLIENT_AGREEMENT_REFUN: 'Refun',
         undefined: ''
       },
       TRANSACTION_HISTORY_DETAIL: 'Transaction detail',

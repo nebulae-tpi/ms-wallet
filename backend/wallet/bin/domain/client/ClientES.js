@@ -30,7 +30,7 @@ class ClientES {
         type: 'CLIENT',
         fullname: `${((rawdata.generalInfo || {}).name || '')}`,
         documentId: ((rawdata.generalInfo || {}).documentId || ''),
-        pockets: { main: 0, credit: 0, bonus: 0 }
+        pockets: { main: 0, bonus: 0 }
       })),
       mergeMap(wallet => walletDA.createNeWallet$(wallet)),
       mergeMap(r => ( r && r.ops && r.insertedCount == 1) ? this.emitWalletCreatedOrUpdated$(r.ops[0]) : of({})),
@@ -49,7 +49,7 @@ class ClientES {
           fullname: `${(rawdata.generalInfo||{}).name}`,
           documentId: (rawdata.generalInfo||{}).document
         })),
-        mergeMap(wallet => walletDA.findAndUpdateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } } )),
+        mergeMap(wallet => walletDA.findAndUpdateWallet$(wallet, { pockets: { main: 0, bonus: 0 } } )),
         mergeMap(r => (r && r.value)
           ? this.emitWalletCreatedOrUpdated$(r.value).pipe(mapTo(r.lastErrorObject))
           : of(r.lastErrorObject)
