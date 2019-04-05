@@ -50,6 +50,6 @@ type Error {
 
 type Query {
   "Gets the wallet transaction history list"
-  WalletTransactionHistory(year: Int!, month: Int!, page: Int!, count: Int!): [WalletTransaction]
+  WalletTransactionHistory(year: Int!, month: Int!, page: Int!, count: Int!): [WalletTransaction]  @requireAuth
 }
 
