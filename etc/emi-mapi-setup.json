@@ -4,11 +4,5 @@
         "type": "graphql",        
         "src": "api/emi-gateway/graphql/wallet",
         "preBuildCommands": []
-    },
-    {
-        "name": "wallet",
-        "type": "graphql",        
-        "src": "api/driver-gateway/graphql/wallet",
-        "preBuildCommands": []
     }
 ]
