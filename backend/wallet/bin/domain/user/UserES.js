@@ -28,8 +28,8 @@ class UserES {
           _id: aid,
           businessId: rawdata.businessId,
           type: 'USER',
-          fullname: `${(rawdata.generalInfo||{}).name} ${(rawdata.generalInfo||{}).lastname}`,
-          documentId: (rawdata.generalInfo||{}).documentId,
+          fullname: `${((rawdata.generalInfo||{}).name || '')} ${((rawdata.generalInfo||{}).lastname || '')}`,
+          documentId: ((rawdata.generalInfo||{}).documentId || ''),
           pockets: { main: 0, credit: 0, bonus: 0 }
         })),
         mergeMap(wallet => walletDA.createNeWallet$(wallet)),
@@ -46,10 +46,10 @@ class UserES {
       .pipe(
         map(rawdata => ({
           _id: aid,
-          businessId: rawdata.businessId, // todo
+          // businessId: rawdata.businessId, // todo
           type: 'USER',
-          fullname: `${(rawdata.generalInfo||{}).name} ${(rawdata.generalInfo||{}).lastname}`,
-          documentId: (rawdata.generalInfo||{}).documentId
+          fullname: `${((rawdata.generalInfo||{}).name || '')} ${((rawdata.generalInfo||{}).lastname || '')}`,
+          documentId: ((rawdata.generalInfo||{}).documentId || '')
         })),
         mergeMap(wallet => walletDA.findAndUpdateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } } )),
         mergeMap(r => (r && r.value)

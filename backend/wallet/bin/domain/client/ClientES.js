@@ -28,8 +28,8 @@ class ClientES {
         _id: aid,
         businessId: rawdata.businessId,
         type: 'CLIENT',
-        fullname: `${(rawdata.generalInfo||{}).name}`,
-        documentId: (rawdata.generalInfo||{}).documentId,
+        fullname: `${((rawdata.generalInfo || {}).name || '')}`,
+        documentId: ((rawdata.generalInfo || {}).documentId || ''),
         pockets: { main: 0, credit: 0, bonus: 0 }
       })),
       mergeMap(wallet => walletDA.createNeWallet$(wallet)),
@@ -44,7 +44,7 @@ class ClientES {
       .pipe(
         map(rawdata => ({
           _id: aid,
-          businessId: rawdata.businessId, // todo
+          // businessId: rawdata.businessId, // todo
           type: 'CLIENT',
           fullname: `${(rawdata.generalInfo||{}).name}`,
           documentId: (rawdata.generalInfo||{}).document

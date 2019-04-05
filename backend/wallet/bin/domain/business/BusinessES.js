@@ -74,8 +74,8 @@ class BusinessES {
           _id: aid,
           businessId: aid, // todo
           type: 'BUSINESS',
-          fullname: (rawdata.generalInfo || {}).name,
-          documentId: (rawdata.generalInfo || {}).documentId
+          fullname: ((rawdata.generalInfo || {}).name || ''),
+          documentId: ((rawdata.generalInfo || {}).documentId || '')
         })),
         mergeMap(wallet => walletDA.findAndUpdateWallet$(wallet, { pockets: { main: 0, credit: 0, bonus: 0 } })),
         mergeMap(r => (r && r.value)
