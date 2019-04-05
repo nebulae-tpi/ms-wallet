@@ -160,6 +160,7 @@ class WalletCQRS {
       }),
       mergeMap(walletId => WalletTransactionDA.getTransactionsHistoryDriverApp$(args, walletId)),
       toArray(),
+      tap(r => console.log("RESPONSE ==> ", JSON.stringify(r))),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );

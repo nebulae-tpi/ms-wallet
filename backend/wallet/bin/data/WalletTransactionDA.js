@@ -134,6 +134,7 @@ class WalletTransactionDA {
   }
 
   static getTransactionsHistoryDriverApp$(args, walletId) {
+    console.log(" getTransactionsHistoryDriverApp$", args, walletId);
     return Observable.create(async observer => {
       const dateAsString = args.year + '/' + args.month + "5";
       const initDateFormat = new Date(dateAsString);
@@ -148,6 +149,7 @@ class WalletTransactionDA {
       // if(filter.transactionConcept){
       //   query.concept = filter.transactionConcept;
       // }
+      console.log("query => ", JSON.stringify(query));
 
       const cursor = collection.find(query)
         .skip(args.count * args.page)
