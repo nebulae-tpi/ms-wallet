@@ -139,6 +139,7 @@ class WalletCQRS {
   }
 
   getWalletTransactionsHistoryDriverApp$({ args }, authToken) {
+    console.log('getWalletTransactionsHistoryDriverApp$', args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",
@@ -155,10 +156,9 @@ class WalletCQRS {
               'getWalletTransactionsHistoryDriverApp'
             );
           }
-          return of(roles);
+          return of( authToken.driverId );
       }),
-      // year: Int!, month: Int!, page: Int!, count: Int!
-      mergeMap(() => WalletTransactionDA.getTransactionsHistoryDriverApp$(args,  )),
+      mergeMap(walletId => WalletTransactionDA.getTransactionsHistoryDriverApp$(args, walletId)),
       toArray(),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
