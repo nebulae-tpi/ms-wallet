@@ -13,6 +13,7 @@ const walletDA = require("../../data/WalletDA");
 const {
   PERMISSION_DENIED_ERROR,
   INTERNAL_SERVER_ERROR,
+  DRIVER_ID_NO_FOUND_IN_TOKEN,
   NO_WALLET_ID_IN_AUTH_TOKEN
 } = require("../../tools/ErrorCodes");
 const context = "wallet";
@@ -131,6 +132,33 @@ class WalletCQRS {
           return of(roles);
       }),
       mergeMap(() => WalletTransactionDA.getTransactionsHistory$(args.filterInput, args.paginationInput)),
+      toArray(),
+      mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+      catchError(err => this.handleError$(err))
+    );
+  }
+
+  getWalletTransactionsHistoryDriverApp$({ args }, authToken) {
+    return RoleValidator.checkPermissions$(
+      authToken.realm_access.roles,
+      "WALLET",
+      "getWalletTransactionsHistoryDriverApp",
+      PERMISSION_DENIED_ERROR,
+      ["DRIVER"]
+    ).pipe(
+      mergeMap(roles => {
+        const isPlatformAdmin = roles["PLATFORM-ADMIN"];
+        //If an user does not have the role to get the transaction history from other business, we must return an error
+          if (!authToken.driverId) {
+            return this.createCustomError$(
+              DRIVER_ID_NO_FOUND_IN_TOKEN,
+              'getWalletTransactionsHistoryDriverApp'
+            );
+          }
+          return of(roles);
+      }),
+      // year: Int!, month: Int!, page: Int!, count: Int!
+      mergeMap(() => WalletTransactionDA.getTransactionsHistoryDriverApp$(args,  )),
       toArray(),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))

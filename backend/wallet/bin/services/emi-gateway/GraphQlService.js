@@ -223,6 +223,10 @@ class GraphQlService {
         aggregateType: "WalletError",
         messageType: "emigateway.graphql.query.getWalletErrorsCount"
       },
+      {
+        aggregateType: "Wallet",
+        messageType: "drivergateway.graphql.query.getWalletTransactionsHistoryDriverApp"
+      },
     ];
   }
 
@@ -307,6 +311,11 @@ class GraphQlService {
       'emigateway.graphql.query.getWalletErrorsCount': {
         fn: logError.cqrs.getWalletErrorsCount$,
         obj: logError.cqrs
+      },
+      // DRIVER GATEWAY
+      "drivergateway.graphql.query.getWalletTransactionsHistoryDriverApp": {
+        fn: wallet.cqrs.getWalletTransactionsHistoryDriverApp$,
+        obj: wallet.cqrs
       }
 
     };

@@ -46,6 +46,7 @@ export const locale = {
       TYPES: {
         SALE: 'Sale',
         MOVEMENT: 'Movement',
+        PURCHASE: 'Purchase',
         undefined: ''
       },
       ENTITY_TYPES: {
@@ -56,6 +57,8 @@ export const locale = {
       },
       CONCEPTS: {
         RECARGA_CIVICA: 'Civic recharge card',
+        WALLET_RECHARGE: 'Wallet Recharge',
+        VEHICLE_SUBSCRIPTION: 'Vehicle Subscription',
         WITHDRAWAL: 'Withdrawal',
         DEPOSIT: 'Deposit',
         undefined: ''

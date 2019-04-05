@@ -133,6 +133,35 @@ class WalletTransactionDA {
     });
   }
 
+  static getTransactionsHistoryDriverApp$(args, walletId) {
+    return Observable.create(async observer => {
+      const dateAsString = args.year + '/' + args.month + "5";
+      const initDateFormat = new Date(dateAsString);
+      const monthYear = Crosscutting.getMonthYear(initDateFormat);
+      const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);
+      const query = { walletId: walletId };
+
+      // if(filter.transactionType){
+      //   query.type = filter.transactionType;
+      // }
+
+      // if(filter.transactionConcept){
+      //   query.concept = filter.transactionConcept;
+      // }
+
+      const cursor = collection.find(query)
+        .skip(args.count * args.page)
+        .limit(args.count)
+        .sort({timestamp: 1});
+      let obj = await this.extractNextFromMongoCursor(cursor);
+      while (obj) {
+        observer.next(obj);
+        obj = await this.extractNextFromMongoCursor(cursor);
+      }
+      observer.complete();
+    });
+  }
+
   /**
  * Gets the amount of transactions history from a business according to the filters.
  * 

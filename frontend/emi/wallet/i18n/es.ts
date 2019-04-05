@@ -46,6 +46,7 @@ export const locale = {
       TYPES: {
         SALE: 'Venta',
         MOVEMENT: 'Movimiento',
+        PURCHASE: 'Compra',
         undefined: ''
       },
       ENTITY_TYPES:{
@@ -56,6 +57,8 @@ export const locale = {
       },
       CONCEPTS: {
         RECARGA_CIVICA: 'Recarga cívica',
+        WALLET_RECHARGE: 'Recarga de Billetera',
+        VEHICLE_SUBSCRIPTION: 'Suscripcción de Vehiculo',
         WITHDRAWAL: 'Retiro',
         DEPOSIT: 'Deposito',
         undefined: ''

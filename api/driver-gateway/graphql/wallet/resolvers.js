@@ -45,29 +45,27 @@ module.exports = {
         ['DRIVER']
       )
         .pipe(
-          map(() => {
-            return [
-              {
-                _id: '1707d147-7d05-41cc-bb8e-6f262f049020-2119',
-                walletId: '5526beae-8a71-4c3f-a87c-39102cda6a50',
-                amount: 1250,
-                type: 'MOVEMENT',
-                concept: 'DEPOSIT',
-                timestamp: new Date().getTime(),
-                notes: 'Recarga de salgo en le pos ....',
-                pocket: 'MAIN',
-                user: 'juan.santa'
-              }
-            ];
-          })
-          /*
+          // map(() => {
+          //   return [
+          //     {
+          //       _id: '1707d147-7d05-41cc-bb8e-6f262f049020-2119',
+          //       walletId: '5526beae-8a71-4c3f-a87c-39102cda6a50',
+          //       amount: 1250,
+          //       type: 'MOVEMENT',
+          //       concept: 'DEPOSIT',
+          //       timestamp: new Date().getTime(),
+          //       notes: 'Recarga de salgo en le pos ....',
+          //       pocket: 'MAIN',
+          //       user: 'juan.santa'
+          //     }
+          //   ];
+          // })
           mergeMap(() => broker.forwardAndGetReply$(
-              "Wallet", "emigateway.graphql.query.WalletTransactionHistory",
-              { root, args, jwt: context.encodedToken }, 2000
+            "Wallet", "drivergateway.graphql.query.getWalletTransactionsHistoryDriverApp",
+            { root, args, jwt: context.encodedToken }, 2000
           )),
-          catchError(err => handleError$(err, "WalletTransactionHistory")),
+          catchError(err => handleError$(err, "getWalletTransactionsHistoryDriverApp")),
           mergeMap(response => getResponseFromBackEnd$(response))
-          */
         )
         .toPromise();
     }
