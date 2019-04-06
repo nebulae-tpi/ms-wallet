@@ -32,8 +32,8 @@
                 "id": "historical-transaction-wallet",
                 "icon": "history",
                 "translate": {
-                    "en": "Historical transactions",
-                    "es": "Historial de transacciones"
+                    "en": "Historical",
+                    "es": "Historial"
                 },
                 "navURL": "/wallet/transaction-history",
                 "path": "wallet",
@@ -48,8 +48,8 @@
                 "id": "manual-wallet-adjustments",
                 "icon": "adjust",
                 "translate": {
-                    "es": "Ajustes manuales de saldo",
-                    "en": "Manual balance adjustments"
+                    "es": "Ajustes",
+                    "en": "Adjustments"
                 },
                 "navURL": "/wallet/manual-pocket-adjustment",
                 "path": "wallet",
@@ -71,7 +71,7 @@
                 "path": "wallet-errors",
                 "loadChildren": "./main/content/wallet/wallet.module#WalletModule",
                 "priority": 1000,
-                "roles" : ["SYSADMIN"],
+                "roles" : ["SYSADMIN_"],
                 "default" : false
             }            
         ],
@@ -121,7 +121,7 @@
                 "path": "wallet-spending-rules",
                 "loadChildren": "./main/content/wallet-spending-rules/wallet-spending-rules.module#WalletSpengingRulesModule",
                 "priority": 2000,
-                "roles" : ["SYSADMIN"],
+                "roles" : ["SYSADMIN_"],
                 "default" : false
             }            
         ],
