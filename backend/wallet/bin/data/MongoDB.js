@@ -1,10 +1,11 @@
 'use strict'
-
+require('datejs');
 //const Rx = require('rxjs');
 const { Observable, defer, of, bindNodeCallback} = require('rxjs');
 const { map, mergeMap } = require('rxjs/operators');
 const MongoClient = require('mongodb').MongoClient;
 const CollectionName = "Business";
+const dateFormat = require('dateformat');
 let instance = null;
 
 class MongoDB {
@@ -16,6 +17,7 @@ class MongoDB {
     constructor({ url, dbName }) {
         this.url = url;
         this.dbName = dbName;
+        this.historicalDbs = {};
     }
 
     /**
@@ -33,6 +35,33 @@ class MongoDB {
             })
         );
     }
+
+  /**
+   * Obtains historical DB
+   * @param {Date} date 
+   * @param {Int} monthsToAdd 
+   */
+  getHistoricalDb(date = new Date(new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })), monthsToAdd = 0) {
+    if (monthsToAdd != 0) {
+      date.add(-1).month();
+    }
+    const historicalDbName = `historical_${dateFormat(date, "yymm")}`;
+    if (!this.historicalDbs[historicalDbName]) {
+      this.historicalDbs[historicalDbName] = this.client.db(historicalDbName);
+    }
+    return this.historicalDbs[historicalDbName]
+  }
+
+  /**
+   * Obtains historical DB
+   */
+  getHistoricalDbByYYMM(yymm) {
+    const historicalDbName = `historical_${yymm}`;
+    if (!this.historicalDbs[historicalDbName]) {
+      this.historicalDbs[historicalDbName] = this.client.db(historicalDbName);
+    }
+    return this.historicalDbs[historicalDbName]
+  }
 
     /**
    * Stops DB connections

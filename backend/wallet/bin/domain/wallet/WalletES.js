@@ -462,32 +462,6 @@ class WalletES {
         this.walletPocketUpdatedEventEmitter$.next(data.walletId)
       })
     );
-    // .pipe(
-    //   //Check if there are transactions to be processed
-    //   filter(event => event.data.transactions && event.data.transactions.length > 0),
-    //   //Get the business implied in the transactions
-    //   mergeMap(event => 
-    //     BusinessDA.getBusiness$(event.data.businessId)
-    //     .pipe(
-    //       map(business => ([event, business]))
-    //     )
-    //   ),
-    //   mergeMap(([event, business]) => concat(
-    //     of(business),
-    //     WalletHelper.saveTransactions$(event),
-    //     WalletHelper.applyTransactionsOnWallet$(event, business),
-    //     WalletHelper.checkWalletSpendingAlarms$(business._id),
-    //   )),
-    //   toArray(),
-    //   tap(res => {
-    //     //console.log('handleWalletTransactionExecuted => ', res[0])
-    //     this.walletPocketUpdatedEventEmitter$.next(res[0])
-    //   }),
-    //   catchError(error => {
-    //     console.log(`An error was generated while a walletTransactionExecuted was being processed: ${error.stack}`);
-    //     return this.errorHandler$(walletTransactionExecuted, error.stack, 'walletTransactionExecuted');
-    //   })
-    // );
   }
 
 /**
@@ -511,13 +485,12 @@ class WalletES {
 
 
   handleWalletTransactionCommited$({aid, data, user}) {
-    const dateNow = new Date();
     console.log("handleWalletTransactionCommited$", aid, data, user);
     return of({})
     .pipe(
       map(() => ([
           {
-            _id: Crosscutting.generateHistoricalUuid(dateNow),
+            _id: Crosscutting.generateDateBasedUuid(),
             walletId: data.fromId,            
             amount: data.amount * -1,
             type: data.type,
@@ -528,7 +501,7 @@ class WalletES {
             user
           },
           {
-            _id: Crosscutting.generateHistoricalUuid(dateNow),
+            _id: Crosscutting.generateDateBasedUuid(),
             walletId: data.toId,
             amount: data.amount,
             type: data.type,

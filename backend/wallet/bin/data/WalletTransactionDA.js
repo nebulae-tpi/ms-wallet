@@ -29,9 +29,8 @@ class WalletTransactionDA {
    * 
    * @param {*} transactionData transaction to create
    */
-  static saveTransactionHistory$(transactionData) {
-    const monthYear = transactionData._id.substr(transactionData._id.length - 4);
-    const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);    
+  static saveTransactionHistory$(transactionData) {  
+    const collection = mongoDB.getHistoricalDbByYYMM(transactionData._id.split('-').pop()).collection(COLLECTION_NAME);
     return defer(() => collection.insertOne(transactionData));
   }
 
@@ -98,11 +97,9 @@ class WalletTransactionDA {
 
     return Observable.create(async observer => {
       const initDateFormat = new Date(filter.initDate);
-      const monthYear = Crosscutting.getMonthYear(initDateFormat);
-      const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);
-      const query = {
-        walletId: filter.walletId,
-      };
+      const collection = mongoDB.getHistoricalDb(initDateFormat).collection(COLLECTION_NAME);        
+      
+      const query = { walletId: filter.walletId };
 
       if(filter.initDate){
         query.timestamp = query.timestamp || {};
@@ -136,11 +133,14 @@ class WalletTransactionDA {
   static getTransactionsHistoryDriverApp$(args, walletId) {
     console.log(" getTransactionsHistoryDriverApp$", args, walletId);
     return Observable.create(async observer => {
-      const dateAsString = args.year + '/' + args.month + "5";
+
+    const collection = mongoDB.getHistoricalDb(initDateFormat).collection(COLLECTION_NAME);
+
+      const dateAsString = args.year + '/' + args.month + "5";      
       const initDateFormat = new Date(dateAsString);
-      const monthYear = Crosscutting.getMonthYear(initDateFormat);
-      const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);
-      const query = { walletId: walletId };
+
+      const collection = mongoDB.getHistoricalDb(initDateFormat).collection(COLLECTION_NAME);
+            const query = { walletId: walletId };
 
       // if(filter.transactionType){
       //   query.type = filter.transactionType;
@@ -181,8 +181,7 @@ class WalletTransactionDA {
 static getTransactionsHistoryAmount$(filter) {
 
     const initDateFormat = new Date(filter.initDate);
-    const monthYear = Crosscutting.getMonthYear(initDateFormat);
-    const collection = mongoDB.db.collection(`${COLLECTION_NAME}${monthYear}`);
+    const collection = mongoDB.getHistoricalDb(initDateFormat).collection(COLLECTION_NAME);
     const query = {
       businessId: filter.businessId,
     };

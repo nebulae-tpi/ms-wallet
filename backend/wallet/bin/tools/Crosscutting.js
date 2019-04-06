@@ -2,6 +2,7 @@
 
 const uuidv4 = require("uuid/v4");
 const GMT_OFFSET = ((parseInt(process.env.GMT_TO_SERVE.replace('GMT', '') * 60)) + new Date().getTimezoneOffset()) * 60000;
+const dateFormat = require('dateformat');
 
 class Crosscutting{
 
@@ -18,6 +19,17 @@ class Crosscutting{
         const uuId = `${uuidv4()}-${sufixUuid}`;
         return uuId;
     }
+
+
+
+        /**
+     * Generates a unique UUID/v4 with an extra number at the end describing the yaer and month (-yymm)
+     */
+    static generateDateBasedUuid() {
+        return `${uuidv4()}-${dateFormat(new Date(new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })), "yymm")}`;
+    }
+
+
 
     /**
      * Generates a suffix (MMyy) according to the date.
