@@ -133,14 +133,11 @@ class WalletTransactionDA {
   static getTransactionsHistoryDriverApp$(args, walletId) {
     console.log(" getTransactionsHistoryDriverApp$", args, walletId);
     return Observable.create(async observer => {
-
-    const collection = mongoDB.getHistoricalDb(initDateFormat).collection(COLLECTION_NAME);
-
       const dateAsString = args.year + '/' + args.month + "5";      
       const initDateFormat = new Date(dateAsString);
 
       const collection = mongoDB.getHistoricalDb(initDateFormat).collection(COLLECTION_NAME);
-            const query = { walletId: walletId };
+      const query = { walletId: walletId };
 
       // if(filter.transactionType){
       //   query.type = filter.transactionType;
