@@ -49,7 +49,6 @@ class WalletES {
    * @param {*} business 
    */
   sendWalletPocketUpdatedEvent$(walletId) {
-    console.log("sendWalletPocketUpdatedEvent$ ==> ", walletId);
     return WalletDA.getWalletById$(walletId)
       .pipe(
         mergeMap(wallet => forkJoin(
@@ -122,7 +121,6 @@ class WalletES {
       // selects the according productBonusConfig returns => { wallet, productBonusConfig, selectedPocket }
       map(result => ({...result, spendingRule: result.spendingRule.productBonusConfigs.find(e => (e.type == evt.data.type && e.concept == evt.data.concept)) })),      
       mergeMap(result => this.calculateTransactionsToExecute$(evt, result)),
-      // tap(r => console.log("PARA PROCESAR", JSON.stringify(r))),
       map(tx => ({
         wallet: tx.wallet,
         transaction: this.createWalletTransactionExecuted(
@@ -166,7 +164,6 @@ class WalletES {
  * 
  */
   calculateTransactionsToExecute$(evt, result) {
-    // console.log("calculateTransactionsToExecute$");
     const date = new Date();
     return of({
       businessId: evt.data.businessId,
@@ -186,9 +183,6 @@ class WalletES {
           }
           return of({ ...basicObj, transactions: [mainTx, bonusTx].filter(e => e != null ) })       
         }),
-        // tap(({transactions}) => {
-        //   transactions.forEach(tx => console.log('TX => ',tx))
-        // } ),
         map(tx => ({transaction: tx, wallet: result.wallet}) )  
       )
   }
@@ -241,7 +235,6 @@ class WalletES {
    * @param {string} result.selectedPocket selected pocket to use 
    */
   calculateBonusTransaction$(evt, result, now) {
-    // console.log("calculateBonusTransaction$", result.selectedPocket);
     return of({ evt, result })
       .pipe(
         mergeMap(() => {
@@ -357,7 +350,6 @@ class WalletES {
               ? BONUS_POCKET
               : MAIN_POCKET
         }),
-        // tap(sp => console.log("#### SELECTED POCKET ", sp, " for ", transactionAmount)),
         mergeMap(selectedPocket => of({ wallet, spendingRule, selectedPocket }))
       )
   }
@@ -368,8 +360,6 @@ class WalletES {
    * @param {*} walletDepositCommitedEvent 
    */
   handleWalletDepositCommited$({aid, data, user}){
-    console.log("handleWalletDepositCommited$", data, user);   
-
     return of(walletDepositCommitedEvent)
     .pipe(
       //Create wallet execute transaction
@@ -458,7 +448,7 @@ class WalletES {
         WalletDA.updateAmount$(data.walletId, 'main', data.amount), // todo only main ???
       )),
       tap(() => {
-        console.log('Emviando la actualizacion de billetera, ', data.walletId);
+        console.log('Enviando la actualizacion de billetera, ', data.walletId);
         this.walletPocketUpdatedEventEmitter$.next(data.walletId)
       })
     );

@@ -29,7 +29,6 @@ class WalletCQRS {
    * @param {*} args.businessId business ID
    */
   getWalletsByFilter$({ args }, authToken) {
-    console.log("getWalletsByFilter$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -44,7 +43,7 @@ class WalletCQRS {
   }
 
   getMyWallet$({ args }, authToken) {
-    // console.log("getMyWallet$", args);
+    console.log("getMyWallet$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -53,7 +52,6 @@ class WalletCQRS {
       ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       ).pipe(
           map(() => authToken.userId || authToken.driverId || authToken.clientId),
-          // tap(r => console.log('QUERING BY A WALLET WIT ID ==> ', r)),
           mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$" ) : of(walletId) ),
           mergeMap(walletId => walletDA.getWalletById$(walletId)),
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
@@ -113,7 +111,6 @@ class WalletCQRS {
    * @param {*} args args
    */
   getWalletTransactionHistory$({ args }, authToken) {
-    console.log("getWalletTransactionHistory$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",
@@ -140,7 +137,6 @@ class WalletCQRS {
   }
 
   getWalletTransactionsHistoryDriverApp$({ args }, authToken) {
-    console.log('getWalletTransactionsHistoryDriverApp$', args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",
@@ -161,7 +157,6 @@ class WalletCQRS {
       }),
       mergeMap(walletId => WalletTransactionDA.getTransactionsHistoryDriverApp$(args, walletId)),
       toArray(),
-      tap(r => console.log("RESPONSE ==> ", JSON.stringify(r))),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );
@@ -192,7 +187,6 @@ class WalletCQRS {
           return of(roles);
       }),
       mergeMap(val => WalletTransactionDA.getTransactionsHistoryAmount$(args.filterInput)),
-      // tap(r => console.log("getWalletTransactionsHistoryAmount", r) ),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );
@@ -228,7 +222,6 @@ class WalletCQRS {
    * @param {*} args args
    */
   getAssociatedTransactionsHistoryByTransactionHistoryId$({ args }, authToken) {    
-    console.log("getAssociatedTransactionsHistoryByTransactionHistoryId$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",

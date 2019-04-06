@@ -20,7 +20,6 @@ class DriverES {
   }
 
   handleDriverCreated$({ aid, data }) {
-    console.log("handleDriverCreated$", aid);
     return of(data)
       .pipe(
         // create the default wallet state
@@ -39,7 +38,6 @@ class DriverES {
   }
   
   handleDriverGeneralInfoUpdated$({ aid, data }) {
-    console.log("handleDriverGeneralInfoUpdated$", aid);
     return of(data)
       .pipe(
         map(rawdata => ({
@@ -62,7 +60,6 @@ class DriverES {
   }
 
   emitWalletCreatedOrUpdated$(wallet){
-    console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
     return eventSourcing.eventStore.emitEvent$(
       new Event({
         eventType: "WalletUpdated",

@@ -77,7 +77,6 @@ class BusinessCQRS {
    * Edit a spending rule
    */
   updateSpendingRule$({ root, args, jwt }, authToken) {
-    // console.log("updateSpendingRule =========> ", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "SpendingRule",

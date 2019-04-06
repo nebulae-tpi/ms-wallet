@@ -35,7 +35,6 @@ class LogErrorCQRS {
    * @param args.count Amount of rows to recover
    */
   getWalletErrors$({ args }, authToken) {
-    //console.log('getWalletErrors =>', args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WalletError",

@@ -20,7 +20,6 @@ class UserES {
   }
 
   handleUserCreated$({aid, data}){
-    console.log("handleUserCreated$", aid);
     return of(data)
       .pipe(
         // create the default wallet state
@@ -40,8 +39,6 @@ class UserES {
   }
   
   handleUserGeneralInfoUpdated$({aid, data}){
-    console.log("handleUserGeneralInfoUpdated$", aid);
-
     return of(data)
       .pipe(
         map(rawdata => ({
@@ -64,7 +61,6 @@ class UserES {
   }
 
   emitWalletCreatedOrUpdated$(wallet){
-    console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
     return eventSourcing.eventStore.emitEvent$(
       new Event({
         eventType: "WalletUpdated",

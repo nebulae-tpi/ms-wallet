@@ -44,7 +44,6 @@ class BusinessES {
    * @param {*} event business created event
    */
   handleBusinessCreated$({aid, data}) {
-    console.log("handleBusinessCreated$", aid);
     return of(data)
       .pipe(
         // create the default wallet state
@@ -67,7 +66,6 @@ class BusinessES {
    * @param {*} evt business general info updated event
    */
   handleBusinessGeneralInfoUpdated$({aid, data, user}) {
-    console.log("handleBusinessGeneralInfoUpdated$", aid);
     return of(data)
       .pipe(
         map(rawdata => ({
@@ -90,7 +88,6 @@ class BusinessES {
   }
 
   emitWalletCreatedOrUpdated$(wallet){
-    console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
     return eventSourcing.eventStore.emitEvent$(
       new Event({
         eventType: "WalletUpdated",

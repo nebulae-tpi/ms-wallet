@@ -49,8 +49,6 @@ class WalletHelper {
           transactionData.notes = transaction.notes;
         }
 
-        // console.log('transactionData => ', transactionData);
-
         return WalletTransactionDA.saveTransactionHistory$(transactionData)
       })
     );
@@ -97,7 +95,6 @@ class WalletHelper {
         SpendingRulesDA.getSpendingRule$(businessId)
       )),
       mergeMap(([wallet, spendingRule]) => {
-        // console.log('checkWalletSpendingAlarms => ', JSON.stringify([wallet, spendingRule]));
         const debt = (wallet.pockets.main || 0) + (wallet.pockets.bonus || 0);
 
         if (debt <= spendingRule.minOperationAmount && wallet.spendingState == 'ALLOWED') {

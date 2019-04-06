@@ -20,7 +20,6 @@ class ClientES {
   }
 
   handleClientCreated$({aid, data}){
-    console.log("handleClientCreated$", aid);
     return of(data)
     .pipe(
       // create the default wallet state
@@ -39,7 +38,6 @@ class ClientES {
   }
   
   handleClientGeneralInfoUpdated$({ aid, data }) {
-    console.log("handleClientGeneralInfoUpdated$", aid);
     return of(data)
       .pipe(
         map(rawdata => ({

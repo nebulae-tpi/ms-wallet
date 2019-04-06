@@ -55,7 +55,6 @@ class BusinessCQRS {
       ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
       ).pipe(
           mergeMap(roles => {
-            //console.log('authToken.businessId => ', authToken.businessId);
             const businessId = authToken.businessId || '';
             return BusinessDA.getBusiness$(businessId);
           }),
