@@ -5,7 +5,7 @@ const  { defer, Observable, of } = require('rxjs');
 const { mergeMap, map, tap } = require('rxjs/operators');
 const Crosscutting = require("../tools/Crosscutting");
 
-const COLLECTION_NAME = `TransactionsHistory_`;
+const COLLECTION_NAME = `Transactions`;
 
 class WalletTransactionDA {
 
@@ -133,7 +133,7 @@ class WalletTransactionDA {
   static getTransactionsHistoryDriverApp$(args, walletId) {
     console.log(" getTransactionsHistoryDriverApp$", args, walletId);
     return Observable.create(async observer => {
-      const dateAsString = args.year + '/' + args.month + "5";      
+      const dateAsString = args.year + '/' + args.month + "/5";      
       const initDateFormat = new Date(dateAsString);
 
       const collection = mongoDB.getHistoricalDb(initDateFormat).collection(COLLECTION_NAME);
