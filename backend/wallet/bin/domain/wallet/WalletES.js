@@ -470,8 +470,8 @@ class WalletES {
  */
   createIndexesWallet$(indexesWallet){
     const indexes = [{
-      collection: 'TransactionsHistory_', 
-      fields: {type: 1, concept: 1, timestamp: 1, 'terminal.id': 1, 'terminal.userId': 1, 'terminal.username': 1}
+      collection: 'Transactions', 
+      fields: {type: 1, concept: 1, timestamp: 1 }
     }];
     return from(indexes)
     .pipe(
