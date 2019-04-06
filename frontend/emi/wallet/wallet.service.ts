@@ -67,6 +67,7 @@ export class WalletService {
   }
   
 
+  
   /**
    * get the business which the user belongs
    *
