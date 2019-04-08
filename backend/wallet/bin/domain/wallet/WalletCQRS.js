@@ -34,7 +34,7 @@ class WalletCQRS {
       "wallet",
       "getWalletsByFilter$",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN"]
+      ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
       ).pipe(
           mergeMap(() => walletDA.getFilteredWallets$(args.filterText, args.businessId, args.limit)),
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),

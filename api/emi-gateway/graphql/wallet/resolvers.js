@@ -157,7 +157,7 @@ module.exports = {
         "getWalletsByFilter",
         PERMISSION_DENIED_ERROR_CODE,
         "Permission denied",
-        ["PLATFORM-ADMIN"]
+        ["PLATFORM-ADMIN", "BUSINESS-OWNER", ]
       )
       .pipe(
         mergeMap(() => broker.forwardAndGetReply$(
