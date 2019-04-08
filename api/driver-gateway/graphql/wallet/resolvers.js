@@ -34,6 +34,7 @@ function getResponseFromBackEnd$(response) {
 module.exports = {
   //// QUERY ///////
 
+  
   Query: {
     WalletTransactionHistory(root, args, context) {
       return RoleValidator.checkPermissions$(

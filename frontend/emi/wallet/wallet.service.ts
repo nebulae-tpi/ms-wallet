@@ -64,8 +64,7 @@ export class WalletService {
         fetchPolicy: 'network-only',
         errorPolicy: 'all'
       });
-  }
-  
+  } 
 
   
   /**
