@@ -97,7 +97,9 @@ class WalletTransactionDA {
         .getHistoricalDb(initDateFormat)
         .collection(COLLECTION_NAME);
 
-      const query = { walletId: filter.walletId };
+      const query = { 
+        walletId: filter.walletId
+      };
 
       if (filter.initDate) {
         query.timestamp = query.timestamp || {};
@@ -183,7 +185,10 @@ class WalletTransactionDA {
     const collection = mongoDB
       .getHistoricalDb(initDateFormat)
       .collection(COLLECTION_NAME);
-    const query = { businessId: filter.businessId, walletId: filter.walletId };
+    const query = { 
+      // businessId: filter.businessId,
+      walletId: filter.walletId 
+    };
 
     if (filter.initDate) {
       query.timestamp = query.timestamp || {};

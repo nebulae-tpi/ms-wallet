@@ -54,6 +54,7 @@ module.exports = {
           mergeMap(response => getResponseFromBackEnd$(response))
         ).toPromise();
     },
+    
     getWalletTransactionsHistoryAmount(root, args, context) {
       return RoleValidator.checkPermissions$(
         context.authToken.realm_access.roles,

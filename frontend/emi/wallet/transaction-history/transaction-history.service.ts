@@ -85,6 +85,7 @@ export class TransactionHistoryService {
       errorPolicy: 'all'
     });
   }
+  
 
   /**
    * Gets the transactions types and concepts

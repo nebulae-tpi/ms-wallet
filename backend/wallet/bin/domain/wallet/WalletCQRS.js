@@ -168,6 +168,7 @@ class WalletCQRS {
    * @param {*} args args
    */
   getWalletTransactionsHistoryAmount$({ args }, authToken) {
+    console.log("getWalletTransactionsHistoryAmount$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",

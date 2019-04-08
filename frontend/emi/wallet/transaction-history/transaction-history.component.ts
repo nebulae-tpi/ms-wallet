@@ -463,6 +463,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
             this.transactionHistoryService.getTransactionsHistoryAmount$(filterInput)
               .pipe(
                 mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+                tap(r => console.log('getTransactionsHistoryAmount$', r)),
                 map(r => (r && r.data && r.data.getWalletTransactionsHistoryAmount) ? r.data.getWalletTransactionsHistoryAmount : 0)
               )
           )
