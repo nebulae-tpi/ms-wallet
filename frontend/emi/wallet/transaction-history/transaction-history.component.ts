@@ -308,25 +308,25 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
             filter((resp: any) => !resp.errors || resp.errors.length === 0),
             map(result => result.data.getWallet)
           )),
-        map(wallet => {
-          let credit = 0;
-          if (wallet.pockets.main < 0) {
-            credit += wallet.pockets.main;
-          }
+        // map(wallet => {
+        //   let credit = 0;
+        //   // if (wallet.pockets.main < 0) {
+        //   //   credit += wallet.pockets.main;
+        //   // }
 
-          if (wallet.pockets.bonus < 0) {
-            credit += wallet.pockets.bonus;
-          }
-          const walletCopy = {
-            ...wallet,
-            pockets: {
-              main: wallet.pockets.main < 0 ? 0 : wallet.pockets.main,
-              bonus: wallet.pockets.bonus < 0 ? 0 : wallet.pockets.bonus,
-              credit: credit
-            }
-          };
-          return walletCopy;
-        }),
+        //   // if (wallet.pockets.bonus < 0) {
+        //   //   credit += wallet.pockets.bonus;
+        //   // }
+        //   const walletCopy = {
+        //     ...wallet,
+        //     pockets: {
+        //       main: wallet.pockets.main < 0 ? 0 : wallet.pockets.main,
+        //       bonus: wallet.pockets.bonus < 0 ? 0 : wallet.pockets.bonus,
+        //       credit: credit
+        //     }
+        //   };
+        //   return walletCopy;
+        // }),
         takeUntil(this.ngUnsubscribe)
       )
       .subscribe(wallet => {
