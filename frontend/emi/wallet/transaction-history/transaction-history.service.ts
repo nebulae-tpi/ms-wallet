@@ -14,12 +14,12 @@ export class TransactionHistoryService {
   private selectedWalletSubject$ = new BehaviorSubject<any>(null);
   private _filterAndPaginator$ = new BehaviorSubject({
     filter: {
-      initDate: moment().startOf('month'),
+      initDate: moment().startOf('day'),
       endDate: moment().endOf('day'),
       terminal: {}
     },
     pagination: {
-      page: 0, count: 10, sort: -1
+      page: 0, count: 25, sort: -1
     },
   });
 

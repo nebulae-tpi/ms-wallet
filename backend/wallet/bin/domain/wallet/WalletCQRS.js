@@ -43,7 +43,7 @@ class WalletCQRS {
   }
 
   getMyWallet$({ args }, authToken) {
-    console.log("getMyWallet$", args);
+    // console.log("getMyWallet$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -51,9 +51,11 @@ class WalletCQRS {
       PERMISSION_DENIED_ERROR,
       ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       ).pipe(
-          map(() => authToken.userId || authToken.driverId || authToken.clientId),
+          map(() => authToken.userId || authToken.driverId || authToken.clientId, ),
+          // tap(wi => console.log('BUSCANDO WALLET ID ==> ', wi )),
           mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$" ) : of(walletId) ),
           mergeMap(walletId => walletDA.getWalletById$(walletId)),
+          // tap(r => console.log("RESPONSE ==> ", r)),
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
           catchError(err => this.handleError$(err))
       );
@@ -168,7 +170,7 @@ class WalletCQRS {
    * @param {*} args args
    */
   getWalletTransactionsHistoryAmount$({ args }, authToken) {
-    console.log("getWalletTransactionsHistoryAmount$", args);
+    // console.log("getWalletTransactionsHistoryAmount$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",
@@ -256,12 +258,13 @@ class WalletCQRS {
    * @param {*} data args that contain the ifno of the manual balance adjustment
    * @param {string} authToken JWT token
    */
-  makeManualBalanceAdjustment$({args}, authToken) {
+  makeManualBalanceAdjustment$({args}, authToken) {   
     let mba = !args ? undefined : args.input; // Manual balance Adjusment
     mba = {
       _id: uuidv4(), type: 'MOVEMENT', notes: mba.notes,
       concept: mba.adjustmentType, timestamp: Date.now(),      
       amount: mba.value,
+      businessId: args.input.businessWalletId,       
       fromId: mba.adjustmentType === 'DEPOSIT' ? mba.businessWalletId : mba.walletId,
       toId: mba.adjustmentType === 'DEPOSIT' ? mba.walletId : mba.businessWalletId
     };

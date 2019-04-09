@@ -107,7 +107,7 @@ class WalletES {
   }
   
   handleWalletSpendingCommited$({aid, data}){
-    console.log("handleWalletSpendingCommited$", data);
+    // console.log("handleWalletSpendingCommited$", data);
     return of(evt.data)
     .pipe(
       mergeMap(eventData => forkJoin(
@@ -440,7 +440,7 @@ class WalletES {
    * @param {*} walletTransactionExecuted wallet transaction executed event
    */
   handleWalletTransactionExecuted$({aid, user, data}){
-    console.log('handleWalletTransactionExecuted => ', {aid, user, data} );
+    // console.log('handleWalletTransactionExecuted => ', {aid, user, data} );
     return of(data)
     .pipe(
       mergeMap(tx => forkJoin(
@@ -448,7 +448,7 @@ class WalletES {
         WalletDA.updateAmount$(data.walletId, 'main', data.amount), // todo only main ???
       )),
       tap(() => {
-        console.log('Enviando la actualizacion de billetera, ', data.walletId);
+        // console.log('Enviando la actualizacion de billetera, ', data.walletId);
         this.walletPocketUpdatedEventEmitter$.next(data.walletId)
       })
     );
@@ -475,12 +475,13 @@ class WalletES {
 
 
   handleWalletTransactionCommited$({aid, data, user}) {
-    console.log("handleWalletTransactionCommited$", aid, data, user);
+    // console.log("handleWalletTransactionCommited$", aid, data, user);
     return of({})
     .pipe(
       map(() => ([
           {
             _id: Crosscutting.generateDateBasedUuid(),
+            businessId: data.businessId,
             walletId: data.fromId,            
             amount: data.amount * -1,
             type: data.type,
@@ -492,6 +493,7 @@ class WalletES {
           },
           {
             _id: Crosscutting.generateDateBasedUuid(),
+            businessId: data.businessId,
             walletId: data.toId,
             amount: data.amount,
             type: data.type,

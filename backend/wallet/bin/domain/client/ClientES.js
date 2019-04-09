@@ -60,7 +60,7 @@ class ClientES {
   }
 
   emitWalletCreatedOrUpdated$(wallet){
-    console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
+    // console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
     return eventSourcing.eventStore.emitEvent$(
       new Event({
         eventType: "WalletUpdated",

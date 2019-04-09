@@ -22,7 +22,7 @@
             [@animate]="{ value: '*', params: { delay: '100ms', x: '-25px' } }">{{ "WALLET.WALLET" | translate }}
           </span>
 
-          <button mat-mini-fab class="mb-8" [ngClass]="{'blink-button': outdatedData}" (click)="resetFilter()"
+          <button mat-mini-fab class="mb-8" [ngClass]="{'blink-button': outdatedData}" (click)="requestAgain()"
             matTooltip="{{ 'WALLET.TRANSACTION_HISTORY_REFRESH' | translate }}">
             <mat-icon aria-label="Icon with a refresh icon">refresh</mat-icon>
           </button>
@@ -37,7 +37,7 @@
 
 
 
-        <div class="grey-300-bg p-4" fxLayout="column" fxLayoutAlign="start center">
+        <div *ngIf="walletData && walletData.pockets" class="grey-300-bg p-4" fxLayout="column" fxLayoutAlign="start center">
 
           <div fxLayout="column" fxFill>
             <div class="px-16 py-12" fxFlex="100" fxLayout="row" fxLayoutAlign="start center">
@@ -48,24 +48,6 @@
                 <span [ngStyle]="{color: walletData.pockets.main >= 0 ? 'green' : 'red'}">{{ walletData.pockets.main | currency }}</span>
               </div>
             </div>
-
-            <!-- <div class="px-16 py-12" fxLayout="row" fxLayoutAlign="start center">
-              <div class="h4 secondary-text" fxFlex="35">{{'WALLET.BONUS' | translate}}</div>
-              <div class="pt-0 mat-title m-0 font-weight-300 text-nowrap" fxFlex="65">
-                <span [ngStyle]="{
-                        color: walletData.pockets.bonus >= 0 ? 'green' : 'red'
-                      }">{{ walletData.pockets.bonus | currency }}</span>
-              </div>
-            </div>
-
-            <div class="px-16 py-12" fxLayout="row" fxLayoutAlign="start center">
-              <div class="h4 secondary-text" fxFlex="35">{{'WALLET.CREDIT' | translate}}</div>
-              <div class="pt-0 mat-title m-0 font-weight-300 text-nowrap" fxFlex="65">
-                <span [ngStyle]="{
-                        color: walletData.pockets.credit >= 0 ? 'green' : 'red'
-                      }">{{ walletData.pockets.credit | currency }}</span>
-              </div>
-            </div> -->
           </div>
         </div>
 
@@ -80,7 +62,7 @@
                 <input matInput [matDatepicker]="pickerInitDate" placeholder="{{'WALLET.INIT_DATE' | translate}}"
                   formControlName="initDate" (dateChange)="onInitDateChange()" />
                 <mat-datepicker-toggle matSuffix [for]="pickerInitDate"></mat-datepicker-toggle>
-                <mat-datepicker [twelveHour]="false" type="datetime" #pickerInitDate></mat-datepicker>
+                <mat-datepicker #pickerInitDate></mat-datepicker>
               </mat-form-field>
 
               <mat-form-field>
@@ -88,10 +70,10 @@
                   placeholder="{{'WALLET.END_DATE' | translate}}" formControlName="endDate"
                   (dateChange)="onEndDateChange()" />
                 <mat-datepicker-toggle matSuffix [for]="pickerEndDate"></mat-datepicker-toggle>
-                <mat-datepicker [twelveHour]="false" type="datetime" #pickerEndDate></mat-datepicker>
+                <mat-datepicker #pickerEndDate></mat-datepicker>
               </mat-form-field>
 
-              <mat-form-field>
+              <mat-form-field *ngIf="canChangeWallet">
                 <mat-select placeholder="{{'WALLET.SELECT_TRANSACTION_TYPE' | translate}}"
                   formControlName="transactionType" [compareWith]="compareTypes" id="transactionType"
                   (selectionChange)="filterForm.get('transactionConcept').reset()">
@@ -102,7 +84,7 @@
                 </mat-select>
               </mat-form-field>
 
-              <mat-form-field fxFlex="100" *ngIf="filterForm.get('transactionType').value">
+              <mat-form-field fxFlex="100" *ngIf="canChangeWallet && filterForm.get('transactionType').value">
                 <mat-select placeholder="{{'WALLET.SELECT_TRANSACTION_CONCEPT' | translate}}"
                   formControlName="transactionConcept">
                   <mat-option>{{ "WALLET.NONE" | translate }}</mat-option>
@@ -190,14 +172,6 @@
             <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_VALUE" | translate}}</mat-header-cell>
             <mat-cell *cdkCellDef="let transaction">
               <div [ngClass]="{'green-fg':transaction.amount > 0, 'red-fg':transaction.amount < 0}">{{ transaction.amount | currency }}</div>
-            </mat-cell>
-          </ng-container>
-
-          <!-- Pocket Column -->
-          <ng-container cdkColumnDef="pocket">
-            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_POCKET" | translate}}</mat-header-cell>
-            <mat-cell *cdkCellDef="let transaction">
-              <div>{{ "WALLET." + transaction.pocket | translate }}</div>
             </mat-cell>
           </ng-container>
 

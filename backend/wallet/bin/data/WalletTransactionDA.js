@@ -90,16 +90,20 @@ class WalletTransactionDA {
    * @param {*} pagination.count Count of records to return
    * @param {*} pagination.sortTimestamp Indicates if the info should be sorted asc or desc according to the timestamp.
    */
-  static getTransactionsHistory$(filter, pagination) {
+  static getTransactionsHistory$(filter, pagination) {   
+    
     return Observable.create(async observer => {
       const initDateFormat = new Date(filter.initDate);
       const collection = mongoDB
         .getHistoricalDb(initDateFormat)
         .collection(COLLECTION_NAME);
 
-      const query = { 
-        walletId: filter.walletId
-      };
+      const query = { };
+
+      if(filter.businessId){ query.businessId = filter.businessId }
+      if(filter.walletId){ query.walletId = filter.walletId; }
+      if (filter.transactionType) { query.type = filter.transactionType; }
+      if (filter.transactionConcept) { query.concept = filter.transactionConcept; }
 
       if (filter.initDate) {
         query.timestamp = query.timestamp || {};
@@ -110,15 +114,7 @@ class WalletTransactionDA {
         query.timestamp = query.timestamp || {};
         query.timestamp["$lt"] = filter.endDate;
       }
-
-      if (filter.transactionType) {
-        query.type = filter.transactionType;
-      }
-
-      if (filter.transactionConcept) {
-        query.concept = filter.transactionConcept;
-      }
-
+      
       const cursor = collection
         .find(query)
         .skip(pagination.count * pagination.page)
@@ -185,10 +181,9 @@ class WalletTransactionDA {
     const collection = mongoDB
       .getHistoricalDb(initDateFormat)
       .collection(COLLECTION_NAME);
-    const query = { 
-      // businessId: filter.businessId,
-      walletId: filter.walletId 
-    };
+    const query = {};
+    if(filter.walletId){ query.walletId = filter.walletId}
+    if(filter.businessId){ query.businessId = filter.businessId}
 
     if (filter.initDate) {
       query.timestamp = query.timestamp || {};
