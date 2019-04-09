@@ -43,7 +43,7 @@ class WalletCQRS {
   }
 
   getMyWallet$({ args }, authToken) {
-    console.log("getMyWallet$", args);
+    // console.log("getMyWallet$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
@@ -168,7 +168,7 @@ class WalletCQRS {
    * @param {*} args args
    */
   getWalletTransactionsHistoryAmount$({ args }, authToken) {
-    console.log("getWalletTransactionsHistoryAmount$", args);
+    // console.log("getWalletTransactionsHistoryAmount$", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",

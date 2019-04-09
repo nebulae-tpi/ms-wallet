@@ -107,7 +107,7 @@ class WalletES {
   }
   
   handleWalletSpendingCommited$({aid, data}){
-    console.log("handleWalletSpendingCommited$", data);
+    // console.log("handleWalletSpendingCommited$", data);
     return of(evt.data)
     .pipe(
       mergeMap(eventData => forkJoin(
@@ -440,7 +440,7 @@ class WalletES {
    * @param {*} walletTransactionExecuted wallet transaction executed event
    */
   handleWalletTransactionExecuted$({aid, user, data}){
-    console.log('handleWalletTransactionExecuted => ', {aid, user, data} );
+    // console.log('handleWalletTransactionExecuted => ', {aid, user, data} );
     return of(data)
     .pipe(
       mergeMap(tx => forkJoin(
@@ -448,7 +448,7 @@ class WalletES {
         WalletDA.updateAmount$(data.walletId, 'main', data.amount), // todo only main ???
       )),
       tap(() => {
-        console.log('Enviando la actualizacion de billetera, ', data.walletId);
+        // console.log('Enviando la actualizacion de billetera, ', data.walletId);
         this.walletPocketUpdatedEventEmitter$.next(data.walletId)
       })
     );
