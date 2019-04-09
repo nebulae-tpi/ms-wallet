@@ -53,8 +53,7 @@ module.exports = {
           catchError(err => handleError$(err, "getWalletTransactionsHistory")),
           mergeMap(response => getResponseFromBackEnd$(response))
         ).toPromise();
-    },
-    
+    },   
     
     getWalletTransactionsHistoryAmount(root, args, context) {
       return RoleValidator.checkPermissions$(
