@@ -27,8 +27,9 @@ class ClientES {
         _id: aid,
         businessId: rawdata.businessId,
         type: 'CLIENT',
+        active: true,
         fullname: `${((rawdata.generalInfo || {}).name || '')}`,
-        documentId: ((rawdata.generalInfo || {}).documentId || ''),
+        documentId: ((rawdata.generalInfo || {}).documentId || ''),        
         pockets: { main: 0, bonus: 0 }
       })),
       mergeMap(wallet => walletDA.createNeWallet$(wallet)),
@@ -57,6 +58,13 @@ class ClientES {
           : of(null)
         )
       );
+  }
+
+  handleClientStateUpdated$({aid, data}){
+    return of(data.state)
+    .pipe(
+      mergeMap(active => walletDA.updateActiveStatus$(aid, active) )
+    )
   }
 
   emitWalletCreatedOrUpdated$(wallet){

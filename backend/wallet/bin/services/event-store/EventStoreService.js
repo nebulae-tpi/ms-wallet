@@ -15,7 +15,7 @@ let instance;
 /**
  * Micro-BackEnd key
  */
-const mbeKey = "ms-wallet_mbe_wallet_15";
+const mbeKey = "ms-wallet_mbe_wallet_16";
 
 class EventStoreService {
   constructor() {
@@ -135,6 +135,14 @@ class EventStoreService {
         fn: business.eventSourcing.handleBusinessGeneralInfoUpdated$,
         obj: business.eventSourcing
       },
+      BusinessActivated: {
+        fn: business.eventSourcing.handleBusinessStateUpdated$,
+        obj: business.eventSourcing
+      },
+      BusinessDeactivated: {
+        fn: business.eventSourcing.handleBusinessStateUpdated$,
+        obj: business.eventSourcing
+      },
       // DRIVERS
       DriverCreated: {
         fn: DriverES.handleDriverCreated$,
@@ -142,6 +150,10 @@ class EventStoreService {
       },
       DriverGeneralInfoUpdated: {
         fn: DriverES.handleDriverGeneralInfoUpdated$,
+        obj: DriverES
+      },
+      DriverStateUpdated: {
+        fn: DriverES.handleDriverStateUpdated$,
         obj: DriverES
       },
       // CLIENT
@@ -153,6 +165,10 @@ class EventStoreService {
         fn: ClientES.handleClientGeneralInfoUpdated$,
         obj: ClientES
       },
+      ClientStateUpdated: {
+        fn: ClientES.handleClientStateUpdated$,
+        obj: ClientES
+      },
       // USER
       UserCreated:{
         fn: UserES.handleUserCreated$,
@@ -160,6 +176,14 @@ class EventStoreService {
       },
       UserGeneralInfoUpdated:{
         fn: UserES.handleUserGeneralInfoUpdated$,
+        obj: UserES 
+      },
+      UserActivated:{
+        fn: UserES.handleUserStateUpdated$,
+        obj: UserES 
+      },
+      UserDeactivated:{
+        fn: UserES.handleUserStateUpdated$,
         obj: UserES 
       },
       // WALLET TRANSACTIONS
@@ -202,15 +226,22 @@ class EventStoreService {
       // BUSINESSES
       { aggregateType: "Business", eventType: "BusinessCreated" },
       { aggregateType: "Business", eventType: "BusinessGeneralInfoUpdated" },
+      { aggregateType: "Business", eventType: "BusinessActivated" },
+      { aggregateType: "Business", eventType: "BusinessDeactivated" },
       // DRIVERS
       { aggregateType: "Driver", eventType: "DriverCreated" },
       { aggregateType: "Driver", eventType: "DriverGeneralInfoUpdated" },
+      { aggregateType: "Driver", eventType: "DriverStateUpdated" },
       // CLIENT
       { aggregateType: "Client", eventType: "ClientCreated" },
       { aggregateType: "Client", eventType: "ClientGeneralInfoUpdated" },
+      { aggregateType: "Client", eventType: "ClientStateUpdated" },
       // USER
       { aggregateType: "User", eventType: "UserCreated" },
       { aggregateType: "User", eventType: "UserGeneralInfoUpdated" },
+      { aggregateType: "User", eventType: "UserActivated" },
+      { aggregateType: "User", eventType: "UserDeactivated" },
+
       // WALLET MOVEMENTS      
       { aggregateType: "Wallet", eventType: "WalletTransactionCommited" },
 

@@ -208,9 +208,14 @@ class WalletDA {
     );
   }
 
+  static updateActiveStatus$(walletId, active){
+    const collection = mongoDB.db.collection(COLLECTION_NAME);
+    return defer(() => collection.updateOne({ _id: walletId }, { $set: { active: active } }))
+  }
+
   static getFilteredWallets$(filterText, businessId, limit = 10) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    const filter = {};
+    const filter = { active: true };
     if (filterText) {
       filter["$or"] = [
         { fullname: { $regex: filterText, $options: "i" } },
@@ -220,11 +225,7 @@ class WalletDA {
     if (businessId) {
       filter.businessId = businessId;
     }
-    return defer(() => collection
-      .find(filter)
-      .limit(limit)
-      .toArray()
-    );
+    return defer(() => collection.find(filter).limit(limit).toArray());
   }
 
   static getWalletById$(walletId) {

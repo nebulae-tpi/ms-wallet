@@ -27,6 +27,7 @@ class UserES {
           _id: aid,
           businessId: rawdata.businessId,
           type: 'USER',
+          active: true,
           fullname: `${((rawdata.generalInfo||{}).name || '')} ${((rawdata.generalInfo||{}).lastname || '')}`,
           documentId: ((rawdata.generalInfo||{}).documentId || ''),
           pockets: { main: 0, bonus: 0 }
@@ -58,6 +59,13 @@ class UserES {
           : of(null)
         )
       );
+  }
+
+  handleUserStateUpdated$({ aid, data }){
+    return of(data)
+    .pipe(
+      mergeMap(({ _id, state}) => walletDA.updateActiveStatus$(_id, state) )
+    )
   }
 
   emitWalletCreatedOrUpdated$(wallet){

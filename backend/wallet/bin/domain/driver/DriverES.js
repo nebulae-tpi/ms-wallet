@@ -27,6 +27,7 @@ class DriverES {
           _id: aid,
           businessId: rawdata.businessId,
           type: 'DRIVER',
+          active: true,
           fullname: `${ ((rawdata.generalInfo||{}).name || '' ) } ${ ((rawdata.generalInfo||{}).lastname || '') }`,
           documentId: ((rawdata.generalInfo||{}).document || ''),
           pockets: { main: 0, bonus: 0 }
@@ -57,6 +58,13 @@ class DriverES {
           : of(null)
         )
       );
+  }
+
+  handleDriverStateUpdated$({aid, data}){
+    return of(data.state)
+    .pipe(
+      mergeMap(active => walletDA.updateActiveStatus$(aid, active) )
+    )
   }
 
   emitWalletCreatedOrUpdated$(wallet){

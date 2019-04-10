@@ -20,21 +20,18 @@ class BusinessES {
     //     delay(2000),
     //     mergeMap(() => eventSourcing.eventStore.emitEvent$(
     //       new Event({
-    //         eventType: "UserGeneralInfoUpdated",
+    //         eventType: "UserDeactivated",
     //         eventTypeVersion: 1,
     //         aggregateType: "User",
     //         aggregateId: "sd989845--14-g4--f0-6-g4-6-45-f4o9",
-    //         data: { 
-    //           businessId: "4j5hb34g5j345--gg6w-",
-    //           generalInfo: {
-    //             name: 'Nombre',
-    //             lastname: 'Nombre',
-    //             documentId: 'documento ID'
-    //           }
+    //         data: {
+    //           _id: "sd989845--14-g4--f0-6-g4-6-45-f4o9",
+    //           state: false
     //         },
     //         user: "SYSTEM"
     //       })
-    //     ))
+    //     )),
+    //     tap(e => console.log("Event sent"))
     //   )
     // .subscribe()
   }
@@ -51,6 +48,7 @@ class BusinessES {
           _id: aid,
           businessId: aid,
           type: 'BUSINESS',
+          active: true,
           fullname: (rawdata.generalInfo || {}).name,
           documentId: (rawdata.generalInfo || {}).documentId,
           pockets: { main: 0, bonus: 0 }
@@ -85,6 +83,13 @@ class BusinessES {
           : of(null)
         )
       );
+  }
+
+  handleBusinessStateUpdated$({aid, data}){    
+    return of(data)
+    .pipe(
+      mergeMap(() => walletDA.updateActiveStatus$(aid, data )),
+    )
   }
 
   emitWalletCreatedOrUpdated$(wallet){
