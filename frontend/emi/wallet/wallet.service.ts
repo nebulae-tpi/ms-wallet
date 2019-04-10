@@ -120,6 +120,5 @@ export class WalletService {
       .map(resp => {
         return (resp && resp.data ) ? resp.data.walletPocketUpdated : null
       });      
-  }
-   
+  }   
 }
