@@ -88,7 +88,8 @@ class BusinessES {
   handleBusinessStateUpdated$({aid, data}){    
     return of(data)
     .pipe(
-      mergeMap(() => walletDA.updateActiveStatus$(aid, data )),
+      mergeMap(() => walletDA.updateActiveStatus$(aid, data)),
+      mergeMap( r => (r && r.value) ? this.emitWalletCreatedOrUpdated$(r.value) : of({}))
     )
   }
 

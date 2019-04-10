@@ -210,7 +210,13 @@ class WalletDA {
 
   static updateActiveStatus$(walletId, active){
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return defer(() => collection.updateOne({ _id: walletId }, { $set: { active: active } }))
+    return defer(() =>
+      collection.findOneAndUpdate(
+        { _id: wallet._id },
+        { $set: { active: active }} ,
+        { returnOriginal: false }
+      )
+    );
   }
 
   static getFilteredWallets$(filterText, businessId, limit = 10) {

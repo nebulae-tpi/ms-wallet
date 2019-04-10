@@ -64,7 +64,8 @@ class UserES {
   handleUserStateUpdated$({ aid, data }){
     return of(data)
     .pipe(
-      mergeMap(({ _id, state}) => walletDA.updateActiveStatus$(_id, state) )
+      mergeMap(({ _id, state}) => walletDA.updateActiveStatus$(_id, state)),
+      mergeMap( r => (r && r.value) ? this.emitWalletCreatedOrUpdated$(r.value) : of({}))
     )
   }
 

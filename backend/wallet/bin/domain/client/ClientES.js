@@ -63,7 +63,8 @@ class ClientES {
   handleClientStateUpdated$({aid, data}){
     return of(data.state)
     .pipe(
-      mergeMap(active => walletDA.updateActiveStatus$(aid, active) )
+      mergeMap(active => walletDA.updateActiveStatus$(aid, active)),
+      mergeMap( r => (r && r.value) ? this.emitWalletCreatedOrUpdated$(r.value) : of({}))
     )
   }
 
