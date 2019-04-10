@@ -18,6 +18,7 @@ const graphQlService_emi = require('./services/emi-gateway/GraphQlService')();
 const { concat, forkJoin} = require('rxjs');
 
 
+
 const start = () => {
     concat(
         eventSourcing.eventStore.start$(),
