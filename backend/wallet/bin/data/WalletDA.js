@@ -212,7 +212,7 @@ class WalletDA {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
     return defer(() =>
       collection.findOneAndUpdate(
-        { _id: wallet._id },
+        { _id: walletId },
         { $set: { active: active }} ,
         { returnOriginal: false }
       )
