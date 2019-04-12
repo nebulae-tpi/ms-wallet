@@ -73,6 +73,7 @@ export const getWallet = gql`
   query getWallet($walletId: String!) {
     getWallet(walletId: $walletId) {
       _id
+      fullname
       pockets {
         main
         bonus

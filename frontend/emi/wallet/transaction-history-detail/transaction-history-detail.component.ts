@@ -7,9 +7,10 @@ import {
   map,
   mergeMap,
   toArray,
-  tap
+  tap,
+  mapTo
 } from 'rxjs/operators';
-import { Subject, fromEvent, from, of, Observable } from 'rxjs';
+import { Subject, fromEvent, from, of, Observable, forkJoin } from 'rxjs';
 
 //////////// Services ////////////
 import { KeycloakService } from 'keycloak-angular';
@@ -48,7 +49,6 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
     'type',
     'concept',
     'amount',
-    'pocket',
     'user'
   ];
 
@@ -62,6 +62,8 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
     terminal: {}
   };
   selectedBusiness: any = null;
+
+  selectedTransactionName = '';
 
   constructor(
     private translationLoader: FuseTranslationLoaderService,
@@ -95,30 +97,36 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
       .pipe(
         mergeMap(params => this.transactionHistoryDetailService.getTransactionHistoryById$(params.id)),
         map(response => response.data.getWalletTransactionsHistoryById),
-        map(tx => {
-          this.selectedTransaction = tx;
-          return tx;
-        }),
-        mergeMap(tx => {
+        tap(tx => this.selectedTransaction = tx),
+        mergeMap(tx => forkJoin(of(tx), this.loadWalletName$(tx)) ),
+        mergeMap(([tx, a]) => {
           const hasAssociatedTxIds = tx.associatedTransactionIds != null && tx.associatedTransactionIds.length > 0;
 
           if (!hasAssociatedTxIds) {
             return of([tx]);
           }
-
-          console.log('Transacciones asociadas', tx.associatedTransactionIds);
-
           return this.canViewRelatedtransactions
           ? this.transactionHistoryDetailService.getAssociatedTransactionsHistoryByTransactionHistoryId$(tx._id)
           : of([]);
         }),
         map((r: any) => ( r && r.data && r.data.getAssociatedTransactionsHistoryByTransactionHistoryId)),
         tap(atxs => {
-          console.log('ATXS LIST ==>', atxs);
           this.dataSource.data = atxs;
         })
       )
       .subscribe();
+  }
+
+  loadWalletName$(transaction){
+    return of(transaction.walletId)
+    .pipe(
+      mergeMap(wId => this.walletService.getWallet$(wId)),
+      tap(r => this.selectedTransactionName = ((r.data||{}).getWallet||{}).fullname||'')
+    );
+  }
+
+  revertTransaction(){
+    
   }
 
   /**
