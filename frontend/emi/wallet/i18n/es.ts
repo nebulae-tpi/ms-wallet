@@ -30,7 +30,7 @@ export const locale = {
       TIMESTAMP: 'Fecha: ',
       TRANSACTION_TYPE: 'Tipo',
       TRANSACTION_CONCEPT: 'Concepto',
-      TRANSACTION_USER: 'Usuario',
+      TRANSACTION_USER: 'Responsable',
       TRANSACTION_RESPONSIBLE_USER: 'Responsable',
       FULLNAME: 'Billetera: ',
       REVERT_TRANSACTION: 'Revertir Transacción',
@@ -61,11 +61,11 @@ export const locale = {
       CONCEPTS: {
         RECARGA_CIVICA: 'Recarga cívica',
         WALLET_RECHARGE: 'Recarga de Billetera',
-        VEHICLE_SUBSCRIPTION: 'Suscripcción de Vehiculo',
+        VEHICLE_SUBSCRIPTION: 'Suscripcción de Vehículo',
         WITHDRAWAL: 'Retiro',
         DEPOSIT: 'Deposito',
-        CLIENT_AGREEMENT_PAYMENT: 'Pago',
-        CLIENT_AGREEMENT_REFUN: 'Reembolso',
+        CLIENT_AGREEMENT_PAYMENT: 'Pago Acuerdo Empresarial',
+        CLIENT_AGREEMENT_REFUN: 'Reembolso Acuerdo Empresarial',
         undefined: ''
       },
       TRANSACTION_HISTORY_DETAIL: 'Detalle de transacción',

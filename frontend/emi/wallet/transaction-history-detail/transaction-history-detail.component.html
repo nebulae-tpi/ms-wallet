@@ -84,7 +84,7 @@
                 <mat-icon class="m-0 mr-16">grain</mat-icon>
                 <div class="h2 secondary-text">{{'WALLET.ASSOCIATED_TRANSACTIONS' | translate}}</div>
               </div>
-              <button mat-stroked-button color="warn" (click)="revertTransaction()">
+              <button *ngIf="false" mat-stroked-button color="warn" (click)="revertTransaction()">
                 <mat-icon color="warm">settings_backup_restore</mat-icon>
                 {{'WALLET.REVERT_TRANSACTION' | translate}}
               </button>

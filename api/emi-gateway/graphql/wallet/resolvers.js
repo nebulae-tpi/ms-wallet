@@ -10,27 +10,22 @@ const { CustomError } = require("../../tools/customError");
 // please use the prefix assigned to this microservice
 const INTERNAL_SERVER_ERROR_CODE = 19001;
 const PERMISSION_DENIED_ERROR_CODE = 19002;
+const { ApolloError } = require("apollo-server");
 const { handleError$ } = require('../../tools/GraphqlResponseTools');
 
 const CONTEXT_NAME = "WALLET";
 
 function getResponseFromBackEnd$(response) {
   return of(response)
-    .pipe(
-      map(resp => {
-        if (resp.result.code != 200) {
-          const err = new Error();
-          err.name = 'Error';
-          err.message = resp.result.error;
-          // this[Symbol()] = resp.result.error;
-          Error.captureStackTrace(err, 'Error');
-          throw err;
-        }
-        return resp.data;
+  .pipe(
+      map(({result, data}) => {            
+          if (result.code != 200) {
+              throw new ApolloError(result.error.msg, result.code, result.error );
+          }
+          return data;
       })
-    )
+  );
 }
-
 
 module.exports = {
   //// QUERY ///////
