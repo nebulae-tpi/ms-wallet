@@ -103,7 +103,8 @@ export const locale = {
       19003: 'You Don\'t have Enough information about Your Wallet. Please Restart Your Credentials',
       19005: 'Transaction Ids are required to make revert operation',
       19006: 'Transaction to revert no found',
-      19007: 'Transaction Already Reverted'
+      19007: 'Transaction Already Reverted',
+      19008: 'Insufficient Balance to Revert Transaction'
     }
   }
 };

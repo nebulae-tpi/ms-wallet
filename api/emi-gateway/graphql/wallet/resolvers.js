@@ -417,7 +417,6 @@ module.exports = {
             PERMISSION_DENIED_ERROR_CODE,
             "Permission denied"
           );
-
           return pubsub.asyncIterator("walletPocketUpdated");
         },
         (payload, variables, context, info) => payload.walletPocketUpdated._id == variables.walletId

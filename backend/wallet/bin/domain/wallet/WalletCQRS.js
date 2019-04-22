@@ -17,7 +17,8 @@ const {
   NO_WALLET_ID_IN_AUTH_TOKEN,
   MISSING_TRANSACTIONS_TO_REVERT,
   TRANSACTION_NO_FOUND,
-  TRANSACTION_ALREADY_REVERTED
+  TRANSACTION_ALREADY_REVERTED,
+  INSUFFICIENT_BALANCE
 } = require("../../tools/ErrorCodes");
 const context = "wallet";
 
@@ -329,6 +330,17 @@ class WalletCQRS {
             fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,
             toId: txs[0].amount < 0 ? txs[0].walletId : txs[1].walletId 
           })),
+          mergeMap(txData => forkJoin(
+            walletDA.getWalletById$(txData.fromId),
+            of(txData)
+          )),
+          // validate the balance required to revert transaction
+          mergeMap(([wallet, txData]) => {
+            if(!wallet || wallet.pockets.main < txData.amount){
+              return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')
+            }
+            return of(txData);
+          }),
           mergeMap(txData => eventSourcing.eventStore.emitEvent$(
             new Event({
               eventType: "WalletTransactionCommited",
