@@ -213,6 +213,10 @@ class GraphQlService {
       },
       {
         aggregateType: "Wallet",
+        messageType: "emigateway.graphql.mutation.revertTransaction"
+      },
+      {
+        aggregateType: "Wallet",
         messageType: "emigateway.graphql.query.getWalletSpendingRuleQuantity",        
       },
       {
@@ -276,6 +280,11 @@ class GraphQlService {
         fn: wallet.cqrs.makeManualBalanceAdjustment$,
         obj: wallet.cqrs
       },
+      "emigateway.graphql.mutation.revertTransaction":{
+        fn: wallet.cqrs.revertTransaction$,
+        obj: wallet.cqrs
+      },
+      // SPENDING RULES
       "emigateway.graphql.query.getSpendingRule": {
         fn: spendingRules.cqrs.getSpendingRule$,
         obj: spendingRules.cqrs

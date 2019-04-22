@@ -37,7 +37,6 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
   manualBalanceAdjustmentsForm: FormGroup;
   selectedBusinessData: any = null;
   wallet: any = null;
-  value;
 
   businessQueryFiltered$: Observable<any[]>; // Wallet autocomplete supplier
   selectedWallet: any = null;
@@ -67,7 +66,7 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
     .pipe(
       tap(bu => {
         this.selectedBusinessId = (bu && bu.id) ? bu.id : undefined;
-        if(this.manualBalanceAdjustmentsForm){
+        if (this.manualBalanceAdjustmentsForm){
           this.manualBalanceAdjustmentsForm.get('wallet').setValue(null);
         }
       })
@@ -174,17 +173,17 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
           adjustmentType,
           walletId: data.wallet._id,
           businessWalletId: this.selectedBusinessId,
-          value: this.value,
+          value: data.value,
           notes: data.notes
         };
         return manualBalanceAdjustment;
       }),
       filter(mba => {
         if (mba && !mba.businessWalletId) {
-          this.showMessageSnackbar('ERRORS.BUSINESS_REQUIRED')
-          return false
+          this.showMessageSnackbar('ERRORS.BUSINESS_REQUIRED');
+          return false;
         }
-        else { return true }
+        else { return true; }
       }),
       mergeMap(mba => this.manualPocketAdjustmentService.makeManualBalanceAdjustment$(mba)),
       // mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
@@ -224,12 +223,12 @@ export class ManualPocketAdjustmentComponent implements OnInit, OnDestroy{
    * Handles the Graphql errors and show a message to the user
    * @param response
    */
-  graphQlAlarmsErrorHandler$(response) {
+  graphQlAlarmsErrorHandler$(response: any) {
     return Rx.Observable.of(JSON.parse(JSON.stringify(response))).pipe(
       tap((resp: any) => {
         if (response && Array.isArray(response.errors)) {
           response.errors.forEach(error => {
-            this.showMessageSnackbar('ERRORS.' + ((error.extensions||{}).code || 1) )
+            this.showMessageSnackbar('ERRORS.' + ((error.extensions || {}).code || 1) );
           });
         }
         return resp;

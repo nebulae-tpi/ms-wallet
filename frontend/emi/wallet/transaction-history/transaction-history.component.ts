@@ -168,7 +168,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
 
   buildFilterForm() {
     const startOfMonth = moment().startOf('month');
-    const startOfDay = moment().startOf('day');
+    const startOfDay = moment().subtract(1, 'day').startOf('day');
     const endOfMonth = moment().endOf('day');
     this.minEndDate = startOfMonth;
     this.maxEndDate = endOfMonth;
@@ -261,9 +261,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
         startWith({ lang: this.translate.currentLang }),
         takeUntil(this.ngUnsubscribe)
       )
-      .subscribe(event => {
-        console.log('onLangChange ==> ', event);
-        
+      .subscribe(event => {        
         if (event) { this.adapter.setLocale(event.lang); }
       });
   }
@@ -383,7 +381,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     this.page = 0;
     this.count = 25;
 
-    const startOfMonth = moment().startOf('day');
+    const startOfMonth = moment().subtract(1, 'day').startOf('day');
     const endOfMonth = moment().endOf('day');
     this.filterForm.patchValue({
       initDate: startOfMonth,
@@ -483,7 +481,6 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
             this.transactionHistoryService.getTransactionsHistoryAmount$(filterInput)
               .pipe(
                 mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
-                tap(r => console.log('getTransactionsHistoryAmount$', r)),
                 map(r => (r && r.data && r.data.getWalletTransactionsHistoryAmount) ? r.data.getWalletTransactionsHistoryAmount : 0)
               )
           )

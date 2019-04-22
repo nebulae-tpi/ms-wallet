@@ -47,12 +47,10 @@ class WalletTransactionDA {
 
     return of({ businessId, transactionHistoryId }).pipe(
       map(filter => {
-        let query = {
-          _id: transactionHistoryId
-        };
-        // if(filter.businessId){
-        //   query.businessId = filter.businessId;
-        // }
+        let query = { _id: transactionHistoryId };
+        if(filter.businessId && filter.businessId != '' ){
+          query.businessId = filter.businessId;
+        }
         return query;
       }),
       mergeMap(query => defer(() => collection.findOne(query)))
@@ -203,6 +201,11 @@ class WalletTransactionDA {
       query.concept = filter.transactionConcept;
     }
     return collection.count(query);
+  }
+
+  static markAsReverted$(transactioinId){
+    const collection = mongoDB.getHistoricalDbByYYMM(transactioinId.split('-').pop()).collection(COLLECTION_NAME);
+    return defer(() => collection.updateOne({_id: transactioinId}, {$set:{reverted: true}}));
   }
 
   /**

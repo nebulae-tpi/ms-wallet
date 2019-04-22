@@ -44,6 +44,11 @@
               <span class="title">{{'WALLET.FULLNAME' | translate}}</span>
               <span class="value">{{selectedTransactionName}}</span>
             </div>
+
+            <div fxFlex.gt-xs="50" fxFlex="100" class="form-field">
+              <span class="title">{{'WALLET.DOCUMENT_ID' | translate}}</span>
+              <span class="value">{{walletDocumentId}}</span>
+            </div>
           
             <div fxFlex.gt-xs="50" fxFlex="100" class="form-field">
               <span class="title">{{'WALLET.TIMESTAMP' | translate}}</span>
@@ -84,7 +89,7 @@
                 <mat-icon class="m-0 mr-16">grain</mat-icon>
                 <div class="h2 secondary-text">{{'WALLET.ASSOCIATED_TRANSACTIONS' | translate}}</div>
               </div>
-              <button *ngIf="false" mat-stroked-button color="warn" (click)="revertTransaction()">
+              <button *ngIf="selectedTransaction.concept != 'CLIENT_AGREEMENT_REFUND'" [disabled]="selectedTransaction && selectedTransaction.reverted" mat-stroked-button color="warn" (click)="revertTransaction()">
                 <mat-icon color="warm">settings_backup_restore</mat-icon>
                 {{'WALLET.REVERT_TRANSACTION' | translate}}
               </button>

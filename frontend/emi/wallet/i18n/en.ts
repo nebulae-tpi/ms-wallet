@@ -34,6 +34,7 @@ export const locale = {
       TRANSACTION_RESPONSIBLE_USER: 'Responsible',
       REVERT_TRANSACTION: 'Revert Transaction',
       FULLNAME: 'Wallet: ',
+      DOCUMENT_ID: 'Document ID: ',
       TRANSACTION_VALUE: 'Value',
       TRANSACTION_POCKET: 'Pocket',
       TRANSACTION_TERMINAL_ID: 'Terminal ID',
@@ -59,16 +60,15 @@ export const locale = {
         USER: 'User'
       },
       CONCEPTS: {
-        RECARGA_CIVICA: 'Civic recharge card',
         WALLET_RECHARGE: 'Wallet Recharge',
         VEHICLE_SUBSCRIPTION: 'Vehicle Subscription',
         WITHDRAWAL: 'Withdrawal',
         DEPOSIT: 'Deposit',
         CLIENT_AGREEMENT_PAYMENT: 'Client Aggreement Payment',
-        CLIENT_AGREEMENT_REFUN: 'Client Aggreement Refun',
+        CLIENT_AGREEMENT_REFUND: 'Client Aggreement Refund',
         undefined: ''
       },
-      TRANSACTION_HISTORY_DETAIL: 'Transaction detail',
+      TRANSACTION_HISTORY_DETAIL: 'Transaction Detail',
       INFO: 'Info',
       TERMINAL: 'Terminal',
       ID: 'ID:',
@@ -91,13 +91,19 @@ export const locale = {
       ERROR: 'Error',
       EVENT: 'Event',
       TYPE: 'Error type',
-      TRANSACTION_HISTORY_REFRESH: 'Refresh data'
+      TRANSACTION_HISTORY_REFRESH: 'Refresh data',
+      REVERT_TRANSACTION_MESSAGE: 'Are you sure you want to revert this transaction?',
+      REVERT_TRANSACTION_MESSAGE_TITLE: 'Revert Transaction'
     },
     ERRORS: {
+      1: 'Internal Server Error',
       BUSINESS_REQUIRED: 'Business Required to Make Operation',
       19001: 'Internal server error',
       19002: 'Permission denied',
-      19003: 'You Don\'t have Enough information about Your Wallet. Please Restart Your Credentials'
+      19003: 'You Don\'t have Enough information about Your Wallet. Please Restart Your Credentials',
+      19005: 'Transaction Ids are required to make revert operation',
+      19006: 'Transaction to revert no found',
+      19007: 'Transaction Already Reverted'
     }
   }
 };

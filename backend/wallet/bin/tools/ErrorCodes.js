@@ -9,5 +9,8 @@ module.exports =  {
     PERMISSION_DENIED_ERROR,
     INTERNAL_SERVER_ERROR,
     NO_WALLET_ID_IN_AUTH_TOKEN,
-    DRIVER_ID_NO_FOUND_IN_TOKEN : { code: 19004, description: 'DRIVER ID NO FOUND IN JWT TOKEN'}
+    DRIVER_ID_NO_FOUND_IN_TOKEN : { code: 19004, description: 'DRIVER ID NO FOUND IN JWT TOKEN'},
+    MISSING_TRANSACTIONS_TO_REVERT: { code: 19005, description: 'Transaction Ids are required to make revert operation' },
+    TRANSACTION_NO_FOUND: { code: 19006, description: 'Transaction to revert no found' },
+    TRANSACTION_ALREADY_REVERTED: { code: 19007, description: 'Transaction Already Reverted'}
 } 

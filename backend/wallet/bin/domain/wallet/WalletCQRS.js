@@ -1,5 +1,5 @@
 const { mergeMap, catchError, map, toArray, tap, reduce } = require('rxjs/operators');
-const { of, throwError, from } = require('rxjs');
+const { of, throwError, from, forkJoin } = require('rxjs');
 const broker = require("../../tools/broker/BrokerFactory")();
 const eventSourcing = require("../../tools/EventSourcing")();
 const Event = require("@nebulae/event-store").Event;
@@ -14,7 +14,10 @@ const {
   PERMISSION_DENIED_ERROR,
   INTERNAL_SERVER_ERROR,
   DRIVER_ID_NO_FOUND_IN_TOKEN,
-  NO_WALLET_ID_IN_AUTH_TOKEN
+  NO_WALLET_ID_IN_AUTH_TOKEN,
+  MISSING_TRANSACTIONS_TO_REVERT,
+  TRANSACTION_NO_FOUND,
+  TRANSACTION_ALREADY_REVERTED
 } = require("../../tools/ErrorCodes");
 const context = "wallet";
 
@@ -182,10 +185,7 @@ class WalletCQRS {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, we must return an error
           if (!isPlatformAdmin && authToken.businessId != args.filterInput.businessId) {
-            return this.createCustomError$(
-              PERMISSION_DENIED_ERROR,
-              'getWalletTransactionsHistoryAmount'
-            );
+            return this.createCustomError$(PERMISSION_DENIED_ERROR, 'getWalletTransactionsHistoryAmount');
           }
           return of(roles);
       }),
@@ -289,6 +289,60 @@ class WalletCQRS {
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );
+  }
+
+  revertTransaction$({args}, authToken){
+    return RoleValidator.checkPermissions$(
+      authToken.realm_access.roles, "wallet", "revertTransaction", PERMISSION_DENIED_ERROR, ["PLATFORM-ADMIN", "BUSINESS-OWNER"])
+        .pipe(
+          // validate transaction length
+          map(() => ((args.transactionIds||{}).length == 2)
+              ? args.transactionIds
+              : this.createCustomError$(MISSING_TRANSACTIONS_TO_REVERT, 'revertTransaction')
+          ),
+          // validate transaction exists
+          mergeMap(([tx1, tx2]) => forkJoin(
+            WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx1),
+            WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx2),
+          )),
+          // validate transaction is not already reverted
+          mergeMap(([tx1, tx2]) => {
+            if(!tx1 || !tx2){
+              return this.createCustomError$(TRANSACTION_NO_FOUND, 'revertTransaction');
+            }
+            if(tx1.reverted || tx2.reverted){
+              return this.createCustomError$(TRANSACTION_ALREADY_REVERTED, 'revertTransaction')
+            }
+            return of([tx1, tx2]);
+          }),
+          mergeMap(([tx1, tx2]) => forkJoin(
+            WalletTransactionDA.markAsReverted$(tx1._id),
+            WalletTransactionDA.markAsReverted$(tx2._id),
+            of([tx1, tx2])
+          )),
+          // Create the wallet transaction committed
+          map(([a, b, txs]) => ({
+            _id: uuidv4(), type: 'MOVEMENT', notes: '',
+            concept: "CLIENT_AGREEMENT_REFUND", timestamp: Date.now(),      
+            amount: txs[0].amount > 0 ? txs[0].amount : txs[1].amount ,
+            businessId: txs[0].businessId,       
+            fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,
+            toId: txs[0].amount < 0 ? txs[0].walletId : txs[1].walletId 
+          })),
+          mergeMap(txData => eventSourcing.eventStore.emitEvent$(
+            new Event({
+              eventType: "WalletTransactionCommited",
+              eventTypeVersion: 1,
+              aggregateType: "Wallet",
+              aggregateId: txData._id,
+              data: txData,
+              user: authToken.preferred_username
+            })
+          )),
+          map(() => ({ code: 200, message: `Manual balance adjustment has been created` })),
+          mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+          catchError(err => this.handleError$(err))
+      );
   }
 
   getTypesAndConceptsValues$() {

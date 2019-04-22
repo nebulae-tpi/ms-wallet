@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { GatewayService } from '../../../../api/gateway.service';
 import {
   getWalletTransactionsHistoryById,
-  getAssociatedTransactionsHistoryByTransactionHistoryId
+  getAssociatedTransactionsHistoryByTransactionHistoryId,
+  WalletRevertTransaction
 } from '../gql/wallet';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class TransactionHistoryDetailService {
@@ -40,5 +42,20 @@ export class TransactionHistoryDetailService {
         fetchPolicy: 'network-only',
         errorPolicy: 'all'
       });
+  }
+
+  /**
+   * Make a new manual balance adjustment
+   * @param mba Balance adjustment to be created
+   */
+  revertTransaction$(businessId: string, transactionIds: string[]): Observable<any> {
+    return this.gateway.apollo.mutate<any>({
+      mutation: WalletRevertTransaction,
+      variables: {
+        businessId: businessId,
+        transactionIds: transactionIds
+      },
+      errorPolicy: 'all'
+    });
   }
 }

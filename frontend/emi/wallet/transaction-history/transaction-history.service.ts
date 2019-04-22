@@ -14,7 +14,7 @@ export class TransactionHistoryService {
   private selectedWalletSubject$ = new BehaviorSubject<any>(null);
   private _filterAndPaginator$ = new BehaviorSubject({
     filter: {
-      initDate: moment().startOf('day'),
+      initDate: moment().subtract(1, 'day').startOf('day'),
       endDate: moment().endOf('day'),
       terminal: {}
     },

@@ -16,7 +16,7 @@ export const getBusinessByFilter = gql`
 export const getWalletsByFilter = gql`
   query getWalletsByFilter($filterText: String, $businessId: String, $limit: Int) {
     getWalletsByFilter(filterText: $filterText, businessId: $businessId, limit: $limit) {
-      _id      
+      _id
       fullname
       type
       documentId
@@ -30,7 +30,7 @@ export const getWalletsByFilter = gql`
 export const getMyWallet = gql`
   query getMyWallet{
     getMyWallet{
-      _id      
+      _id
       fullname
       type
       documentId
@@ -74,6 +74,7 @@ export const getWallet = gql`
     getWallet(walletId: $walletId) {
       _id
       fullname
+      documentId
       pockets {
         main
         bonus
@@ -120,6 +121,7 @@ export const getWalletTransactionsHistoryById = gql`
     getWalletTransactionsHistoryById(id: $id) {
       _id
       timestamp
+      businessId
       walletId
       type
       concept
@@ -127,6 +129,7 @@ export const getWalletTransactionsHistoryById = gql`
       amount
       user
       notes
+      reverted
       associatedTransactionIds
     }
   }
@@ -178,6 +181,15 @@ export const getWalletErrorsCount = gql`
 export const makeManualBalanceAdjustment = gql`
   mutation makeManualBalanceAdjustment($input: ManualBalanceAdjustmentInput) {
     makeManualBalanceAdjustment(input: $input) {
+      code
+      message
+    }
+  }
+`;
+
+export const WalletRevertTransaction = gql`
+  mutation WalletRevertTransaction($businessId: String!, $transactionIds: [String]!) {
+    WalletRevertTransaction(businessId: $businessId, transactionIds: $transactionIds) {
       code
       message
     }

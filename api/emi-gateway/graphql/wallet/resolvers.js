@@ -12,15 +12,14 @@ const INTERNAL_SERVER_ERROR_CODE = 19001;
 const PERMISSION_DENIED_ERROR_CODE = 19002;
 const { ApolloError } = require("apollo-server");
 const { handleError$ } = require('../../tools/GraphqlResponseTools');
-
 const CONTEXT_NAME = "WALLET";
 
 function getResponseFromBackEnd$(response) {
   return of(response)
   .pipe(
       map(({result, data}) => {            
-          if (result.code != 200) {
-              throw new ApolloError(result.error.msg, result.code, result.error );
+          if (result.code != 200 && result.error) {
+            throw new ApolloError(result.error.msg, result.code, result.error );
           }
           return data;
       })
@@ -29,7 +28,6 @@ function getResponseFromBackEnd$(response) {
 
 module.exports = {
   //// QUERY ///////
-
   Query: {
     getWalletTransactionsHistory(root, args, context) {
       return RoleValidator.checkPermissions$(
@@ -388,10 +386,23 @@ module.exports = {
         catchError(err => handleError$(err, "updateSpendingRule")),
         mergeMap(response => getResponseFromBackEnd$(response))
       ).toPromise();
-    }
+    },
+    WalletRevertTransaction(root, args, context) {
+      return RoleValidator.checkPermissions$(
+        context.authToken.realm_access.roles,
+        CONTEXT_NAME,
+        "WalletRevertTransaction",
+        PERMISSION_DENIED_ERROR_CODE,
+        "Permission denied",
+        ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
+      )
+      .pipe(
+        mergeMap(() => broker .forwardAndGetReply$("Wallet", "emigateway.graphql.mutation.revertTransaction", { root, args, jwt: context.encodedToken }, 2000 )),
+        catchError(err => handleError$(err, "WalletRevertTransaction")),
+        mergeMap(response => getResponseFromBackEnd$(response))
+      ).toPromise();
+    },
   },
-  
-  
   //// SUBSCRIPTIONS ///////
   Subscription: {
     walletPocketUpdated: {

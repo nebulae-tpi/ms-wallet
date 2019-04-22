@@ -25,14 +25,15 @@ export const locale = {
       TERMINAL_ID: 'ID terminal',
       TERMINAL_USER_ID: 'ID Usuario',
       TERMINAL_USERNAME: 'Nombre usuario terminal',
-      SELECT_TRANSACTION_TYPE: 'Tipo transacción',
-      SELECT_TRANSACTION_CONCEPT: 'Concepto transacción',
+      SELECT_TRANSACTION_TYPE: 'Tipo Transacción',
+      SELECT_TRANSACTION_CONCEPT: 'Concepto Transacción',
       TIMESTAMP: 'Fecha: ',
       TRANSACTION_TYPE: 'Tipo',
       TRANSACTION_CONCEPT: 'Concepto',
       TRANSACTION_USER: 'Responsable',
       TRANSACTION_RESPONSIBLE_USER: 'Responsable',
       FULLNAME: 'Billetera: ',
+      DOCUMENT_ID: 'Documento: ',
       REVERT_TRANSACTION: 'Revertir Transacción',
       TRANSACTION_VALUE: 'Valor',
       TRANSACTION_POCKET: 'Bolsa',
@@ -59,16 +60,15 @@ export const locale = {
         USER: 'Usuario'
       },
       CONCEPTS: {
-        RECARGA_CIVICA: 'Recarga cívica',
         WALLET_RECHARGE: 'Recarga de Billetera',
         VEHICLE_SUBSCRIPTION: 'Suscripcción de Vehículo',
         WITHDRAWAL: 'Retiro',
         DEPOSIT: 'Deposito',
         CLIENT_AGREEMENT_PAYMENT: 'Pago Acuerdo Empresarial',
-        CLIENT_AGREEMENT_REFUN: 'Reembolso Acuerdo Empresarial',
+        CLIENT_AGREEMENT_REFUND: 'Reembolso Acuerdo Empresarial',
         undefined: ''
       },
-      TRANSACTION_HISTORY_DETAIL: 'Detalle de transacción',
+      TRANSACTION_HISTORY_DETAIL: 'Detalle Transacción',
       INFO: 'Información',
       TERMINAL: 'Terminal',
       ID: 'ID:',
@@ -91,13 +91,19 @@ export const locale = {
       ERROR: 'Error',
       EVENT: 'Evento',
       TYPE: 'Tipo error',
-      TRANSACTION_HISTORY_REFRESH: 'Refrescar información'
+      TRANSACTION_HISTORY_REFRESH: 'Refrescar información',
+      REVERT_TRANSACTION_MESSAGE: 'Estás Seguro de Revertir Esta Transacción?',
+      REVERT_TRANSACTION_MESSAGE_TITLE: 'Revertir Transacción'
     },
     ERRORS: {
+      1: 'Error Interno del Servidor',
       BUSINESS_REQUIRED: 'Selecciona Una Unidad De Negocio Para Realiar la Operación',
       19001: 'Error interno de servidor',
       19002: 'Permiso denegado.',
       19003: 'No Tienes Informacion Suficiente de tu Billetera. Por Favor Reinicia tus Credenciales',
+      19005: 'Formato Inválido Para Revertir la Transacción',
+      19006: 'No Se Encontró la Transaccion a Revertir',
+      19007: 'Transacción Ya Está Revertida'
     }
   }
 };

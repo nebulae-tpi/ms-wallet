@@ -8,6 +8,7 @@ export interface DialogData {
 }
 
 @Component({
+// tslint:disable-next-line: component-selector
   selector: 'app-dialog.component',
   templateUrl: './dialog.component.html',
   styleUrls: ['./dialog.component.scss']

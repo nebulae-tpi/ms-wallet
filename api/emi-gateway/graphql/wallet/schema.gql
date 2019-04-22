@@ -40,6 +40,8 @@ type WalletTransaction {
   _id: ID!
   "Timestamp where the transaction was created"
   timestamp: BigInt!
+  "businessId"
+  businessId: String
   "ID of the wallet associated with the transaction"
   walletId: String
   "Transaction type"
@@ -54,6 +56,8 @@ type WalletTransaction {
   user: String!  
   "Notes"
   notes: String
+  "reverted status"
+  reverted: Boolean
   "Location where the operation was performed"
   location: Location
   "Terminal data (Additional info useful to identify where the operation was performed)"
@@ -293,6 +297,7 @@ type Mutation {
   "Mutation to create manual balance adjustments."
   makeManualBalanceAdjustment(input: ManualBalanceAdjustmentInput): CommandResponse
   walletUpdateSpendingRule(input: WalletSpendingRuleInput ): CommandResponse
+  WalletRevertTransaction(businessId: String!, transactionIds: [String]!): CommandResponse
 }
 
 type Subscription {

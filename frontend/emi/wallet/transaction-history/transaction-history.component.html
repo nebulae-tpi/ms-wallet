@@ -151,10 +151,10 @@
             </mat-cell>
           </ng-container>
 
-          <!-- From Column -->
+          <!-- TYPE Column -->
           <ng-container cdkColumnDef="type">
-            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_TYPE" | translate}}</mat-header-cell>
-            <mat-cell *cdkCellDef="let transaction">
+            <mat-header-cell *cdkHeaderCellDef fxHide fxShow.gt-xs>{{"WALLET.TRANSACTION_TYPE" | translate}}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction" fxHide fxShow.gt-xs>
               <div>{{ "WALLET.TYPES." + transaction.type | translate }}</div>
             </mat-cell>
           </ng-container>
@@ -177,8 +177,8 @@
 
           <!-- User Column -->
           <ng-container cdkColumnDef="user">
-            <mat-header-cell *cdkHeaderCellDef>{{"WALLET.TRANSACTION_USER" | translate}}</mat-header-cell>
-            <mat-cell *cdkCellDef="let transaction">
+            <mat-header-cell fxHide fxShow.gt-xs *cdkHeaderCellDef>{{"WALLET.TRANSACTION_USER" | translate}}</mat-header-cell>
+            <mat-cell *cdkCellDef="let transaction" fxHide fxShow.gt-xs>
               <div>{{ transaction.user }}</div>
             </mat-cell>
           </ng-container>

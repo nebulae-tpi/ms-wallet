@@ -6,11 +6,10 @@ import { ActivatedRoute } from '@angular/router';
 import {
   map,
   mergeMap,
-  toArray,
   tap,
-  mapTo
+  filter,
 } from 'rxjs/operators';
-import { Subject, fromEvent, from, of, Observable, forkJoin } from 'rxjs';
+import { Subject, of, forkJoin } from 'rxjs';
 
 //////////// Services ////////////
 import { KeycloakService } from 'keycloak-angular';
@@ -28,9 +27,11 @@ import {
   MatPaginator,
   MatSort,
   MatTableDataSource,
-  MatSnackBar
+  MatSnackBar,
+  MatDialog
 } from '@angular/material';
 import { fuseAnimations } from '../../../../core/animations';
+import { DialogComponent } from '../dialog/dialog.component';
 
 @Component({
 // tslint:disable-next-line: component-selector
@@ -64,13 +65,18 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
   selectedBusiness: any = null;
 
   selectedTransactionName = '';
+  walletDocumentId = '';
+  disabledRevertBtn = false;
 
   constructor(
     private translationLoader: FuseTranslationLoaderService,
     private keycloakService: KeycloakService,
     private activatedRouter: ActivatedRoute,
     private walletService: WalletService,
-    private transactionHistoryDetailService: TransactionHistoryDetailService
+    private transactionHistoryDetailService: TransactionHistoryDetailService,
+    private dialog: MatDialog,
+    private translate: TranslateService,
+    private snackBar: MatSnackBar,
   ) {
     this.translationLoader.loadTranslations(english, spanish);
   }
@@ -97,7 +103,7 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
       .pipe(
         mergeMap(params => this.transactionHistoryDetailService.getTransactionHistoryById$(params.id)),
         map(response => response.data.getWalletTransactionsHistoryById),
-        tap(tx => this.selectedTransaction = tx),
+        tap(tx => this.selectedTransaction = JSON.parse(JSON.stringify(tx))),
         mergeMap(tx => forkJoin(of(tx), this.loadWalletName$(tx)) ),
         mergeMap(([tx, a]) => {
           const hasAssociatedTxIds = tx.associatedTransactionIds != null && tx.associatedTransactionIds.length > 0;
@@ -121,12 +127,99 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
     return of(transaction.walletId)
     .pipe(
       mergeMap(wId => this.walletService.getWallet$(wId)),
-      tap(r => this.selectedTransactionName = ((r.data||{}).getWallet||{}).fullname||'')
+      tap(r => {
+        this.selectedTransactionName = ((r.data || {}).getWallet || {}).fullname || '';
+        this.walletDocumentId = ((r.data || {}).getWallet || {}).documentId || '';
+      })
     );
   }
 
   revertTransaction(){
-    
+    this.dialog.open(DialogComponent, {
+      data: {
+        dialogMessage: 'WALLET.REVERT_TRANSACTION_MESSAGE',
+        dialogTitle: 'WALLET.REVERT_TRANSACTION_MESSAGE_TITLE'
+      }
+    })
+    .afterClosed()
+    .pipe(
+      filter(accepted => (accepted && this.selectedTransaction )),
+      map(() => ([ this.selectedTransaction._id, ...this.selectedTransaction.associatedTransactionIds]) ),
+      filter(ids => {
+        console.log(this.selectedTransaction);
+        
+        if (!ids || ids.length !== 2){
+          console.log('Invalid Transaction to Revert');
+          return false;
+        }
+        return true;
+      }),
+      mergeMap(ids => this.transactionHistoryDetailService.revertTransaction$(this.selectedTransaction.businessId, ids)),
+      mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
+      filter(r => (r && r.data && r.data.WalletRevertTransaction)),
+      map(r => r.data.WalletRevertTransaction),
+      tap(r => {
+        if(r.code === 200){
+          this.selectedTransaction.reverted = true;
+        }
+        console.log('graphQlAlarmsErrorHandler$', r);
+      }),
+      // filter((resp: any) => !resp.errors || resp.errors.length === 0)
+    ).subscribe((result) => {
+      // console.log('RESULT ==> ', result);
+      // formDirective.resetForm();
+      // this.manualBalanceAdjustmentsForm.reset();
+      // this.snackBar.open(this.translationLoader.getTranslate().instant('WALLET.EXECUTED_OPERATION'),
+      //   this.translationLoader.getTranslate().instant('WALLET.CLOSE'), {
+      //     duration: 5000
+      //   });
+    },
+      error => console.log('Error realizando operación ==> ', error)
+    );
+
+  }
+
+      /**
+   * Handles the Graphql errors and show a message to the user
+   * @param response
+   */
+  graphQlAlarmsErrorHandler$(response: any) {
+    return of(JSON.parse(JSON.stringify(response))).pipe(
+      tap((resp: any) => {
+        if (response && Array.isArray(response.errors)) {
+          response.errors.forEach(error => {
+            this.showMessageSnackbar('ERRORS.' + ((error.extensions || {}).code || 1) );
+          });
+        }
+        return resp;
+      })
+    );
+  }
+
+    /**
+   * Shows a message snackbar on the bottom of the page
+   * @param messageKey Key of the message to i18n
+   * @param detailMessageKey Key of the detail message to i18n
+   */
+  showMessageSnackbar(messageKey, detailMessageKey?) {
+    const translationData = [];
+    if (messageKey) {
+      translationData.push(messageKey);
+    }
+
+    if (detailMessageKey) {
+      translationData.push(detailMessageKey);
+    }
+
+    this.translate.get(translationData).subscribe(data => {
+      this.snackBar.open(
+        messageKey ? data[messageKey] : '',
+        detailMessageKey ? data[detailMessageKey] : '',
+        {
+          duration: 2000
+        }
+      );
+    });
   }
 
   /**
