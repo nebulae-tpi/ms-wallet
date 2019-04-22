@@ -143,11 +143,10 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
     })
     .afterClosed()
     .pipe(
+      tap(() => this.disabledRevertBtn = true),
       filter(accepted => (accepted && this.selectedTransaction )),
       map(() => ([ this.selectedTransaction._id, ...this.selectedTransaction.associatedTransactionIds]) ),
-      filter(ids => {
-        console.log(this.selectedTransaction);
-        
+      filter(ids => {        
         if (!ids || ids.length !== 2){
           console.log('Invalid Transaction to Revert');
           return false;
@@ -164,16 +163,8 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
         }
         console.log('graphQlAlarmsErrorHandler$', r);
       }),
-      // filter((resp: any) => !resp.errors || resp.errors.length === 0)
-    ).subscribe((result) => {
-      // console.log('RESULT ==> ', result);
-      // formDirective.resetForm();
-      // this.manualBalanceAdjustmentsForm.reset();
-      // this.snackBar.open(this.translationLoader.getTranslate().instant('WALLET.EXECUTED_OPERATION'),
-      //   this.translationLoader.getTranslate().instant('WALLET.CLOSE'), {
-      //     duration: 5000
-      //   });
-    },
+    ).subscribe(
+      result => { this.disabledRevertBtn = false },
       error => console.log('Error realizando operación ==> ', error)
     );
 
