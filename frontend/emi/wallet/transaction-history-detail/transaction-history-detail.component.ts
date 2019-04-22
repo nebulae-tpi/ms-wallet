@@ -148,7 +148,6 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
       map(() => ([ this.selectedTransaction._id, ...this.selectedTransaction.associatedTransactionIds]) ),
       filter(ids => {        
         if (!ids || ids.length !== 2){
-          console.log('Invalid Transaction to Revert');
           return false;
         }
         return true;
@@ -160,8 +159,8 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
       tap(r => {
         if(r.code === 200){
           this.selectedTransaction.reverted = true;
+          this.showMessageSnackbar('SUCCESS.1');
         }
-        console.log('graphQlAlarmsErrorHandler$', r);
       }),
     ).subscribe(
       result => { this.disabledRevertBtn = false },
@@ -207,7 +206,7 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
         messageKey ? data[messageKey] : '',
         detailMessageKey ? data[detailMessageKey] : '',
         {
-          duration: 2000
+          duration: 3000
         }
       );
     });

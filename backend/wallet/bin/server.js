@@ -19,6 +19,7 @@ const { concat, forkJoin} = require('rxjs');
 
 
 
+
 const start = () => {
     concat(
         eventSourcing.eventStore.start$(),

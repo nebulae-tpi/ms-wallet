@@ -103,8 +103,11 @@ export const locale = {
       19003: 'No Tienes Informacion Suficiente de tu Billetera. Por Favor Reinicia tus Credenciales',
       19005: 'Formato Inválido Para Revertir la Transacción',
       19006: 'No Se Encontró la Transaccion a Revertir',
-      19007: 'Transacción Ya Está Revertida',
+      19007: 'Transacción No Disponible',
       19008: 'Saldo Insuficiente Para Revertir la Transacción'
+    },
+    SUCCESS: {
+      1: 'Transacción Exitosa'
     }
   }
 };
