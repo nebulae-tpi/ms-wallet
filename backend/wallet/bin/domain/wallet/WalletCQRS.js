@@ -314,7 +314,24 @@ class WalletCQRS {
             if(tx1.reverted || tx2.reverted){
               return this.createCustomError$(TRANSACTION_ALREADY_REVERTED, 'revertTransaction')
             }
-            return of([tx1, tx2]);
+            return of([tx1, tx2])
+            .pipe(
+              map(() => ({
+                walletId: tx1.amount > 0 ? tx1.walletId : tx2.walletId,
+                amount: tx1.amount > 0 ? tx1.amount : tx2.amount  })
+              ),
+              mergeMap(txData => forkJoin(
+                walletDA.getWalletById$(txData.walletId),
+                of(txData)
+              )),
+              // // validate the balance required to revert transaction
+              mergeMap(([wallet, txData]) => {
+                if(!wallet || wallet.pockets.main < txData.amount){
+                  return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')
+                }
+                return of([tx1, tx2]);
+              })
+            )
           }),
           mergeMap(([tx1, tx2]) => forkJoin(
             WalletTransactionDA.markAsReverted$(tx1._id),
@@ -330,17 +347,6 @@ class WalletCQRS {
             fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,
             toId: txs[0].amount < 0 ? txs[0].walletId : txs[1].walletId 
           })),
-          mergeMap(txData => forkJoin(
-            walletDA.getWalletById$(txData.fromId),
-            of(txData)
-          )),
-          // validate the balance required to revert transaction
-          mergeMap(([wallet, txData]) => {
-            if(!wallet || wallet.pockets.main < txData.amount){
-              return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')
-            }
-            return of(txData);
-          }),
           mergeMap(txData => eventSourcing.eventStore.emitEvent$(
             new Event({
               eventType: "WalletTransactionCommited",
