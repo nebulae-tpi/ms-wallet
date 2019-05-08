@@ -55,7 +55,7 @@ class WalletCQRS {
       PERMISSION_DENIED_ERROR,
       ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
       ).pipe(
-          map(() => authToken.userId || authToken.driverId || authToken.clientId, ),
+          map(() => authToken.userId || authToken.driverId || authToken.clientId),
           // tap(wi => console.log('BUSCANDO WALLET ID ==> ', wi )),
           mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$" ) : of(walletId) ),
           mergeMap(walletId => walletDA.getWalletById$(walletId)),

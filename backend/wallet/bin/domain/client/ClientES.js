@@ -46,7 +46,7 @@ class ClientES {
           // businessId: rawdata.businessId, // todo
           type: 'CLIENT',
           fullname: `${(rawdata.generalInfo||{}).name}`,
-          documentId: (rawdata.generalInfo||{}).document
+          documentId: (rawdata.generalInfo||{}).document || (rawdata.generalInfo||{}).documentId
         })),
         mergeMap(wallet => walletDA.findAndUpdateWallet$(wallet, { pockets: { main: 0, bonus: 0 } } )),
         mergeMap(r => (r && r.value)
