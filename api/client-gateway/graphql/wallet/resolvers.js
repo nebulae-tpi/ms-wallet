@@ -14,6 +14,7 @@ const INTERNAL_SERVER_ERROR_CODE = 23001;
 const USERS_PERMISSION_DENIED_ERROR_CODE = 23002;
 const { ApolloError } = require("apollo-server");
 
+
 function getResponseFromBackEnd$(response) {
   return of(response)
   .pipe(
