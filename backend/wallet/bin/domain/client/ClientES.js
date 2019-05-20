@@ -37,6 +37,27 @@ class ClientES {
       mergeMap(() => WalletSpendingRuleDA.createNewWalletSpendingRule$({ walletId: aid, businessId: data.businessId,  ...defaultWSR})),
     );
   }
+
+  handleEndClientCreated$({aid, data}){
+    return of(data)
+    .pipe(
+      // create the default wallet state
+      map(rawdata => ({
+        _id: aid,
+        businessId: rawdata.businessId,
+        type: 'CLIENT',
+        active: true,
+        fullname: `${((rawdata.generalInfo || {}).name || '')}`,
+        documentId: ((rawdata.generalInfo || {}).documentId || ''),        
+        pockets: { main: 0, bonus: 0 }
+      })),
+      mergeMap(wallet => walletDA.createNeWallet$(wallet)),
+      mergeMap(r => ( r && r.ops && r.insertedCount == 1) ? this.emitWalletCreatedOrUpdated$(r.ops[0]) : of({})),
+      mergeMap(() => WalletSpendingRuleDA.createNewWalletSpendingRule$({ walletId: aid, businessId: data.businessId,  ...defaultWSR})),
+    );
+  }
+
+
   
   handleClientGeneralInfoUpdated$({ aid, data }) {
     return of(data)

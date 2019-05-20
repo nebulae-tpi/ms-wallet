@@ -169,6 +169,10 @@ class EventStoreService {
         fn: ClientES.handleClientStateUpdated$,
         obj: ClientES
       },
+      EndClientCreated: {
+        fn: ClientES.handleEndClientCreated$,
+        obj: ClientES 
+      },
       // USER
       UserCreated:{
         fn: UserES.handleUserCreated$,
@@ -185,7 +189,7 @@ class EventStoreService {
       UserDeactivated:{
         fn: UserES.handleUserStateUpdated$,
         obj: UserES 
-      },
+      },      
       // WALLET TRANSACTIONS
       WalletTransactionCommited:{
         fn: wallet.eventSourcing.handleWalletTransactionCommited$, 
@@ -236,6 +240,7 @@ class EventStoreService {
       { aggregateType: "Client", eventType: "ClientCreated" },
       { aggregateType: "Client", eventType: "ClientGeneralInfoUpdated" },
       { aggregateType: "Client", eventType: "ClientStateUpdated" },
+      { aggregateType: "Client", eventType: "EndClientCreated" },
       // USER
       { aggregateType: "User", eventType: "UserCreated" },
       { aggregateType: "User", eventType: "UserGeneralInfoUpdated" },

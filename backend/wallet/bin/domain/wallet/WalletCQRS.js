@@ -391,10 +391,16 @@ class WalletCQRS {
 
 
   // CLIENT SECTION
-  clientWallet$({args}, authToken){
+  clientWallet$({ args }, authToken) {
+    console.log('clientWallet$', {args} );
     const { clientId } = authToken;
+    console.log('clientId ==> ', clientId );
+
     return of({})
     .pipe(
+      tap(() => {
+        
+      }),
       mergeMap(() => walletDA.getWalletById$(clientId) ),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(ex => this.handleError$(ex) )      
