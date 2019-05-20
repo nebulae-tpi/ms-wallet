@@ -182,7 +182,7 @@ jobs:
             gitChanged api/client-gateway || export DOCKERHUB_IMAGE=drivergateway
             gitChanged api/client-gateway || export API_SHELL_PATH=/home/circleci/nebulae/api/
             gitChanged api/client-gateway || ( cd ~/nebulae/api-client/shell && sh ~/nebulae/api-client/shell/deployment/docker/build-docker-hub.sh  && cd ~/nebulae/repo/ )
-            gitChanged api/client-gateway || echo $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE@$(docker pull $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest | grep sha256 | cut -c 9-) > ~/nebulae/api-client/DRIVER_DOCKERHUB_GENERATED_IMAGE_DIGEST
+            gitChanged api/client-gateway || echo $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE@$(docker pull $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest | grep sha256 | cut -c 9-) > ~/nebulae/api-client/CLIENT_DOCKERHUB_GENERATED_IMAGE_DIGEST
       - persist_to_workspace:
           root: ~/nebulae/
           paths:
@@ -231,7 +231,7 @@ jobs:
             mkdir ~/nebulae/backend
             cp ~/nebulae/go/mbinit ~/nebulae/repo/backend/wallet/
             export DOCKERHUB_IMAGE=wallet.backend.wallet
-            export DOCKERHUB_TAG=0.1.2
+            export DOCKERHUB_TAG=0.1.3
             gitChanged backend/wallet || docker build  -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest ~/nebulae/repo/backend/wallet/
             gitChanged backend/wallet || docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS
             gitChanged backend/wallet || docker push $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG
@@ -274,6 +274,11 @@ jobs:
             command: |
               (ls ~/nebulae/api-driver/DRIVER_DOCKERHUB_GENERATED_IMAGE_DIGEST && echo docker image DIGEST to set $(< ~/nebulae/api-driver/DRIVER_DOCKERHUB_GENERATED_IMAGE_DIGEST) ) || echo api not found
               (ls ~/nebulae/api-driver/DRIVER_DOCKERHUB_GENERATED_IMAGE_DIGEST && kubectl set image deployment/api-driver-gateway api-driver-gateway=$(< ~/nebulae/api-driver/DRIVER_DOCKERHUB_GENERATED_IMAGE_DIGEST) ) || echo api not found      
+        - run:
+            name: Deploy client-gateway API
+            command: |
+              (ls ~/nebulae/api-client/CLIENT_DOCKERHUB_GENERATED_IMAGE_DIGEST && echo docker image DIGEST to set $(< ~/nebulae/api-client/CLIENT_DOCKERHUB_GENERATED_IMAGE_DIGEST) ) || echo api not found
+              (ls ~/nebulae/api-client/CLIENT_DOCKERHUB_GENERATED_IMAGE_DIGEST && kubectl set image deployment/api-client-gateway api-client-gateway=$(< ~/nebulae/api-client/CLIENT_DOCKERHUB_GENERATED_IMAGE_DIGEST) ) || echo api not found
         - run:
             name: Deploy BackEnds 
             command: |

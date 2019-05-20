@@ -40,7 +40,7 @@ type ClientWalletInfo {
 
 
 type Query {
-   ClientWallet: ClientWalletInfo @requireAuth
+  ClientWallet: ClientWalletInfo @requireAuth
 }
 
 # type Mutation {
