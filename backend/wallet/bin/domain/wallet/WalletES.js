@@ -15,6 +15,7 @@ const Event = require("@nebulae/event-store").Event;
 const mongoDB = require('../../data/MongoDB').singleton();
 
 const MATERIALIZED_VIEW_TOPIC = "emi-gateway-materialized-view-updates";
+const CLIENT_GATEWAY_MATERIALIZED_VIEW_TOPIC = "client-gateway-materialized-view-updates";
 
 let instance;
 
@@ -53,6 +54,7 @@ class WalletES {
       .pipe(
         mergeMap(wallet => forkJoin(
           broker.send$(MATERIALIZED_VIEW_TOPIC, 'walletPocketUpdated', wallet),
+          broker.send$(CLIENT_GATEWAY_MATERIALIZED_VIEW_TOPIC, 'walletPocketUpdated', wallet),
           eventSourcing.eventStore.emitEvent$(
             new Event({
               eventType: 'WalletUpdated',
