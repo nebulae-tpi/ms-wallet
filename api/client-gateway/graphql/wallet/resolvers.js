@@ -1,5 +1,6 @@
 "use strict";
 
+const withFilter = require("graphql-subscriptions").withFilter;
 const { of, Observable, bindNodeCallback } = require("rxjs");
 const { map, tap, mergeMap, switchMapTo } = require("rxjs/operators");
 
