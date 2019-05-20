@@ -179,7 +179,7 @@ jobs:
             mkdir -p ~/nebulae/api-client
             gitChanged api/client-gateway || ( cd  ~/nebulae/api-client/ && git clone --depth=1 https://github.com/nebulae-tpi/client-gateway  ~/nebulae/api-client/shell )      
             gitChanged api/client-gateway || ls ~/nebulae/api-client/shell
-            gitChanged api/client-gateway || export DOCKERHUB_IMAGE=drivergateway
+            gitChanged api/client-gateway || export DOCKERHUB_IMAGE=clientgateway
             gitChanged api/client-gateway || export API_SHELL_PATH=/home/circleci/nebulae/api/
             gitChanged api/client-gateway || ( cd ~/nebulae/api-client/shell && sh ~/nebulae/api-client/shell/deployment/docker/build-docker-hub.sh  && cd ~/nebulae/repo/ )
             gitChanged api/client-gateway || echo $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE@$(docker pull $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest | grep sha256 | cut -c 9-) > ~/nebulae/api-client/CLIENT_DOCKERHUB_GENERATED_IMAGE_DIGEST
@@ -231,7 +231,7 @@ jobs:
             mkdir ~/nebulae/backend
             cp ~/nebulae/go/mbinit ~/nebulae/repo/backend/wallet/
             export DOCKERHUB_IMAGE=wallet.backend.wallet
-            export DOCKERHUB_TAG=0.1.7
+            export DOCKERHUB_TAG=0.1.8
             gitChanged backend/wallet || docker build  -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest ~/nebulae/repo/backend/wallet/
             gitChanged backend/wallet || docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS
             gitChanged backend/wallet || docker push $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG

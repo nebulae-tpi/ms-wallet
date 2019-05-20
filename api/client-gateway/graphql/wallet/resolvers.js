@@ -27,7 +27,6 @@ function getResponseFromBackEnd$(response) {
 }
 
 
-
 module.exports = {
   Query: {
     ClientWallet: (root, args, context, info) => {
