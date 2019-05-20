@@ -1,0 +1,53 @@
+
+type CommandResponse {
+  "Response code"
+  code: Int
+  "Response message"
+  message: String
+}
+
+enum ClientWalletSpendingStateEnum {
+  ALLOWED
+  FORBIDDEN
+}
+
+"Wallet info"
+type ClientPocketWallet {
+  "Main pocket"
+  main: Float
+  "bonus pocket"
+  bonus: Float
+}
+
+type ClientWalletInfo {
+   "Wallet ID"
+   _id: ID!
+   "Owner fullname"
+   fullname: String
+   "Owner document ID"
+   documentId: String
+   "ops: CLIENT | BUSINESS | USER | DRIVER"
+   type: String
+   "pocket info"
+   pockets: ClientPocketWallet!
+   "Wallet state"
+   spendingState: ClientWalletSpendingStateEnum
+   "Minimum amount operation"
+   minAmountOperation: Int
+   "Business ID"
+   businessId: String
+}
+
+
+type Query {
+   ClientWallet: ClientWalletInfo @requireAuth
+}
+
+# type Mutation {
+
+# }
+
+type Subscription {
+  ClientWalletUpdates: ClientWalletInfo
+}
+

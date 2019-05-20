@@ -1,0 +1,8 @@
+[
+    {
+        "name": "wallet",
+        "type": "graphql",        
+        "src": "api/client-gateway/graphql/wallet",
+        "preBuildCommands": []
+    }
+]

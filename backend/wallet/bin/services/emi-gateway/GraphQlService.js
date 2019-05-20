@@ -231,6 +231,11 @@ class GraphQlService {
         aggregateType: "Wallet",
         messageType: "drivergateway.graphql.query.getWalletTransactionsHistoryDriverApp"
       },
+      // CLIENT APP
+      {
+        aggregateType: "Client",
+        messageType: "clientgateway.graphql.query.clientWallet"
+      }
     ];
   }
 
@@ -324,6 +329,11 @@ class GraphQlService {
       // DRIVER GATEWAY
       "drivergateway.graphql.query.getWalletTransactionsHistoryDriverApp": {
         fn: wallet.cqrs.getWalletTransactionsHistoryDriverApp$,
+        obj: wallet.cqrs
+      },
+      // CLIENT GATEWAY
+      "clientgateway.graphql.query.clientWallet": {
+        fn: wallet.cqrs.clientWallet$,
         obj: wallet.cqrs
       }
 

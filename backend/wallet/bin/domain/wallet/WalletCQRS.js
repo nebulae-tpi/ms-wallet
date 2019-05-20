@@ -390,6 +390,20 @@ class WalletCQRS {
   //#endregion
 
 
+  // CLIENT SECTION
+  clientWallet$({args}, authToken){
+    const { clientId } = authToken;
+    return of({})
+    .pipe(
+      mergeMap(() => walletDA.getWalletById$(clientId) ),
+      mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+      catchError(ex => this.handleError$(ex) )      
+    )
+  }
+  // CLIENT SECTION
+
+
+
   //#region  mappers for API responses
   handleError$(err) {
     console.log("Handle error => ", err);

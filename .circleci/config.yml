@@ -92,8 +92,6 @@ jobs:
             gitChanged api/emi-gateway || nebulae register microapi --microservice-id=wallet --api-id=emi-gateway --setup-file=/home/circleci/nebulae/repo/etc/emi-mapi-setup.json --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json            
             gitChanged api/emi-gateway || nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://github.com/nebulae-tpi/emi-gateway.git --api-id=emi-gateway --output-dir=/home/circleci/nebulae/api/emi-gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json      
             gitChanged api/emi-gateway || ls /home/circleci/nebulae/api/emi-gateway/
-
-
       - setup_remote_docker
       - run:
           name: Build docker image (emi-gateway) and push it to hub
@@ -106,10 +104,7 @@ jobs:
             gitChanged api/emi-gateway || export DOCKERHUB_IMAGE=emigateway
             gitChanged api/emi-gateway || export API_SHELL_PATH=/home/circleci/nebulae/api/
             gitChanged api/emi-gateway || ( cd ~/nebulae/api/shell && sh ~/nebulae/api/shell/deployment/docker/build-docker-hub.sh  && cd ~/nebulae/repo/ )
-            gitChanged api/emi-gateway || echo $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE@$(docker pull $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest | grep sha256 | cut -c 9-) > ~/nebulae/api/DOCKERHUB_GENERATED_IMAGE_DIGEST
-            
-
-
+            gitChanged api/emi-gateway || echo $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE@$(docker pull $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest | grep sha256 | cut -c 9-) > ~/nebulae/api/DOCKERHUB_GENERATED_IMAGE_DIGEST            
       - persist_to_workspace:
           root: ~/nebulae/
           paths:
@@ -154,6 +149,45 @@ jobs:
           paths:
             - api-driver
 
+  build-api-client:    
+    working_directory: ~/nebulae/
+    docker:
+      - image: circleci/node:10.15.1
+        command: bash
+    steps:
+      - attach_workspace:
+          at: ~/nebulae
+      - run:
+          name: Installing NebulaE cli & Compose API
+          command: |    
+            source ~/nebulae/repo/.circleci/scripts/gitChanged.sh
+            cd ~/nebulae/repo/            
+            gitChanged api/client-gateway || echo $GCP_SERVICE_ACCOUNT_DEV | base64 --decode --ignore-garbage > /tmp/gcloud-service-key.json
+            gitChanged api/client-gateway || npm config set prefix '~/.npm-global'
+            gitChanged api/client-gateway || export PATH=~/.npm-global/bin:$PATH
+            gitChanged api/client-gateway || source ~/.profile
+            gitChanged api/client-gateway || npm install -g @nebulae/cli
+            gitChanged api/client-gateway || nebulae register microapi --microservice-id=wallet --api-id=client-gateway --setup-file=/home/circleci/nebulae/repo/etc/mapi-client-setup.json --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json            
+            gitChanged api/client-gateway || nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://github.com/nebulae-tpi/client-gateway.git --api-id=client-gateway --output-dir=/home/circleci/nebulae/api/client-gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json      
+            gitChanged api/client-gateway || ls /home/circleci/nebulae/api/client-gateway/
+      - setup_remote_docker
+      - run:
+          name: Build docker image and push it to hub
+          command: | 
+            source ~/nebulae/repo/.circleci/scripts/gitChanged.sh
+            cd ~/nebulae/repo/
+            mkdir -p ~/nebulae/api-client
+            gitChanged api/client-gateway || ( cd  ~/nebulae/api-client/ && git clone --depth=1 https://github.com/nebulae-tpi/client-gateway  ~/nebulae/api-client/shell )      
+            gitChanged api/client-gateway || ls ~/nebulae/api-client/shell
+            gitChanged api/client-gateway || export DOCKERHUB_IMAGE=drivergateway
+            gitChanged api/client-gateway || export API_SHELL_PATH=/home/circleci/nebulae/api/
+            gitChanged api/client-gateway || ( cd ~/nebulae/api-client/shell && sh ~/nebulae/api-client/shell/deployment/docker/build-docker-hub.sh  && cd ~/nebulae/repo/ )
+            gitChanged api/client-gateway || echo $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE@$(docker pull $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest | grep sha256 | cut -c 9-) > ~/nebulae/api-client/DRIVER_DOCKERHUB_GENERATED_IMAGE_DIGEST
+      - persist_to_workspace:
+          root: ~/nebulae/
+          paths:
+            - api-client
+
 # ################ MBINIT ################ 
             
   build-mbinit:    
@@ -197,7 +231,7 @@ jobs:
             mkdir ~/nebulae/backend
             cp ~/nebulae/go/mbinit ~/nebulae/repo/backend/wallet/
             export DOCKERHUB_IMAGE=wallet.backend.wallet
-            export DOCKERHUB_TAG=0.0.54
+            export DOCKERHUB_TAG=0.1.1
             gitChanged backend/wallet || docker build  -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest ~/nebulae/repo/backend/wallet/
             gitChanged backend/wallet || docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS
             gitChanged backend/wallet || docker push $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG
@@ -282,6 +316,14 @@ workflows:
             branches:
               only:
                 - develop
+      - build-api-client:
+          context: TPI
+          requires:
+            - prepare
+          filters:
+            branches:
+              only:
+                - develop
       - build-backend:
           context: TPI
           requires:
@@ -297,6 +339,7 @@ workflows:
             - build-frontend
             - build-api-emi
             - build-api-driver
+            - build-api-client
             - build-backend
           filters:
             branches:
@@ -329,6 +372,15 @@ workflows:
             branches:
               only:
                 - master
+      - build-api-client:
+          context: TPI_PROD
+          name: build-api-driver-prod
+          requires:
+            - prepare
+          filters:
+            branches:
+              only:
+                - master
       - build-backend:
           context: TPI_PROD
           name: build-backend-prod
@@ -345,6 +397,8 @@ workflows:
           requires:
             - build-frontend-prod
             - build-api-prod
+            - build-api-driver
+            - build-api-client
             - build-backend-prod
           filters:
             branches:
