@@ -1,6 +1,9 @@
 "use strict";
 
 const withFilter = require("graphql-subscriptions").withFilter;
+const PubSub = require("graphql-subscriptions").PubSub;
+const pubsub = new PubSub();
+
 const { of, Observable, bindNodeCallback } = require("rxjs");
 const { map, tap, mergeMap, switchMapTo } = require("rxjs/operators");
 

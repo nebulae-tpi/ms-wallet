@@ -48,6 +48,6 @@ type Query {
 # }
 
 type Subscription {
-  ClientWalletUpdates: ClientWalletInfo
+  ClientWalletUpdates(walletId: String!): ClientWalletInfo
 }
 
