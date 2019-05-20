@@ -65,8 +65,7 @@ module.exports = {
           const userIsClient = context.authToken.realm_access.roles.includes("CLIENT");
           console.log({clientId, walletId, userIsClient, payload});
 
-          // return (userIsClient && (clientId === walletId) );
-          return true;
+          return (userIsClient && (clientId === walletId) );
         }
       )
     },
