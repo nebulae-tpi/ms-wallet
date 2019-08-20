@@ -392,9 +392,9 @@ class WalletCQRS {
 
   // CLIENT SECTION
   clientWallet$({ args }, authToken) {
-    console.log('clientWallet$', {args} );
+    // console.log('clientWallet$', {args} );
     const { clientId } = authToken;
-    console.log('clientId ==> ', clientId );
+    // console.log('clientId ==> ', clientId );
 
     return of({})
     .pipe(
