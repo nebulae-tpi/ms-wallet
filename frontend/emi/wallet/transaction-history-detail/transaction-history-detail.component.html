@@ -80,8 +80,7 @@
             <div fxFlex="100" class="form-field" fxLayout="column" *ngIf="selectedTransaction.notes">
               <span class="title">{{'WALLET.TRANSACTION_NOTES' | translate}}:</span>
               <span class="value">{{selectedTransaction.notes}}</span>
-            </div>
-          
+            </div>          
           
             <div fxFlex fxFlex="100" *ngIf="canViewRelatedtransactions" class="pb-16" fxLayout.gt-xs="row wrap" fxLayout="column"
               fxLayoutAlign="space-between center" >

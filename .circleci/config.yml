@@ -127,7 +127,7 @@ jobs:
             gitChanged api/driver-gateway || npm config set prefix '~/.npm-global'
             gitChanged api/driver-gateway || export PATH=~/.npm-global/bin:$PATH
             gitChanged api/driver-gateway || source ~/.profile
-            gitChanged api/driver-gateway || npm install -g @nebulae/cli
+            gitChanged api/driver-gateway || npm install -g @nebulae/cli@7.3.9
             gitChanged api/driver-gateway || nebulae register microapi --microservice-id=wallet --api-id=driver-gateway --setup-file=/home/circleci/nebulae/repo/etc/mapi-driver-setup.json --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json            
             gitChanged api/driver-gateway || nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://github.com/nebulae-tpi/driver-gateway.git --api-id=driver-gateway --output-dir=/home/circleci/nebulae/api/driver-gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json      
             gitChanged api/driver-gateway || ls /home/circleci/nebulae/api/driver-gateway/
@@ -231,7 +231,7 @@ jobs:
             mkdir ~/nebulae/backend
             cp ~/nebulae/go/mbinit ~/nebulae/repo/backend/wallet/
             export DOCKERHUB_IMAGE=wallet.backend.wallet
-            export DOCKERHUB_TAG=0.1.15
+            export DOCKERHUB_TAG=0.1.16
             gitChanged backend/wallet || docker build  -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG -t $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:latest ~/nebulae/repo/backend/wallet/
             gitChanged backend/wallet || docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS
             gitChanged backend/wallet || docker push $DOCKERHUB_NAMESPACE/$DOCKERHUB_IMAGE:$DOCKERHUB_TAG
