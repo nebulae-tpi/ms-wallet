@@ -5,7 +5,7 @@ type CommandResponse {
   "Response message"
   message: String
 }
-
+ 
 enum ClientWalletSpendingStateEnum {
   ALLOWED
   FORBIDDEN
