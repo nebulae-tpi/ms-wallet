@@ -10,7 +10,7 @@ const {
   PERMISSION_DENIED_ERROR,
   INTERNAL_SERVER_ERROR
 } = require("../../tools/ErrorCodes");
- 
+  
 let instance;
 
 class BusinessCQRS {
