@@ -5,7 +5,7 @@ type Pocket {
   "bonus pocket"
   bonus: Float
 }
-
+ 
 "Wallet transaction info"
 type WalletTransaction {
   "Wallet ID"

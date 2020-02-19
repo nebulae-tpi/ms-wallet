@@ -5,7 +5,7 @@ type CommandResponse {
   "Response message"
   message: String
 }
-
+ 
 "Wallet info"
 type Pocket {
   "Main pocket"
