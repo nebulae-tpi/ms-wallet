@@ -67,6 +67,7 @@ export const locale = {
         CLIENT_AGREEMENT_PAYMENT: 'Client Aggreement Payment',
         CLIENT_AGREEMENT_REFUND: 'Client Aggreement Refund',
         PAY_PER_SERVICE: "Pay Per Service",
+        PAY_PER_SERVICE_REFUND: 'Pay Per Service Refund',
         undefined: ''
       },
       TRANSACTION_HISTORY_DETAIL: 'Transaction Detail',

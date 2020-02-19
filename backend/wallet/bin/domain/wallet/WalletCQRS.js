@@ -341,7 +341,8 @@ class WalletCQRS {
           // Create the wallet transaction committed
           map(([a, b, txs]) => ({
             _id: uuidv4(), type: 'MOVEMENT', notes: '',
-            concept: "CLIENT_AGREEMENT_REFUND", timestamp: Date.now(),      
+            concept:  `${txs[0].concept.replace("_PAYMENT", "_REFUND")}`,
+            timestamp: Date.now(),      
             amount: txs[0].amount > 0 ? txs[0].amount : txs[1].amount ,
             businessId: txs[0].businessId,       
             fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,

@@ -67,6 +67,7 @@ export const locale = {
         CLIENT_AGREEMENT_PAYMENT: 'Pago Acuerdo Empresarial',
         CLIENT_AGREEMENT_REFUND: 'Reembolso Acuerdo Empresarial',
         PAY_PER_SERVICE: "Pago Por Servicio",
+        PAY_PER_SERVICE_REFUND: 'Reembolso Pago Por Servicio',
         undefined: ''
       },
       TRANSACTION_HISTORY_DETAIL: 'Detalle Transacción',
