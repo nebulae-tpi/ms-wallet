@@ -341,7 +341,7 @@ class WalletCQRS {
           // Create the wallet transaction committed
           map(([a, b, txs]) => ({
             _id: uuidv4(), type: 'MOVEMENT', notes: '',
-            concept:  `${txs[0].concept.replace("_PAYMENT", "_REFUND")}`,
+            concept: this.getRefundConceptName(txs[0].concept),
             timestamp: Date.now(),      
             amount: txs[0].amount > 0 ? txs[0].amount : txs[1].amount ,
             businessId: txs[0].businessId,       
@@ -362,6 +362,14 @@ class WalletCQRS {
           mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
           catchError(err => this.handleError$(err))
       );
+  }
+
+  getRefundConceptName(transactionConcept){
+    switch (transactionConcept) {
+      case "CLIENT_AGREEMENT_PAYMENT": return "CLIENT_AGREEMENT_REFUND";    
+      case "PAY_PER_SERVICE": return "PAY_PER_SERVICE_REFUND";    
+      default: return "";        
+    }
   }
 
   getTypesAndConceptsValues$() {
