@@ -326,8 +326,8 @@ class WalletCQRS {
               )),
               // // validate the balance required to revert transaction
               mergeMap(([wallet, txData]) => {
-                if(!wallet || wallet.pockets.main < txData.amount){
-                  return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')
+                if((!wallet || wallet.pockets.main < txData.amount) && (wallet.type !== "BUSINESS") ){
+                  return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')                                    
                 }
                 return of([tx1, tx2]);
               })
