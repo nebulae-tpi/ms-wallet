@@ -1,7 +1,7 @@
 "use strict";
 
 let mongoDB = undefined;
-const  { defer, Observable, of } = require('rxjs');
+const { defer, Observable, of } = require('rxjs');
 const { mergeMap, map, tap } = require('rxjs/operators');
 const Crosscutting = require("../tools/Crosscutting");
 
@@ -32,7 +32,11 @@ class WalletTransactionDA {
     const collection = mongoDB
       .getHistoricalDbByYYMM(transactionData._id.split("-").pop())
       .collection(COLLECTION_NAME);
-    return defer(() => collection.insertOne(transactionData));
+    return defer(() => collection.updateOne(
+      { _id: transactionData._id },
+      { $set: transactionData },
+      { upsert: true }
+    ));
   }
 
   /**
@@ -48,7 +52,7 @@ class WalletTransactionDA {
     return of({ businessId, transactionHistoryId }).pipe(
       map(filter => {
         let query = { _id: transactionHistoryId };
-        if(filter.businessId && filter.businessId != '' ){
+        if (filter.businessId && filter.businessId != '') {
           query.businessId = filter.businessId;
         }
         return query;
@@ -88,18 +92,18 @@ class WalletTransactionDA {
    * @param {*} pagination.count Count of records to return
    * @param {*} pagination.sortTimestamp Indicates if the info should be sorted asc or desc according to the timestamp.
    */
-  static getTransactionsHistory$(filter, pagination) {   
-    
+  static getTransactionsHistory$(filter, pagination) {
+
     return Observable.create(async observer => {
       const initDateFormat = new Date(filter.initDate);
       const collection = mongoDB
         .getHistoricalDb(initDateFormat)
         .collection(COLLECTION_NAME);
 
-      const query = { };
+      const query = {};
 
-      if(filter.businessId){ query.businessId = filter.businessId }
-      if(filter.walletId){ query.walletId = filter.walletId; }
+      if (filter.businessId) { query.businessId = filter.businessId }
+      if (filter.walletId) { query.walletId = filter.walletId; }
       if (filter.transactionType) { query.type = filter.transactionType; }
       if (filter.transactionConcept) { query.concept = filter.transactionConcept; }
 
@@ -112,7 +116,7 @@ class WalletTransactionDA {
         query.timestamp = query.timestamp || {};
         query.timestamp["$lt"] = filter.endDate;
       }
-      
+
       const cursor = collection
         .find(query)
         .skip(pagination.count * pagination.page)
@@ -180,8 +184,8 @@ class WalletTransactionDA {
       .getHistoricalDb(initDateFormat)
       .collection(COLLECTION_NAME);
     const query = {};
-    if(filter.walletId){ query.walletId = filter.walletId}
-    if(filter.businessId){ query.businessId = filter.businessId}
+    if (filter.walletId) { query.walletId = filter.walletId }
+    if (filter.businessId) { query.businessId = filter.businessId }
 
     if (filter.initDate) {
       query.timestamp = query.timestamp || {};
@@ -203,9 +207,9 @@ class WalletTransactionDA {
     return collection.count(query);
   }
 
-  static markAsReverted$(transactioinId){
+  static markAsReverted$(transactioinId) {
     const collection = mongoDB.getHistoricalDbByYYMM(transactioinId.split('-').pop()).collection(COLLECTION_NAME);
-    return defer(() => collection.updateOne({_id: transactioinId}, {$set:{reverted: true}}));
+    return defer(() => collection.updateOne({ _id: transactioinId }, { $set: { reverted: true } }));
   }
 
   /**
