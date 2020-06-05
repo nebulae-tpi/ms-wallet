@@ -47,7 +47,6 @@ type Error {
   event: String!
 }
 
-
 type Query {
   "Gets the wallet transaction history list"
   WalletTransactionHistory(year: Int!, month: Int!, page: Int!, count: Int!): [WalletTransaction]  @requireAuth
