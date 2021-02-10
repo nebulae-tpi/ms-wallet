@@ -44,7 +44,7 @@ import { FuseTranslationLoaderService } from '../../../../core/services/translat
 import { TranslateService } from '@ngx-translate/core';
 import { locale as english } from '../i18n/en';
 import { locale as spanish } from '../i18n/es';
-
+ 
 //////////// Services ////////////
 import { KeycloakService } from 'keycloak-angular';
 import { WalletService } from './../wallet.service';
