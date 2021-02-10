@@ -25,25 +25,27 @@ const context = "wallet";
 let instance;
 
 class WalletCQRS {
-  constructor() {}
-   /**
-   * Gets the business where the user that is performing the request belong
-   *
-   * @param {*} args args
-   * @param {*} args.businessId business ID
-   */
+  constructor() { }
+  /**
+  * Gets the business where the user that is performing the request belong
+  *
+  * @param {*} args args
+  * @param {*} args.businessId business ID
+  */
   getWalletsByFilter$({ args }, authToken) {
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "wallet",
       "getWalletsByFilter$",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN", "BUSINESS-OWNER"]
-      ).pipe(
-          mergeMap(() => walletDA.getFilteredWallets$(args.filterText, args.businessId, args.limit)),
-          mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
-          catchError(err => this.handleError$(err))
-      );
+      ["PLATFORM-ADMIN", "BUSINESS-OWNER", "BUSINESS-ADMIN"]
+    ).pipe(
+      mergeMap(roles => {
+        return walletDA.getFilteredWallets$(args.filterText, args.businessId, args.limit)
+      }),
+      mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+      catchError(err => this.handleError$(err))
+    );
   }
 
   getMyWallet$({ args }, authToken) {
@@ -54,23 +56,23 @@ class WalletCQRS {
       "getMyWallet$",
       PERMISSION_DENIED_ERROR,
       ["PLATFORM-ADMIN", "DRIVER", "CLIENT", "BUSINESS-OWNER", "OPERATOR", "OPERATION-SUPERVISOR"]
-      ).pipe(
-          map(() => authToken.userId || authToken.driverId || authToken.clientId),
-          // tap(wi => console.log('BUSCANDO WALLET ID ==> ', wi )),
-          mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$" ) : of(walletId) ),
-          mergeMap(walletId => walletDA.getWalletById$(walletId)),
-          // tap(r => console.log("RESPONSE ==> ", r)),
-          mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
-          catchError(err => this.handleError$(err))
-      );
+    ).pipe(
+      map(() => authToken.userId || authToken.driverId || authToken.clientId),
+      // tap(wi => console.log('BUSCANDO WALLET ID ==> ', wi )),
+      mergeMap(walletId => !walletId ? this.createCustomError$(NO_WALLET_ID_IN_AUTH_TOKEN, "getMyWallet$") : of(walletId)),
+      mergeMap(walletId => walletDA.getWalletById$(walletId)),
+      // tap(r => console.log("RESPONSE ==> ", r)),
+      mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+      catchError(err => this.handleError$(err))
+    );
   }
 
 
-        /**
-   * Creates a custom error observable
-   * @param {*} errorCode Error code
-   * @param {*} methodError Method where the error was generated
-   */
+  /**
+* Creates a custom error observable
+* @param {*} errorCode Error code
+* @param {*} methodError Method where the error was generated
+*/
   createCustomError$(errorCode, methodError) {
     return throwError(
       new CustomError(
@@ -127,13 +129,13 @@ class WalletCQRS {
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, we must return an error
-          if (!isPlatformAdmin && authToken.businessId != args.filterInput.businessId) {
-            return this.createCustomError$(
-              PERMISSION_DENIED_ERROR,
-              'getWalletTransactionHistory'
-            );
-          }
-          return of(roles);
+        if (!isPlatformAdmin && authToken.businessId != args.filterInput.businessId) {
+          return this.createCustomError$(
+            PERMISSION_DENIED_ERROR,
+            'getWalletTransactionHistory'
+          );
+        }
+        return of(roles);
       }),
       mergeMap(() => WalletTransactionDA.getTransactionsHistory$(args.filterInput, args.paginationInput)),
       toArray(),
@@ -153,13 +155,13 @@ class WalletCQRS {
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, we must return an error
-          if (!authToken.driverId) {
-            return this.createCustomError$(
-              DRIVER_ID_NO_FOUND_IN_TOKEN,
-              'getWalletTransactionsHistoryDriverApp'
-            );
-          }
-          return of( authToken.driverId );
+        if (!authToken.driverId) {
+          return this.createCustomError$(
+            DRIVER_ID_NO_FOUND_IN_TOKEN,
+            'getWalletTransactionsHistoryDriverApp'
+          );
+        }
+        return of(authToken.driverId);
       }),
       mergeMap(walletId => WalletTransactionDA.getTransactionsHistoryDriverApp$(args, walletId)),
       toArray(),
@@ -168,11 +170,11 @@ class WalletCQRS {
     );
   }
 
-      /**
-   * Gets the amount of wallet transaction history of a business
-   *
-   * @param {*} args args
-   */
+  /**
+* Gets the amount of wallet transaction history of a business
+*
+* @param {*} args args
+*/
   getWalletTransactionsHistoryAmount$({ args }, authToken) {
     // console.log("getWalletTransactionsHistoryAmount$", args);
     return RoleValidator.checkPermissions$(
@@ -185,10 +187,10 @@ class WalletCQRS {
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, we must return an error
-          if (!isPlatformAdmin && authToken.businessId != args.filterInput.businessId) {
-            return this.createCustomError$(PERMISSION_DENIED_ERROR, 'getWalletTransactionsHistoryAmount');
-          }
-          return of(roles);
+        if (!isPlatformAdmin && authToken.businessId != args.filterInput.businessId) {
+          return this.createCustomError$(PERMISSION_DENIED_ERROR, 'getWalletTransactionsHistoryAmount');
+        }
+        return of(roles);
       }),
       mergeMap(val => WalletTransactionDA.getTransactionsHistoryAmount$(args.filterInput)),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
@@ -196,11 +198,11 @@ class WalletCQRS {
     );
   }
 
-      /**
-   * Gets the wallet transaction history of a business
-   *
-   * @param {*} args args
-   */
+  /**
+* Gets the wallet transaction history of a business
+*
+* @param {*} args args
+*/
   getWalletTransactionHistoryById$({ args }, authToken) {
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
@@ -212,7 +214,7 @@ class WalletCQRS {
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, the query must be filtered with the businessId of the user
-        const businessId = !isPlatformAdmin ? (authToken.businessId || ''): null;
+        const businessId = !isPlatformAdmin ? (authToken.businessId || '') : null;
         return WalletTransactionDA.getTransactionHistoryById$(businessId, args.id);
       }),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
@@ -225,7 +227,7 @@ class WalletCQRS {
    *
    * @param {*} args args
    */
-  getAssociatedTransactionsHistoryByTransactionHistoryId$({ args }, authToken) {    
+  getAssociatedTransactionsHistoryByTransactionHistoryId$({ args }, authToken) {
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",
@@ -236,36 +238,36 @@ class WalletCQRS {
       mergeMap(roles => {
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, the query must be filtered with the businessId of the user
-        const businessId = !isPlatformAdmin? (authToken.businessId || ''): null;
+        const businessId = !isPlatformAdmin ? (authToken.businessId || '') : null;
         return WalletTransactionDA.getTransactionHistoryById$(businessId, args.id);
       }),
       mergeMap(transactionHistory => {
         // transactionHistory.associatedTransactionIds = [transactionHistory._id];
-        if(transactionHistory && transactionHistory.associatedTransactionIds && transactionHistory.associatedTransactionIds.length > 0){
+        if (transactionHistory && transactionHistory.associatedTransactionIds && transactionHistory.associatedTransactionIds.length > 0) {
           return WalletTransactionDA.getTransactionsHistoryByIds$(args.id, transactionHistory.associatedTransactionIds, transactionHistory.businessId)
-        }else{
+        } else {
           return of([])
-        }    
+        }
       }),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );
   }
 
-  
+
   /**
    * Makes manual balance adjustment
    *
    * @param {*} data args that contain the ifno of the manual balance adjustment
    * @param {string} authToken JWT token
    */
-  makeManualBalanceAdjustment$({args}, authToken) {   
+  makeManualBalanceAdjustment$({ args }, authToken) {
     let mba = !args ? undefined : args.input; // Manual balance Adjusment
     mba = {
       _id: uuidv4(), type: 'MOVEMENT', notes: mba.notes,
-      concept: mba.adjustmentType, timestamp: Date.now(),      
+      concept: mba.adjustmentType, timestamp: Date.now(),
       amount: mba.value,
-      businessId: args.input.businessWalletId,       
+      businessId: args.input.businessWalletId,
       fromId: mba.adjustmentType === 'DEPOSIT' ? mba.businessWalletId : mba.walletId,
       toId: mba.adjustmentType === 'DEPOSIT' ? mba.walletId : mba.businessWalletId
     };
@@ -274,51 +276,55 @@ class WalletCQRS {
       "wallet",
       "makeManualBalanceAdjustment",
       PERMISSION_DENIED_ERROR,
-      ["PLATFORM-ADMIN"]
+      ["PLATFORM-ADMIN", "BUSINESS-OWNER", "BUSINESS-ADMIN"]
     ).pipe(
-      mergeMap(() => eventSourcing.eventStore.emitEvent$(
-        new Event({
-          eventType: "WalletTransactionCommited",
-          eventTypeVersion: 1,
-          aggregateType: "Wallet",
-          aggregateId: mba._id,
-          data: mba,
-          user: authToken.preferred_username
-        })
-      )),
+      mergeMap(roles => {
+        return eventSourcing.eventStore.emitEvent$(
+          new Event({
+            eventType: "WalletTransactionCommited",
+            eventTypeVersion: 1,
+            aggregateType: "Wallet",
+            aggregateId: mba._id,
+            data: mba,
+            user: authToken.preferred_username
+          })
+        )
+      }
+      ),
       map(() => ({ code: 200, message: `Manual balance adjustment has been created` })),
       mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
       catchError(err => this.handleError$(err))
     );
   }
 
-  revertTransaction$({args}, authToken){
+  revertTransaction$({ args }, authToken) {
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles, "wallet", "revertTransaction", PERMISSION_DENIED_ERROR, ["PLATFORM-ADMIN", "BUSINESS-OWNER"])
-        .pipe(
-          // validate transaction length
-          map(() => ((args.transactionIds||{}).length == 2)
-              ? args.transactionIds
-              : this.createCustomError$(MISSING_TRANSACTIONS_TO_REVERT, 'revertTransaction')
-          ),
-          // validate transaction exists
-          mergeMap(([tx1, tx2]) => forkJoin(
-            WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx1),
-            WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx2),
-          )),
-          // validate transaction is not already reverted
-          mergeMap(([tx1, tx2]) => {
-            if(!tx1 || !tx2){
-              return this.createCustomError$(TRANSACTION_NO_FOUND, 'revertTransaction');
-            }
-            if(tx1.reverted || tx2.reverted){
-              return this.createCustomError$(TRANSACTION_ALREADY_REVERTED, 'revertTransaction')
-            }
-            return of([tx1, tx2])
+      .pipe(
+        // validate transaction length
+        map(() => ((args.transactionIds || {}).length == 2)
+          ? args.transactionIds
+          : this.createCustomError$(MISSING_TRANSACTIONS_TO_REVERT, 'revertTransaction')
+        ),
+        // validate transaction exists
+        mergeMap(([tx1, tx2]) => forkJoin(
+          WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx1),
+          WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx2),
+        )),
+        // validate transaction is not already reverted
+        mergeMap(([tx1, tx2]) => {
+          if (!tx1 || !tx2) {
+            return this.createCustomError$(TRANSACTION_NO_FOUND, 'revertTransaction');
+          }
+          if (tx1.reverted || tx2.reverted) {
+            return this.createCustomError$(TRANSACTION_ALREADY_REVERTED, 'revertTransaction')
+          }
+          return of([tx1, tx2])
             .pipe(
               map(() => ({
                 walletId: tx1.amount > 0 ? tx1.walletId : tx2.walletId,
-                amount: tx1.amount > 0 ? tx1.amount : tx2.amount  })
+                amount: tx1.amount > 0 ? tx1.amount : tx2.amount
+              })
               ),
               mergeMap(txData => forkJoin(
                 walletDA.getWalletById$(txData.walletId),
@@ -326,49 +332,49 @@ class WalletCQRS {
               )),
               // // validate the balance required to revert transaction
               mergeMap(([wallet, txData]) => {
-                if((!wallet || wallet.pockets.main < txData.amount) && (wallet.type !== "BUSINESS") ){
-                  return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')                                    
+                if ((!wallet || wallet.pockets.main < txData.amount) && (wallet.type !== "BUSINESS")) {
+                  return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')
                 }
                 return of([tx1, tx2]);
               })
             )
-          }),
-          mergeMap(([tx1, tx2]) => forkJoin(
-            WalletTransactionDA.markAsReverted$(tx1._id),
-            WalletTransactionDA.markAsReverted$(tx2._id),
-            of([tx1, tx2])
-          )),
-          // Create the wallet transaction committed
-          map(([a, b, txs]) => ({
-            _id: uuidv4(), type: 'MOVEMENT', notes: '',
-            concept: this.getRefundConceptName(txs[0].concept),
-            timestamp: Date.now(),      
-            amount: txs[0].amount > 0 ? txs[0].amount : txs[1].amount ,
-            businessId: txs[0].businessId,       
-            fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,
-            toId: txs[0].amount < 0 ? txs[0].walletId : txs[1].walletId 
-          })),
-          mergeMap(txData => eventSourcing.eventStore.emitEvent$(
-            new Event({
-              eventType: "WalletTransactionCommited",
-              eventTypeVersion: 1,
-              aggregateType: "Wallet",
-              aggregateId: txData._id,
-              data: txData,
-              user: authToken.preferred_username
-            })
-          )),
-          map(() => ({ code: 200, message: `Manual balance adjustment has been created` })),
-          mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
-          catchError(err => this.handleError$(err))
+        }),
+        mergeMap(([tx1, tx2]) => forkJoin(
+          WalletTransactionDA.markAsReverted$(tx1._id),
+          WalletTransactionDA.markAsReverted$(tx2._id),
+          of([tx1, tx2])
+        )),
+        // Create the wallet transaction committed
+        map(([a, b, txs]) => ({
+          _id: uuidv4(), type: 'MOVEMENT', notes: '',
+          concept: this.getRefundConceptName(txs[0].concept),
+          timestamp: Date.now(),
+          amount: txs[0].amount > 0 ? txs[0].amount : txs[1].amount,
+          businessId: txs[0].businessId,
+          fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,
+          toId: txs[0].amount < 0 ? txs[0].walletId : txs[1].walletId
+        })),
+        mergeMap(txData => eventSourcing.eventStore.emitEvent$(
+          new Event({
+            eventType: "WalletTransactionCommited",
+            eventTypeVersion: 1,
+            aggregateType: "Wallet",
+            aggregateId: txData._id,
+            data: txData,
+            user: authToken.preferred_username
+          })
+        )),
+        map(() => ({ code: 200, message: `Manual balance adjustment has been created` })),
+        mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+        catchError(err => this.handleError$(err))
       );
   }
 
-  getRefundConceptName(transactionConcept){
+  getRefundConceptName(transactionConcept) {
     switch (transactionConcept) {
-      case "CLIENT_AGREEMENT_PAYMENT": return "CLIENT_AGREEMENT_REFUND";    
-      case "PAY_PER_SERVICE": return "PAY_PER_SERVICE_REFUND";    
-      default: return "";        
+      case "CLIENT_AGREEMENT_PAYMENT": return "CLIENT_AGREEMENT_REFUND";
+      case "PAY_PER_SERVICE": return "PAY_PER_SERVICE_REFUND";
+      default: return "";
     }
   }
 
@@ -377,7 +383,7 @@ class WalletCQRS {
       .pipe(
         map(typesAndConcepts => JSON.parse(typesAndConcepts)),
         map(typesAndConceptsObj => Object.entries(typesAndConceptsObj)),
-        map(typesAndConcepts => typesAndConcepts.reduce((acc, item) => [...acc, {type:  item[0],concepts: item[1]}], [])),
+        map(typesAndConcepts => typesAndConcepts.reduce((acc, item) => [...acc, { type: item[0], concepts: item[1] }], [])),
         mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
         catchError(error => this.handleError$(error))
       )
@@ -385,16 +391,16 @@ class WalletCQRS {
 
   //#region method for third parties
 
-  getWalletwalletForThirdsParties$({args}, authToken){
+  getWalletwalletForThirdsParties$({ args }, authToken) {
     return of(authToken.businessId)
-    .pipe(
-      mergeMap(businessId => businessId 
-        ? WalletDA.getWallet$(businessId) 
-        : throwError(new CustomError("businessId required", "getWalletwalletForThirdsParties", 17006, "Business ID required" ) )),
-      map(({businessId, spendingState, pockets}) => ({businessId, spendingState, pockets}) ),
-      mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
-      catchError(ex => this.handleError$(ex) )      
-    )
+      .pipe(
+        mergeMap(businessId => businessId
+          ? WalletDA.getWallet$(businessId)
+          : throwError(new CustomError("businessId required", "getWalletwalletForThirdsParties", 17006, "Business ID required"))),
+        map(({ businessId, spendingState, pockets }) => ({ businessId, spendingState, pockets })),
+        mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+        catchError(ex => this.handleError$(ex))
+      )
   }
   //#endregion
 
@@ -406,14 +412,14 @@ class WalletCQRS {
     // console.log('clientId ==> ', clientId );
 
     return of({})
-    .pipe(
-      tap(() => {
-        
-      }),
-      mergeMap(() => walletDA.getWalletById$(clientId) ),
-      mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
-      catchError(ex => this.handleError$(ex) )      
-    )
+      .pipe(
+        tap(() => {
+
+        }),
+        mergeMap(() => walletDA.getWalletById$(clientId)),
+        mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+        catchError(ex => this.handleError$(ex))
+      )
   }
   // CLIENT SECTION
 
