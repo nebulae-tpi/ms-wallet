@@ -11,7 +11,7 @@ import {
   getWalletsByFilter,
   getMyWallet
 } from "./gql/wallet";
-
+ 
 @Injectable()
 export class WalletService {
 

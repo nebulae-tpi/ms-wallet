@@ -82,7 +82,7 @@ class WalletCQRS {
         errorCode.description
       )
     );
-  }
+  }  
   /**
    * Gets the wallet info of a business
    *
