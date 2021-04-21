@@ -248,7 +248,7 @@ class EventStoreService {
       { aggregateType: "User", eventType: "UserDeactivated" },
 
       // WALLET MOVEMENTS      
-      { aggregateType: "Wallet", eventType: "WalletTransactionCommited" },
+      { aggregateType: "WalletTransaction", eventType: "WalletTransactionCommited" },
 
       // WALLET SPENDING RULES      
       // {

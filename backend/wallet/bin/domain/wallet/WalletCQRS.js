@@ -283,7 +283,7 @@ class WalletCQRS {
           new Event({
             eventType: "WalletTransactionCommited",
             eventTypeVersion: 1,
-            aggregateType: "Wallet",
+            aggregateType: "WalletTransaction",
             aggregateId: mba._id,
             data: mba,
             user: authToken.preferred_username
@@ -358,7 +358,7 @@ class WalletCQRS {
           new Event({
             eventType: "WalletTransactionCommited",
             eventTypeVersion: 1,
-            aggregateType: "Wallet",
+            aggregateType: "WalletTransaction",
             aggregateId: txData._id,
             data: txData,
             user: authToken.preferred_username
