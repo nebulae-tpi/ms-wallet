@@ -476,6 +476,7 @@ class WalletES {
 
   handleWalletTransactionCommited$({ aid, data, user }) {
     if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
+      console.log("LLEGA WALLET OPERATION ===> ", data);
       return of({}).pipe(
         map(() => {
           const clientValue = parseInt((process.env.APP_CLIENT_AGREEMENT || "500"));
@@ -558,7 +559,7 @@ class WalletES {
         
       );
     } else { 
-      
+
       return of({})
         .pipe(
           map(() => ([
