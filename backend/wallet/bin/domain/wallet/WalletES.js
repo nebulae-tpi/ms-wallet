@@ -474,57 +474,142 @@ class WalletES {
   }
 
 
-  handleWalletTransactionCommited$({aid, data, user}) {
-    // console.log("handleWalletTransactionCommited$", aid, data, user);
-    return of({})
-    .pipe(
-      map(() => ([
-          {
-            _id: Crosscutting.generateDateBasedUuid(),
-            businessId: data.businessId,
-            walletId: data.fromId,            
-            amount: data.amount * -1,
-            type: data.type,
-            concept: data.concept,
-            timestamp: Date.now(),
-            notes: data.notes,
-            pocket: 'MAIN',
-            user
-          },
-          {
-            _id: Crosscutting.generateDateBasedUuid(),
-            businessId: data.businessId,
-            walletId: data.toId,
-            amount: data.amount,
-            type: data.type,
-            concept: data.concept,
-            timestamp: Date.now(),
-            notes: data.notes,
-            pocket: 'MAIN',
-            user
-          }
-        ])),
-        //  Fill the asociated transactions
-        map(txs => ([ 
-          {...txs[0], associatedTransactionIds: [ txs[1]._id ] },
-          {...txs[1], associatedTransactionIds: [ txs[0]._id ] },
-         ])),
-      mergeMap(txs => from(txs)
-        .pipe(
-          mergeMap(tx => eventSourcing.eventStore.emitEvent$(
-            new Event({
-              eventType: 'WalletTransactionExecuted',
-              eventTypeVersion: 1,
-              aggregateType: "Wallet",
-              aggregateId: tx.walletId,
-              data: tx,
-              user: user
+  handleWalletTransactionCommited$({ aid, data, user }) {
+    if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
+      return of({}).pipe(
+        map(() => {
+          const clientValue = parseInt((process.env.APP_CLIENT_AGREEMENT || "500"));
+          const driverValue = parseInt((process.env.APP_DRIVER_AGREEMENT || "200"));
+          const businessValue = data.amount- clientValue - (data.referrerDriverId ? driverValue : 0);
+          const movements =[
+            {
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              walletId: data.fromId,
+              amount: data.amount * -1,
+              type: data.type,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user
+            },
+            {
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              walletId: data.toId,
+              amount: businessValue,
+              type: data.type,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user
+            },
+            {
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              walletId: data.clientId,
+              amount: clientValue,
+              type: data.type,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user
+            }
+          ];
+          if(data.referrerDriverId){
+            movements.push({
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              walletId: data.referrerDriverId,
+              amount: driverValue,
+              type: data.type,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user
             })
-          )),
-          toArray()
+          }
+          
+          return movements.map(movement => {
+            return ({...movement,associatedTransactionIds: [
+              movements.filter(m => m._id !== movement._id).map(mov => mov._id)
+            ] })
+          });
+        }),
+        mergeMap(txs => from(txs)
+            .pipe(
+              mergeMap(tx => eventSourcing.eventStore.emitEvent$(
+                new Event({
+                  eventType: 'WalletTransactionExecuted',
+                  eventTypeVersion: 1,
+                  aggregateType: "Wallet",
+                  aggregateId: tx.walletId,
+                  data: tx,
+                  user: user
+                })
+              )),
+              toArray()
+            )
+          )
+        
+      );
+    } else {
+      return of({})
+        .pipe(
+          map(() => ([
+            {
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              walletId: data.fromId,
+              amount: data.amount * -1,
+              type: data.type,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user
+            },
+            {
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              walletId: data.toId,
+              amount: data.amount,
+              type: data.type,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user
+            }
+          ])),
+          //  Fill the asociated transactions
+          map(txs => ([
+            { ...txs[0], associatedTransactionIds: [txs[1]._id] },
+            { ...txs[1], associatedTransactionIds: [txs[0]._id] },
+          ])),
+          mergeMap(txs => from(txs)
+            .pipe(
+              mergeMap(tx => eventSourcing.eventStore.emitEvent$(
+                new Event({
+                  eventType: 'WalletTransactionExecuted',
+                  eventTypeVersion: 1,
+                  aggregateType: "Wallet",
+                  aggregateId: tx.walletId,
+                  data: tx,
+                  user: user
+                })
+              )),
+              toArray()
+            )
+          )
         )
-      )      
-    )
+    }
+    // console.log("handleWalletTransactionCommited$", aid, data, user);
+
   }
 
   /**

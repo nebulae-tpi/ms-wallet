@@ -13,7 +13,7 @@ spec:
         app: wallet
     spec:      
       containers:
-      - image: DOCKERHUB/wallet.backend.wallet:0.1.26
+      - image: DOCKERHUB/wallet.backend.wallet:0.1.27
         name: wallet
         volumeMounts:
         - name: google-application-credentials
@@ -61,7 +61,7 @@ spec:
           value: "08_04_19__01"
         # PRODUCTS AND CONCEPTS TYPES
         - name: WALLET_TRANSACTION_TYPES_CONCEPTS
-          value: '{"PURCHASE": ["VEHICLE_SUBSCRIPTION"], "MOVEMENT": ["DEPOSIT", "WALLET_RECHARGE", "WITHDRAWAL", "CLIENT_AGREEMENT_PAYMENT", "CLIENT_AGREEMENT_REFUND", "PAY_PER_SERVICE", "PAY_PER_SERVICE_REFUND" ]}'
+          value: '{"PURCHASE": ["VEHICLE_SUBSCRIPTION"], "MOVEMENT": ["DEPOSIT", "APP_DRIVER_AGREEMENT_PAYMENT", "WALLET_RECHARGE", "WITHDRAWAL", "CLIENT_AGREEMENT_PAYMENT", "CLIENT_AGREEMENT_REFUND", "PAY_PER_SERVICE", "PAY_PER_SERVICE_REFUND" ]}'
         # BACKEND PARAMETERS
         - name: GMT_TO_SERVE
           value: "GMT-5"
