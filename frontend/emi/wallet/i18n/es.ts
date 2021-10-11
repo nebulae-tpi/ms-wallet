@@ -61,6 +61,7 @@ export const locale = {
       },
       CONCEPTS: {
         WALLET_RECHARGE: 'Recarga de Billetera',
+        APP_CLIENT_PARTIAL_PAYMENT: 'Pago parcial de cliente',
         APP_DRIVER_AGREEMENT_PAYMENT: 'Servicio App Cliente',
         VEHICLE_SUBSCRIPTION: 'Suscripcción de Vehículo',
         WITHDRAWAL: 'Retiro',
