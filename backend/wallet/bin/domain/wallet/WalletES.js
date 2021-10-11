@@ -557,7 +557,8 @@ class WalletES {
           )
         
       );
-    } else {
+    } else { 
+      
       return of({})
         .pipe(
           map(() => ([
