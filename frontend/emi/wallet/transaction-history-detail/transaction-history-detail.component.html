@@ -88,7 +88,7 @@
                 <mat-icon class="m-0 mr-16">grain</mat-icon>
                 <div class="h2 secondary-text">{{'WALLET.ASSOCIATED_TRANSACTIONS' | translate}}</div>
               </div>
-              <button *ngIf="['PAY_PER_SERVICE', 'CLIENT_AGREEMENT_PAYMENT'].includes(selectedTransaction.concept)"
+              <button *ngIf="['PAY_PER_SERVICE', 'CLIENT_AGREEMENT_PAYMENT', 'DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE'].includes(selectedTransaction.concept)"
                 [disabled]="(selectedTransaction && selectedTransaction.reverted) || disabledRevertBtn" mat-stroked-button color="warn" (click)="revertTransaction()">
                 <mat-icon color="warm">settings_backup_restore</mat-icon>
                 {{'WALLET.REVERT_TRANSACTION' | translate}}

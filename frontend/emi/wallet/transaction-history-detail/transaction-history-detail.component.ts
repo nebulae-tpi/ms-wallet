@@ -146,13 +146,7 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
       tap(() => this.disabledRevertBtn = true),
       filter(accepted => (accepted && this.selectedTransaction )),
       map(() => ([ this.selectedTransaction._id, ...this.selectedTransaction.associatedTransactionIds]) ),
-      filter(ids => {        
-        if (!ids || ids.length !== 2){
-          return false;
-        }
-        return true;
-      }),
-      mergeMap(ids => this.transactionHistoryDetailService.revertTransaction$(this.selectedTransaction.businessId, ids)),
+      mergeMap(ids => this.transactionHistoryDetailService.revertTransaction$(this.selectedTransaction.businessId, ids, this.selectedTransaction.concept)),
       mergeMap(resp => this.graphQlAlarmsErrorHandler$(resp)),
       filter(r => (r && r.data && r.data.WalletRevertTransaction)),
       map(r => r.data.WalletRevertTransaction),

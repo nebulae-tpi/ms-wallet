@@ -82,7 +82,7 @@ class WalletCQRS {
         errorCode.description
       )
     );
-  }  
+  }
   /**
    * Gets the wallet info of a business
    *
@@ -301,69 +301,132 @@ class WalletCQRS {
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles, "wallet", "revertTransaction", PERMISSION_DENIED_ERROR, ["PLATFORM-ADMIN", "BUSINESS-OWNER"])
       .pipe(
-        // validate transaction length
-        map(() => ((args.transactionIds || {}).length == 2)
-          ? args.transactionIds
-          : this.createCustomError$(MISSING_TRANSACTIONS_TO_REVERT, 'revertTransaction')
-        ),
-        // validate transaction exists
-        mergeMap(([tx1, tx2]) => forkJoin(
-          WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx1),
-          WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx2),
-        )),
-        // validate transaction is not already reverted
-        mergeMap(([tx1, tx2]) => {
-          if (!tx1 || !tx2) {
-            return this.createCustomError$(TRANSACTION_NO_FOUND, 'revertTransaction');
-          }
-          if (tx1.reverted || tx2.reverted) {
-            return this.createCustomError$(TRANSACTION_ALREADY_REVERTED, 'revertTransaction')
-          }
-          return of([tx1, tx2])
-            .pipe(
-              map(() => ({
-                walletId: tx1.amount > 0 ? tx1.walletId : tx2.walletId,
-                amount: tx1.amount > 0 ? tx1.amount : tx2.amount
-              })
-              ),
-              mergeMap(txData => forkJoin(
-                walletDA.getWalletById$(txData.walletId),
-                of(txData)
-              )),
-              // // validate the balance required to revert transaction
-              mergeMap(([wallet, txData]) => {
-                if ((!wallet || wallet.pockets.main < txData.amount) && (wallet.type !== "BUSINESS")) {
-                  return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')
+        mergeMap(() => {
+          if (args.concept === "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE") {
+            return WalletTransactionDA.getTransactionsHistoryByIds$(args.transactionIds).pipe(
+              toArray(),
+              mergeMap(transactions => {
+                if(transactions.some(t => t.reverted)){
+                  return this.createCustomError$(TRANSACTION_ALREADY_REVERTED, 'revertTransaction')
                 }
-                return of([tx1, tx2]);
+                const driverTransaction = transactions.find(t => t.concept=== "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE");
+                const associatedTransactions = transactions.filter(t => t.concept=== "APP_DRIVER_AGREEMENT_PAYMENT" && t.walletId !== driverTransaction.businessId);
+                const driverMovement = {
+                  _id: uuidv4(), type: 'MOVEMENT', notes: '',
+                  concept: this.getRefundConceptName(driverTransaction.concept),
+                  timestamp: Date.now(),
+                  amount: Math.abs(driverTransaction.amount),
+                  businessId: driverTransaction.businessId,
+                  fromId: driverTransaction.businessId,
+                  toId: driverTransaction.walletId
+                };
+
+                return forkJoin([
+                  eventSourcing.eventStore.emitEvent$(
+                    new Event({
+                      eventType: "WalletTransactionCommited",
+                      eventTypeVersion: 1,
+                      aggregateType: "Wallet",
+                      aggregateId: driverMovement._id,
+                      data: driverMovement,
+                      user: authToken.preferred_username
+                    })
+                  ),
+                  from(associatedTransactions).pipe(
+                    mergeMap(associatedTransaction => {
+                      const associatedMovement = {
+                        _id: uuidv4(), type: 'MOVEMENT', notes: '',
+                        concept: this.getRefundConceptName(associatedTransaction.concept),
+                        timestamp: Date.now(),
+                        amount: Math.abs(associatedTransaction.amount),
+                        businessId: associatedTransaction.businessId,
+                        fromId: associatedTransaction.walletId,
+                        toId: associatedTransaction.businessId
+                      };
+                      return eventSourcing.eventStore.emitEvent$(
+                        new Event({
+                          eventType: "WalletTransactionCommited",
+                          eventTypeVersion: 1,
+                          aggregateType: "Wallet",
+                          aggregateId: associatedMovement._id,
+                          data: associatedMovement,
+                          user: authToken.preferred_username
+                        })
+                      )
+                    })
+                  )
+
+                ]);
               })
             )
+          }
+          // validate transaction length
+          else if ((args.transactionIds || {}).length == 2) {
+           return of(args.transactionIds).pipe(
+              // validate transaction exists
+              mergeMap(([tx1, tx2]) => forkJoin(
+                WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx1),
+                WalletTransactionDA.getTransactionHistoryById$(args.businessId, tx2),
+              )),
+              // validate transaction is not already reverted
+              mergeMap(([tx1, tx2]) => {
+                if (!tx1 || !tx2) {
+                  return this.createCustomError$(TRANSACTION_NO_FOUND, 'revertTransaction');
+                }
+                if (tx1.reverted || tx2.reverted) {
+                  return this.createCustomError$(TRANSACTION_ALREADY_REVERTED, 'revertTransaction')
+                }
+                return of([tx1, tx2])
+                  .pipe(
+                    map(() => ({
+                      walletId: tx1.amount > 0 ? tx1.walletId : tx2.walletId,
+                      amount: tx1.amount > 0 ? tx1.amount : tx2.amount
+                    })
+                    ),
+                    mergeMap(txData => forkJoin(
+                      walletDA.getWalletById$(txData.walletId),
+                      of(txData)
+                    )),
+                    // // validate the balance required to revert transaction
+                    mergeMap(([wallet, txData]) => {
+                      if ((!wallet || wallet.pockets.main < txData.amount) && (wallet.type !== "BUSINESS")) {
+                        return this.createCustomError$(INSUFFICIENT_BALANCE, 'revertTransaction')
+                      }
+                      return of([tx1, tx2]);
+                    })
+                  )
+              }),
+              mergeMap(([tx1, tx2]) => forkJoin(
+                WalletTransactionDA.markAsReverted$(tx1._id),
+                WalletTransactionDA.markAsReverted$(tx2._id),
+                of([tx1, tx2])
+              )),
+              // Create the wallet transaction committed
+              map(([a, b, txs]) => ({
+                _id: uuidv4(), type: 'MOVEMENT', notes: '',
+                concept: this.getRefundConceptName(txs[0].concept),
+                timestamp: Date.now(),
+                amount: txs[0].amount > 0 ? txs[0].amount : txs[1].amount,
+                businessId: txs[0].businessId,
+                fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,
+                toId: txs[0].amount < 0 ? txs[0].walletId : txs[1].walletId
+              })),
+              mergeMap(txData => eventSourcing.eventStore.emitEvent$(
+                new Event({
+                  eventType: "WalletTransactionCommited",
+                  eventTypeVersion: 1,
+                  aggregateType: "Wallet",
+                  aggregateId: txData._id,
+                  data: txData,
+                  user: authToken.preferred_username
+                })
+              ))
+            )
+          } else {
+            this.createCustomError$(MISSING_TRANSACTIONS_TO_REVERT, 'revertTransaction')
+          }
         }),
-        mergeMap(([tx1, tx2]) => forkJoin(
-          WalletTransactionDA.markAsReverted$(tx1._id),
-          WalletTransactionDA.markAsReverted$(tx2._id),
-          of([tx1, tx2])
-        )),
-        // Create the wallet transaction committed
-        map(([a, b, txs]) => ({
-          _id: uuidv4(), type: 'MOVEMENT', notes: '',
-          concept: this.getRefundConceptName(txs[0].concept),
-          timestamp: Date.now(),
-          amount: txs[0].amount > 0 ? txs[0].amount : txs[1].amount,
-          businessId: txs[0].businessId,
-          fromId: txs[0].amount > 0 ? txs[0].walletId : txs[1].walletId,
-          toId: txs[0].amount < 0 ? txs[0].walletId : txs[1].walletId
-        })),
-        mergeMap(txData => eventSourcing.eventStore.emitEvent$(
-          new Event({
-            eventType: "WalletTransactionCommited",
-            eventTypeVersion: 1,
-            aggregateType: "Wallet",
-            aggregateId: txData._id,
-            data: txData,
-            user: authToken.preferred_username
-          })
-        )),
+        
         map(() => ({ code: 200, message: `Manual balance adjustment has been created` })),
         mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
         catchError(err => this.handleError$(err))
@@ -374,6 +437,8 @@ class WalletCQRS {
     switch (transactionConcept) {
       case "CLIENT_AGREEMENT_PAYMENT": return "CLIENT_AGREEMENT_REFUND";
       case "PAY_PER_SERVICE": return "PAY_PER_SERVICE_REFUND";
+      case "APP_DRIVER_AGREEMENT_PAYMENT": return "APP_DRIVER_AGREEMENT_PAYMENT_REFUND";
+      case "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE": return "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE_REFUND";
       default: return "";
     }
   }

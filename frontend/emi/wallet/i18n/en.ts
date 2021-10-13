@@ -62,7 +62,10 @@ export const locale = {
       CONCEPTS: {
         WALLET_RECHARGE: 'Wallet Recharge',
         APP_DRIVER_AGREEMENT_PAYMENT: 'App Client Service ',
+        DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE: 'Payment For App Client Service',
         APP_CLIENT_PARTIAL_PAYMENT: 'Partial Client Payment',
+        APP_DRIVER_AGREEMENT_PAYMENT_REFUND: 'App Client Service Refund',
+        DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE_REFUND: 'Payment For App Client Service Refund',
         VEHICLE_SUBSCRIPTION: 'Vehicle Subscription',
         WITHDRAWAL: 'Withdrawal',
         DEPOSIT: 'Deposit',

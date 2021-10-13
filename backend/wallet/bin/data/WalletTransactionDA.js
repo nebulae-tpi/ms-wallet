@@ -132,6 +132,25 @@ class WalletTransactionDA {
     });
   }
 
+  static getTransactionsHistoryByIds$(ids) {
+
+    return Observable.create(async observer => {
+      const collection = mongoDB.getHistoricalDbByYYMM(ids[0].split('-').pop()).collection(COLLECTION_NAME);
+
+      const query = {_id: {$in: ids} };
+
+      const cursor = collection
+        .find(query)
+      let obj = await this.extractNextFromMongoCursor(cursor);
+      while (obj) {
+        observer.next(obj);
+        obj = await this.extractNextFromMongoCursor(cursor);
+      }
+
+      observer.complete();
+    });
+  }
+
   static getTransactionsHistoryDriverApp$(args, walletId) {
     return Observable.create(async observer => {
       const dateAsString = args.year + "/" + args.month + "/5";

@@ -188,8 +188,8 @@ export const makeManualBalanceAdjustment = gql`
 `;
 
 export const WalletRevertTransaction = gql`
-  mutation WalletRevertTransaction($businessId: String!, $transactionIds: [String]!) {
-    WalletRevertTransaction(businessId: $businessId, transactionIds: $transactionIds) {
+  mutation WalletRevertTransaction($businessId: String!, $transactionIds: [String]!, $concept: String) {
+    WalletRevertTransaction(businessId: $businessId, transactionIds: $transactionIds, concept: $concept) {
       code
       message
     }

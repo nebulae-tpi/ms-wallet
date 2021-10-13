@@ -48,12 +48,13 @@ export class TransactionHistoryDetailService {
    * Make a new manual balance adjustment
    * @param mba Balance adjustment to be created
    */
-  revertTransaction$(businessId: string, transactionIds: string[]): Observable<any> {
+  revertTransaction$(businessId: string, transactionIds: string[], concept: String): Observable<any> {
     return this.gateway.apollo.mutate<any>({
       mutation: WalletRevertTransaction,
       variables: {
         businessId: businessId,
-        transactionIds: transactionIds
+        transactionIds: transactionIds,
+        concept: concept
       },
       errorPolicy: 'all'
     });

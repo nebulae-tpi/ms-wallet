@@ -489,7 +489,7 @@ class WalletES {
               walletId: data.fromId,
               amount: data.amount * -1,
               type: data.type,
-              concept: data.concept,
+              concept: "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE",
               timestamp: Date.now(),
               notes: data.notes,
               pocket: 'MAIN',
@@ -536,9 +536,8 @@ class WalletES {
           }
           
           return movements.map(movement => {
-            return ({...movement,associatedTransactionIds: [
-              movements.filter(m => m._id !== movement._id).map(mov => mov._id)
-            ] })
+            return ({...movement,associatedTransactionIds: movements.filter(m => m._id !== movement._id).map(mov => mov._id)
+             })
           });
         }),
         mergeMap(txs => from(txs)

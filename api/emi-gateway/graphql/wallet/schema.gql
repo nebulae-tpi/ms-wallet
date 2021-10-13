@@ -297,7 +297,7 @@ type Mutation {
   "Mutation to create manual balance adjustments."
   makeManualBalanceAdjustment(input: ManualBalanceAdjustmentInput): CommandResponse
   walletUpdateSpendingRule(input: WalletSpendingRuleInput ): CommandResponse
-  WalletRevertTransaction(businessId: String!, transactionIds: [String]!): CommandResponse
+  WalletRevertTransaction(businessId: String!, transactionIds: [String]!, concept: String): CommandResponse
 }
 
 type Subscription {
