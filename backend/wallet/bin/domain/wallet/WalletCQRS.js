@@ -244,6 +244,7 @@ class WalletCQRS {
       mergeMap(transactionHistory => {
         // transactionHistory.associatedTransactionIds = [transactionHistory._id];
         if (transactionHistory && transactionHistory.associatedTransactionIds && transactionHistory.associatedTransactionIds.length > 0) {
+          console.log("ASSOCIATED TRANSACTION HISTORY ===> ",transactionHistory.associatedTransactionIds);
           return WalletTransactionDA.getTransactionsHistoryByIds$(args.id, transactionHistory.associatedTransactionIds, transactionHistory.businessId)
         } else {
           return of([])

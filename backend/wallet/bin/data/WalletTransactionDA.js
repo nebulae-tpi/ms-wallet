@@ -71,6 +71,7 @@ class WalletTransactionDA {
       _id: { $in: transactionHistoryIds },
       businessId: businessId
     };
+    console.log("QUERY TRANSACTIONS ===> ", query)
     return defer(() => collection.find(query).limit(10).toArray());
   }
 
