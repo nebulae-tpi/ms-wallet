@@ -153,7 +153,7 @@ export class TransactionHistoryDetailComponent implements OnInit, OnDestroy {
       tap(r => {
         if(r.code === 200){
           this.selectedTransaction.reverted = true;
-          this.showMessageSnackbar('SUCCESS.1');
+          this.showMessageSnackbar('SUCCESS.1'); 
         }
       }),
     ).subscribe(
