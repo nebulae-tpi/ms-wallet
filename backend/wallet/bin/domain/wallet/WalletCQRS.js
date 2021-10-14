@@ -244,7 +244,6 @@ class WalletCQRS {
       mergeMap(transactionHistory => {
         // transactionHistory.associatedTransactionIds = [transactionHistory._id];
         if (transactionHistory && transactionHistory.associatedTransactionIds && transactionHistory.associatedTransactionIds.length > 0) {
-          console.log("ASSOCIATED TRANSACTION HISTORY ===> ",transactionHistory.associatedTransactionIds);
           return WalletTransactionDA.getTransactionsHistoryByIds$(args.id, transactionHistory.associatedTransactionIds, transactionHistory.businessId)
         } else {
           return of([])
@@ -304,7 +303,7 @@ class WalletCQRS {
       .pipe(
         mergeMap(() => {
           if (args.concept === "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE") {
-            return WalletTransactionDA.getTransactionsHistoryByIds$(args.transactionIds).pipe(
+            return WalletTransactionDA.getTransactionsByIds$(args.transactionIds).pipe(
               toArray(),
               mergeMap(transactions => {
                 if(transactions.some(t => t.reverted)){

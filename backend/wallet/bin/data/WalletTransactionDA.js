@@ -71,7 +71,6 @@ class WalletTransactionDA {
       _id: { $in: transactionHistoryIds },
       businessId: businessId
     };
-    console.log("QUERY TRANSACTIONS ===> ", query)
     return defer(() => collection.find(query).limit(10).toArray());
   }
 
@@ -133,7 +132,7 @@ class WalletTransactionDA {
     });
   }
 
-  static getTransactionsHistoryByIds$(ids) {
+  static getTransactionsByIds$(ids) {
 
     return Observable.create(async observer => {
       const collection = mongoDB.getHistoricalDbByYYMM(ids[0].split('-').pop()).collection(COLLECTION_NAME);
