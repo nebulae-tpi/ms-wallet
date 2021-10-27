@@ -476,7 +476,6 @@ class WalletES {
 
   handleWalletTransactionCommited$({ aid, data, user }) {
     if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
-      console.log("LLEGA WALLET OPERATION ===> ", data);
       return of({}).pipe(
         map(() => {
           const clientValue = parseInt((process.env.APP_CLIENT_AGREEMENT || "500"));
@@ -506,8 +505,10 @@ class WalletES {
               notes: data.notes,
               pocket: 'MAIN',
               user
-            },
-            {
+            }
+          ];
+          if(data.clientId){
+            movements.push({
               _id: Crosscutting.generateDateBasedUuid(),
               businessId: data.businessId,
               walletId: data.clientId,
@@ -518,8 +519,8 @@ class WalletES {
               notes: data.notes,
               pocket: 'MAIN',
               user
-            }
-          ];
+            });
+          }
           if(data.referrerDriverId){
             movements.push({
               _id: Crosscutting.generateDateBasedUuid(),
