@@ -498,7 +498,7 @@ class WalletES {
               _id: Crosscutting.generateDateBasedUuid(),
               businessId: data.businessId,
               walletId: data.toId,
-              amount: businessValue,
+              amount: data.clientId ? businessValue : data.amount,
               type: data.type,
               concept: data.concept,
               timestamp: Date.now(),
