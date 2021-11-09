@@ -311,6 +311,7 @@ class WalletCQRS {
                 }
                 const driverTransaction = transactions.find(t => t.concept=== "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE");
                 const associatedTransactions = transactions.filter(t => t.concept=== "APP_DRIVER_AGREEMENT_PAYMENT" && t.walletId !== driverTransaction.businessId);
+                console.log("ASSOCIATED TRANSACTIONS ====> ", associatedTransactions);
                 const driverMovement = {
                   _id: uuidv4(), type: 'MOVEMENT', notes: '',
                   concept: this.getRefundConceptName(driverTransaction.concept),
@@ -320,6 +321,7 @@ class WalletCQRS {
                   fromId: driverTransaction.businessId,
                   toId: driverTransaction.walletId
                 };
+                console.log("driverTransaction ===> ", driverTransaction);
 
                 return forkJoin([
                   eventSourcing.eventStore.emitEvent$(
