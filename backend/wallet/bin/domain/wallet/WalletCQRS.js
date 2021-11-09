@@ -311,7 +311,6 @@ class WalletCQRS {
                 }
                 const driverTransaction = transactions.find(t => t.concept=== "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE");
                 const associatedTransactions = transactions.filter(t => t.concept=== "APP_DRIVER_AGREEMENT_PAYMENT" && t.walletId !== driverTransaction.businessId);
-                console.log("ASSOCIATED TRANSACTIONS ====> ", associatedTransactions);
                 const driverMovement = {
                   _id: uuidv4(), type: 'MOVEMENT', notes: '',
                   concept: this.getRefundConceptName(driverTransaction.concept),
@@ -321,10 +320,45 @@ class WalletCQRS {
                   fromId: driverTransaction.businessId,
                   toId: driverTransaction.walletId
                 };
-                console.log("driverTransaction ===> ", driverTransaction);
-
-                return forkJoin([
-                  eventSourcing.eventStore.emitEvent$(
+                if(associatedTransactions && associatedTransactions.length>0){
+                  return forkJoin([
+                    eventSourcing.eventStore.emitEvent$(
+                      new Event({
+                        eventType: "WalletTransactionCommited",
+                        eventTypeVersion: 1,
+                        aggregateType: "Wallet",
+                        aggregateId: driverMovement._id,
+                        data: driverMovement,
+                        user: authToken.preferred_username
+                      })
+                    ),
+                    from((associatedTransactions || [])).pipe(
+                      mergeMap(associatedTransaction => {
+                        const associatedMovement = {
+                          _id: uuidv4(), type: 'MOVEMENT', notes: '',
+                          concept: this.getRefundConceptName(associatedTransaction.concept),
+                          timestamp: Date.now(),
+                          amount: Math.abs(associatedTransaction.amount),
+                          businessId: associatedTransaction.businessId,
+                          fromId: associatedTransaction.walletId,
+                          toId: associatedTransaction.businessId
+                        };
+                        return eventSourcing.eventStore.emitEvent$(
+                          new Event({
+                            eventType: "WalletTransactionCommited",
+                            eventTypeVersion: 1,
+                            aggregateType: "Wallet",
+                            aggregateId: associatedMovement._id,
+                            data: associatedMovement,
+                            user: authToken.preferred_username
+                          })
+                        )
+                      })
+                    )
+  
+                  ]);
+                } else {
+                  return eventSourcing.eventStore.emitEvent$(
                     new Event({
                       eventType: "WalletTransactionCommited",
                       eventTypeVersion: 1,
@@ -333,32 +367,8 @@ class WalletCQRS {
                       data: driverMovement,
                       user: authToken.preferred_username
                     })
-                  ),
-                  from((associatedTransactions || [])).pipe(
-                    mergeMap(associatedTransaction => {
-                      const associatedMovement = {
-                        _id: uuidv4(), type: 'MOVEMENT', notes: '',
-                        concept: this.getRefundConceptName(associatedTransaction.concept),
-                        timestamp: Date.now(),
-                        amount: Math.abs(associatedTransaction.amount),
-                        businessId: associatedTransaction.businessId,
-                        fromId: associatedTransaction.walletId,
-                        toId: associatedTransaction.businessId
-                      };
-                      return eventSourcing.eventStore.emitEvent$(
-                        new Event({
-                          eventType: "WalletTransactionCommited",
-                          eventTypeVersion: 1,
-                          aggregateType: "Wallet",
-                          aggregateId: associatedMovement._id,
-                          data: associatedMovement,
-                          user: authToken.preferred_username
-                        })
-                      )
-                    })
                   )
-
-                ]);
+                }
               })
             )
           }
