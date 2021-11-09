@@ -332,7 +332,7 @@ class WalletCQRS {
                       user: authToken.preferred_username
                     })
                   ),
-                  from(associatedTransactions).pipe(
+                  from((associatedTransactions || [])).pipe(
                     mergeMap(associatedTransaction => {
                       const associatedMovement = {
                         _id: uuidv4(), type: 'MOVEMENT', notes: '',
