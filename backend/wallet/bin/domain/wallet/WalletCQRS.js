@@ -184,7 +184,7 @@ class WalletCQRS {
         if (!authToken.clientId) {
           return this.createCustomError$(
             DRIVER_ID_NO_FOUND_IN_TOKEN,
-            'getWalletTransactionsHistoryClientApp'
+            'getWalletTransactionsHistoryClientApps'
           );
         }
         return of(authToken.clientId);
