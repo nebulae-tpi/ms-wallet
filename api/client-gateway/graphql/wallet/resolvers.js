@@ -45,6 +45,25 @@ module.exports = {
           mergeMap(response => getResponseFromBackEnd$(response))
         )
         .toPromise();
+    },
+    WalletTransactionHistory(root, args, context) {
+      return RoleValidator.checkPermissions$(
+        context.authToken.realm_access.roles,
+        CONTEXT_NAME,
+        'WalletTransactionHistory',
+        PERMISSION_DENIED_ERROR_CODE,
+        'Permission denied',
+        ['CLIENT']
+      )
+        .pipe(
+          mergeMap(() => broker.forwardAndGetReply$(
+            "Wallet", "clientgateway.graphql.query.getWalletTransactionsHistoryClientApp",
+            { root, args, jwt: context.encodedToken }, 2000
+          )),
+          catchError(err => handleError$(err, "getWalletTransactionsHistoryClientApp")),
+          mergeMap(response => getResponseFromBackEnd$(response))
+        )
+        .toPromise();
     }
   },
   // Mutation: {

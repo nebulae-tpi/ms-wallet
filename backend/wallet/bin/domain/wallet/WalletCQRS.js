@@ -170,6 +170,31 @@ class WalletCQRS {
     );
   }
 
+  getWalletTransactionsHistoryClientApp$({ args }, authToken) {
+    return RoleValidator.checkPermissions$(
+      authToken.realm_access.roles,
+      "WALLET",
+      "getWalletTransactionsHistoryClientApp",
+      PERMISSION_DENIED_ERROR,
+      ["CLIENT"]
+    ).pipe(
+      mergeMap(roles => {
+        const isPlatformAdmin = roles["PLATFORM-ADMIN"];
+        //If an user does not have the role to get the transaction history from other business, we must return an error
+        if (!authToken.clientId) {
+          return this.createCustomError$(
+            DRIVER_ID_NO_FOUND_IN_TOKEN,
+            'getWalletTransactionsHistoryClientApp'
+          );
+        }
+        return of(authToken.clientId);
+      }),
+      mergeMap(walletId => WalletTransactionDA.getTransactionsHistoryDriverApp$(args, walletId)),
+      toArray(),
+      mergeMap(rawResponse => this.buildSuccessResponse$(rawResponse)),
+      catchError(err => this.handleError$(err))
+    );
+  }
   /**
 * Gets the amount of wallet transaction history of a business
 *

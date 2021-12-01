@@ -231,6 +231,10 @@ class GraphQlService {
         aggregateType: "Wallet",
         messageType: "drivergateway.graphql.query.getWalletTransactionsHistoryDriverApp"
       },
+      {
+        aggregateType: "Wallet",
+        messageType: "clientgateway.graphql.query.getWalletTransactionsHistoryClientApp"
+      },
       // CLIENT APP
       {
         aggregateType: "Client",
@@ -335,7 +339,11 @@ class GraphQlService {
       "clientgateway.graphql.query.clientWallet": {
         fn: wallet.cqrs.clientWallet$,
         obj: wallet.cqrs
-      }
+      },
+      "clientgateway.graphql.query.getWalletTransactionsHistoryClientApp": {
+        fn: wallet.cqrs.getWalletTransactionsHistoryClientApp$,
+        obj: wallet.cqrs
+      },
 
     };
   }

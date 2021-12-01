@@ -38,9 +38,30 @@ type ClientWalletInfo {
    businessId: String
 }
 
+"Wallet transaction info"
+type WalletTransaction {
+  "Wallet ID"
+  _id: ID!
+  "Timestamp where the transaction was created"
+  timestamp: BigInt!
+  "Transaction type"
+  type: String!
+  "Transaction concept"
+  concept: String!
+  "Indicates which was the used pocket"
+  pocket: String!
+  "Value associated to the transaction"
+  amount: Float!
+  "User that performs the operation that create the transaction"
+  user: String!  
+  "Notes"
+  notes: String
+}
+
 
 type Query {
   ClientWallet: ClientWalletInfo @requireAuth
+  WalletTransactionHistory(year: Int!, month: Int!, page: Int!, count: Int!): [WalletTransaction]  @requireAuth
 }
 
 # type Mutation {
