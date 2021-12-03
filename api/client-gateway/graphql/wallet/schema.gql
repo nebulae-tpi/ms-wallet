@@ -61,6 +61,7 @@ type WalletTransaction {
 
 type Query {
   ClientWallet: ClientWalletInfo @requireAuth
+  "wallet client"
   WalletTransactionHistory(year: Int!, month: Int!, page: Int!, count: Int!): [WalletTransaction]  @requireAuth
 }
 

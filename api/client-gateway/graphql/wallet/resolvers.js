@@ -5,7 +5,7 @@ const PubSub = require("graphql-subscriptions").PubSub;
 const pubsub = new PubSub();
 
 const { of, Observable, bindNodeCallback } = require("rxjs");
-const { map, tap, mergeMap, switchMapTo } = require("rxjs/operators");
+const { map, tap, mergeMap, switchMapTo, catchError } = require("rxjs/operators");
 
 const broker = require("../../broker/BrokerFactory")();
 const RoleValidator = require("../../tools/RoleValidator");
