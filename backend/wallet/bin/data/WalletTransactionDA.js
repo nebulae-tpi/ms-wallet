@@ -119,6 +119,8 @@ class WalletTransactionDA {
         query.timestamp["$lt"] = filter.endDate;
       }
 
+      console.log("QUERY2 ===> ", query);
+
       const cursor = collection
         .find(query)
         .skip(pagination.count * pagination.page)
