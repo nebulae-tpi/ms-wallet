@@ -171,6 +171,7 @@ class WalletCQRS {
   }
 
   getWalletTransactionsHistoryClientApp$({ args }, authToken) {
+    console.log("LLEGA REQUEST ====> ", args);
     return RoleValidator.checkPermissions$(
       authToken.realm_access.roles,
       "WALLET",
@@ -179,9 +180,11 @@ class WalletCQRS {
       ["CLIENT"]
     ).pipe(
       mergeMap(roles => {
+        console.log("PASA ROLES!!")
         const isPlatformAdmin = roles["PLATFORM-ADMIN"];
         //If an user does not have the role to get the transaction history from other business, we must return an error
         if (!authToken.clientId) {
+          console.log("!VAL 1")
           return this.createCustomError$(
             DRIVER_ID_NO_FOUND_IN_TOKEN,
             'getWalletTransactionsHistoryClientAppss'
