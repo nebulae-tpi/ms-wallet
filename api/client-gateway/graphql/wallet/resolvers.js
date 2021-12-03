@@ -13,7 +13,6 @@ const RoleValidator = require("../../tools/RoleValidator");
 const INTERNAL_SERVER_ERROR_CODE = 23001;
 const USERS_PERMISSION_DENIED_ERROR_CODE = 23002;
 const { ApolloError } = require("apollo-server");
-const CONTEXT_NAME = 'WALLET';
 
 
 function getResponseFromBackEnd$(response) {
@@ -51,9 +50,8 @@ module.exports = {
       console.log("LLEGA RQST AL API")
       return RoleValidator.checkPermissions$(
         context.authToken.realm_access.roles,
-        CONTEXT_NAME,
+        'WALLET',
         'WalletTransactionHistory',
-        
         USERS_PERMISSION_DENIED_ERROR_CODE,
         'Permission denied',
         ['CLIENT']
