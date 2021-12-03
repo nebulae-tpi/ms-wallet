@@ -46,8 +46,9 @@ module.exports = {
         )
         .toPromise();
     },
+
     WalletTransactionHistory(root, args, context) {
-      console.log("LLEGA RQST AL API")
+      console.log("LLEGA RQST AL APIS")
       return RoleValidator.checkPermissions$(
         context.authToken.realm_access.roles,
         'WALLET',
