@@ -164,7 +164,7 @@ class WalletTransactionDA {
         .getHistoricalDb(initDateFormat)
         .collection(COLLECTION_NAME);
       const query = { walletId: walletId };
-
+      console.log("QUERY ===> ", query);
       // if(filter.transactionType){
       //   query.type = filter.transactionType;
       // }
