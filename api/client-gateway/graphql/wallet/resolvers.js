@@ -53,6 +53,7 @@ module.exports = {
         context.authToken.realm_access.roles,
         CONTEXT_NAME,
         'WalletTransactionHistory',
+        
         USERS_PERMISSION_DENIED_ERROR_CODE,
         'Permission denied',
         ['CLIENT']
