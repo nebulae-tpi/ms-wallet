@@ -29,7 +29,6 @@ class WalletTransactionDA {
    * @param {*} transactionData transaction to create
    */
   static saveTransactionHistory$(transactionData, walletPrev) {
-    console.log("walletPrev ===> ", walletPrev)
     const collection = mongoDB
       .getHistoricalDbByYYMM(transactionData._id.split("-").pop())
       .collection(COLLECTION_NAME);
