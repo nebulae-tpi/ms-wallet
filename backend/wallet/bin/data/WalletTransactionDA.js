@@ -28,13 +28,13 @@ class WalletTransactionDA {
    *
    * @param {*} transactionData transaction to create
    */
-  static saveTransactionHistory$(transactionData) {
+  static saveTransactionHistory$(transactionData, walletPrev) {
     const collection = mongoDB
       .getHistoricalDbByYYMM(transactionData._id.split("-").pop())
       .collection(COLLECTION_NAME);
     return defer(() => collection.updateOne(
       { _id: transactionData._id },
-      { $set: transactionData },
+      { $set: {...transactionData, walletBalancePrev: ((walletPrev || {}).pockets || {}).main } },
       { upsert: true }
     ));
   }

@@ -244,9 +244,12 @@ class WalletDA {
     const incPath = {};
     incPath[`pockets.${pocket}`] = amount;
     const collection = mongoDB.db.collection(COLLECTION_NAME);
-    return defer(() => collection.updateOne(
+    return defer(() => collection.findOneAndUpdate(
       { _id: walletId },
-      { $inc: incPath }
+      { $inc: incPath },
+      {
+        returnOriginal: false,
+      }
     ))
 
   }
