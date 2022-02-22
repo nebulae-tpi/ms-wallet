@@ -445,7 +445,7 @@ class WalletES {
     // console.log('handleWalletTransactionExecuted => ', {aid, user, data} );
     return WalletDA.updateAmount$(data.walletId, 'main', data.amount)
     .pipe(
-      mergeMap(walletPrev => WalletTransactionsDA.saveTransactionHistory$(data, walletPrev)),
+      mergeMap(walletPrev => WalletTransactionsDA.saveTransactionHistory$(data, (walletPrev ||{}).value)),
       tap(() => {
         // console.log('Enviando la actualizacion de billetera, ', data.walletId);
         this.walletPocketUpdatedEventEmitter$.next(data.walletId)
