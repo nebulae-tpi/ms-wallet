@@ -360,6 +360,7 @@ class WalletCQRS {
                         user: authToken.preferred_username
                       })
                     ),
+                    WalletTransactionDA.markMultipleAsReverted$(transactions.map(t => t._id)),
                     from((associatedTransactions || [])).pipe(
                       mergeMap(associatedTransaction => {
                         const associatedMovement = {
@@ -386,16 +387,19 @@ class WalletCQRS {
   
                   ]);
                 } else {
-                  return eventSourcing.eventStore.emitEvent$(
-                    new Event({
-                      eventType: "WalletTransactionCommited",
-                      eventTypeVersion: 1,
-                      aggregateType: "Wallet",
-                      aggregateId: driverMovement._id,
-                      data: driverMovement,
-                      user: authToken.preferred_username
-                    })
-                  )
+                  return forkJoin([
+                    WalletTransactionDA.markMultipleAsReverted$(transactions.map(t => t._id)),
+                    eventSourcing.eventStore.emitEvent$(
+                      new Event({
+                        eventType: "WalletTransactionCommited",
+                        eventTypeVersion: 1,
+                        aggregateType: "Wallet",
+                        aggregateId: driverMovement._id,
+                        data: driverMovement,
+                        user: authToken.preferred_username
+                      })
+                    )
+                  ])
                 }
               })
             )

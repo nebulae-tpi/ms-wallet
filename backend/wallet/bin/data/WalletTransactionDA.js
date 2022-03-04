@@ -235,6 +235,11 @@ class WalletTransactionDA {
     return defer(() => collection.updateOne({ _id: transactioinId }, { $set: { reverted: true } }));
   }
 
+  static markMultipleAsReverted$(transactioinIds) {
+    const collection = mongoDB.getHistoricalDbByYYMM(transactioinIds[0].split('-').pop()).collection(COLLECTION_NAME);
+    return defer(() => collection.updateOne({ _id: {$in: transactioinIds} }, { $set: { reverted: true } }));
+  }
+
   /**
    * Extracts the next value from a mongo cursor if available, returns undefined otherwise
    * @param {*} cursor
