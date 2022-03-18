@@ -473,7 +473,7 @@ class WalletES {
   }
 
 
-  handleWalletTransactionCommited$({ aid, data, user }) {
+  handleWalletTransactionCommited$({ aid, av, data, user }) {
     if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
       return of({}).pipe(
         map(() => {
@@ -487,6 +487,7 @@ class WalletES {
               walletId: data.fromId,
               amount: data.amount * -1,
               type: data.type,
+              sourceEvent: {aid, av},
               concept: "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE",
               timestamp: Date.now(),
               notes: data.notes,
@@ -499,6 +500,7 @@ class WalletES {
               walletId: data.toId,
               amount: data.clientId ? businessValue : data.amount,
               type: data.type,
+              sourceEvent: {aid, av},
               concept: data.concept,
               timestamp: Date.now(),
               notes: data.notes,
@@ -513,6 +515,7 @@ class WalletES {
               walletId: data.clientId,
               amount: clientValue,
               type: data.type,
+              sourceEvent: {aid, av},
               concept: data.concept,
               timestamp: Date.now(),
               notes: data.notes,
@@ -527,6 +530,7 @@ class WalletES {
               walletId: data.referrerDriverId,
               amount: driverValue,
               type: data.type,
+              sourceEvent: {aid, av},
               concept: data.concept,
               timestamp: Date.now(),
               notes: data.notes,
@@ -565,6 +569,7 @@ class WalletES {
             {
               _id: Crosscutting.generateDateBasedUuid(),
               businessId: data.businessId,
+              sourceEvent: {aid, av},
               walletId: data.fromId,
               amount: data.amount * -1,
               type: data.type,
@@ -578,6 +583,7 @@ class WalletES {
               _id: Crosscutting.generateDateBasedUuid(),
               businessId: data.businessId,
               walletId: data.toId,
+              sourceEvent: {aid, av},
               amount: data.amount,
               type: data.type,
               concept: data.concept,
