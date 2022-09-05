@@ -50,4 +50,4 @@ spec:
       volumes:
       - name: wall-mongo-persistent-storage
         persistentVolumeClaim:
-          claimName: wall-mongo-pv-claim      
+          claimName: copy-wall-mongo-pv-claim  
