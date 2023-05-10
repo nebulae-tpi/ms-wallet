@@ -117,16 +117,24 @@ class WalletDA {
     return of(business).pipe(
       mergeMap(business =>
         defer(() => {
+          let mainInc = NumberDecimal.fromString(
+            increment.main.toString()
+          )
+          let bonusInc = NumberDecimal.fromString(
+            increment.bonus.toString()
+          )
+          if(isNaN(mainInc) || mainInc == null){
+            mainInc = 0;
+          }
+          if(isNaN(bonusInc) || bonusInc == null){
+            bonusInc = 0;
+          }
           const updateQuery = {
             $inc: {
               // 'pockets.main': increment.main,
               // 'pockets.bonus': increment.bonus
-              "pockets.main": NumberDecimal.fromString(
-                increment.main.toString()
-              ),
-              "pockets.bonus": NumberDecimal.fromString(
-                increment.bonus.toString()
-              )
+              "pockets.main": mainInc,
+              "pockets.bonus": bonusInc
             },
             $setOnInsert: {
               businessId: business._id,
@@ -242,6 +250,9 @@ class WalletDA {
   static updateAmount$(walletId, pocket, amount) {
     // console.log("updateAmount$", walletId, amount);
     const incPath = {};
+    if(isNaN(amount) || amount == null){
+      amount = 0;
+    }
     incPath[`pockets.${pocket}`] = amount;
     const collection = mongoDB.db.collection(COLLECTION_NAME);
     return defer(() => collection.findOneAndUpdate(
