@@ -507,7 +507,22 @@ class WalletES {
               }
             ];
             return movements;
-          })
+          }),
+          mergeMap(txs => from(txs)
+              .pipe(
+                mergeMap(tx => eventSourcing.eventStore.emitEvent$(
+                  new Event({
+                    eventType: 'WalletTransactionExecuted',
+                    eventTypeVersion: 1,
+                    aggregateType: "Wallet",
+                    aggregateId: tx.walletId,
+                    data: tx,
+                    user: user
+                  })
+                )),
+                toArray()
+              )
+            )
         )
       }else {
         return of({}).pipe(
