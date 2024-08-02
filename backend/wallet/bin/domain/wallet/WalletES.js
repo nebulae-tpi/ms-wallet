@@ -527,8 +527,11 @@ class WalletES {
       }else {
         return of({}).pipe(
           map(() => {
-            const clientValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? data.amount * 0.1 : parseInt((process.env.APP_CLIENT_AGREEMENT || "500"));
-            const driverValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? data.amount * 0.1 : parseInt((process.env.APP_DRIVER_AGREEMENT || "200"));
+            const clientValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? 0 : parseInt((process.env.APP_CLIENT_AGREEMENT || "500"));
+            const driverValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? data.amount * 0.2 : parseInt((process.env.APP_DRIVER_AGREEMENT || "200"));
+            if(data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a"){
+              data.clientId = undefined
+            }
             const businessValue = data.amount- clientValue - (data.referrerDriverId ? driverValue : 0);
             const movements =[
               {
