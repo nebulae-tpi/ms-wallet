@@ -475,6 +475,9 @@ class WalletES {
 
   handleWalletTransactionCommited$({ aid, av, data, user }) {
     if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
+      if(data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a"){
+        return of({});
+      }
       if(data.driverToDriver){
         return of({}).pipe(
           map(() => {
