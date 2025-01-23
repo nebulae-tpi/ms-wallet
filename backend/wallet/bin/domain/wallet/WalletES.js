@@ -16,6 +16,9 @@ const mongoDB = require('../../data/MongoDB').singleton();
 
 const MATERIALIZED_VIEW_TOPIC = "emi-gateway-materialized-view-updates";
 const CLIENT_GATEWAY_MATERIALIZED_VIEW_TOPIC = "client-gateway-materialized-view-updates";
+const transactionCache = {
+
+}
 
 let instance;
 
@@ -472,24 +475,178 @@ class WalletES {
     );
   }
 
+  addElelemtToCache(arr, element){
+    const MAX_SIZE = 1000;
+    arr.push(element);           
+    if (arr.length > MAX_SIZE) {
+      arr.shift();
+    }
+    
+  }
 
   handleWalletTransactionCommited$({ aid, av, data, user }) {
-    if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
-      if(data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a"){
-        return of({});
-      }
-      if(data.driverToDriver){
-        return of({}).pipe(
-          map(() => {
-            const movements =[
+    const arrCache = transactionCache[data.businessId] || [];
+    if(!arrCache.some(a => a == aid)){
+      this.addElelemtToCache(arrCache,element);
+      transactionCache[data.businessId] = arrCache;
+      console.log("cacheLength ==> ",arrCache.length);
+      if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
+        if(data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a"){
+          return of({});
+        }
+        if(data.driverToDriver){
+          return of({}).pipe(
+            map(() => {
+              const movements =[
+                {
+                  _id: Crosscutting.generateDateBasedUuid(),
+                  businessId: data.businessId,
+                  walletId: data.fromId,
+                  amount: data.amount * -1,
+                  type: data.type,
+                  sourceEvent: {aid, av},
+                  concept: "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE",
+                  timestamp: Date.now(),
+                  notes: data.notes,
+                  pocket: 'MAIN',
+                  user
+                },
+                {
+                  _id: Crosscutting.generateDateBasedUuid(),
+                  businessId: data.businessId,
+                  walletId: data.toId,
+                  amount: data.amount,
+                  type: data.type,
+                  sourceEvent: {aid, av},
+                  concept: data.concept,
+                  timestamp: Date.now(),
+                  notes: data.notes,
+                  pocket: 'MAIN',
+                  user
+                }
+              ];
+              return movements;
+            }),
+            mergeMap(txs => from(txs)
+                .pipe(
+                  mergeMap(tx => eventSourcing.eventStore.emitEvent$(
+                    new Event({
+                      eventType: 'WalletTransactionExecuted',
+                      eventTypeVersion: 1,
+                      aggregateType: "Wallet",
+                      aggregateId: tx.walletId,
+                      data: tx,
+                      user: user
+                    })
+                  )),
+                  toArray()
+                )
+              )
+          )
+        }else {
+          return of({}).pipe(
+            map(() => {
+              const clientValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? 0 : parseInt((process.env.APP_CLIENT_AGREEMENT || "500"));
+              const driverValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? data.amount * 0.2 : parseInt((process.env.APP_DRIVER_AGREEMENT || "200"));
+              if(data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a"){
+                data.clientId = undefined
+              }
+              const businessValue = data.amount- clientValue - (data.referrerDriverId ? driverValue : 0);
+              const movements =[
+                {
+                  _id: Crosscutting.generateDateBasedUuid(),
+                  businessId: data.businessId,
+                  walletId: data.fromId,
+                  amount: data.amount * -1,
+                  type: data.type,
+                  sourceEvent: {aid, av},
+                  concept: "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE",
+                  timestamp: Date.now(),
+                  notes: data.notes,
+                  pocket: 'MAIN',
+                  user
+                },
+                {
+                  _id: Crosscutting.generateDateBasedUuid(),
+                  businessId: data.businessId,
+                  walletId: data.toId,
+                  amount: data.clientId ? businessValue : data.amount,
+                  type: data.type,
+                  sourceEvent: {aid, av},
+                  concept: data.concept,
+                  timestamp: Date.now(),
+                  notes: data.notes,
+                  pocket: 'MAIN',
+                  user
+                }
+              ];
+              if(data.clientId){
+                movements.push({
+                  _id: Crosscutting.generateDateBasedUuid(),
+                  businessId: data.businessId,
+                  walletId: data.clientId,
+                  amount: clientValue,
+                  type: data.type,
+                  sourceEvent: {aid, av},
+                  concept: data.concept,
+                  timestamp: Date.now(),
+                  notes: data.notes,
+                  pocket: 'MAIN',
+                  user
+                });
+              }
+              if(data.referrerDriverId){
+                movements.push({
+                  _id: Crosscutting.generateDateBasedUuid(),
+                  businessId: data.businessId,
+                  walletId: data.referrerDriverId,
+                  amount: driverValue,
+                  type: data.type,
+                  sourceEvent: {aid, av},
+                  concept: data.concept,
+                  timestamp: Date.now(),
+                  notes: data.notes,
+                  pocket: 'MAIN',
+                  user
+                })
+              }
+              
+              return movements.map(movement => {
+                return ({...movement,associatedTransactionIds: movements.filter(m => m._id !== movement._id).map(mov => mov._id)
+                 })
+              });
+            }),
+            mergeMap(txs => from(txs)
+                .pipe(
+                  mergeMap(tx => eventSourcing.eventStore.emitEvent$(
+                    new Event({
+                      eventType: 'WalletTransactionExecuted',
+                      eventTypeVersion: 1,
+                      aggregateType: "Wallet",
+                      aggregateId: tx.walletId,
+                      data: tx,
+                      user: user
+                    })
+                  )),
+                  toArray()
+                )
+              )
+            
+          )
+        }
+        ;
+      } else { 
+        return of({})
+          .pipe(
+            map(() => ([
               {
                 _id: Crosscutting.generateDateBasedUuid(),
                 businessId: data.businessId,
+                sourceEvent: {aid, av},
                 walletId: data.fromId,
                 amount: data.amount * -1,
                 type: data.type,
-                sourceEvent: {aid, av},
-                concept: "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE",
+                concept: data.concept,
                 timestamp: Date.now(),
                 notes: data.notes,
                 pocket: 'MAIN',
@@ -499,19 +656,22 @@ class WalletES {
                 _id: Crosscutting.generateDateBasedUuid(),
                 businessId: data.businessId,
                 walletId: data.toId,
+                sourceEvent: {aid, av},
                 amount: data.amount,
                 type: data.type,
-                sourceEvent: {aid, av},
                 concept: data.concept,
                 timestamp: Date.now(),
                 notes: data.notes,
                 pocket: 'MAIN',
                 user
               }
-            ];
-            return movements;
-          }),
-          mergeMap(txs => from(txs)
+            ])),
+            //  Fill the asociated transactions
+            map(txs => ([
+              { ...txs[0], associatedTransactionIds: [txs[1]._id] },
+              { ...txs[1], associatedTransactionIds: [txs[0]._id] },
+            ])),
+            mergeMap(txs => from(txs)
               .pipe(
                 mergeMap(tx => eventSourcing.eventStore.emitEvent$(
                   new Event({
@@ -520,159 +680,20 @@ class WalletES {
                     aggregateType: "Wallet",
                     aggregateId: tx.walletId,
                     data: tx,
-                    user: user
+                    user: user,
+                    timestamp: Date.now()
                   })
                 )),
                 toArray()
               )
-            )
-        )
-      }else {
-        return of({}).pipe(
-          map(() => {
-            const clientValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? 0 : parseInt((process.env.APP_CLIENT_AGREEMENT || "500"));
-            const driverValue = data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a" ? data.amount * 0.2 : parseInt((process.env.APP_DRIVER_AGREEMENT || "200"));
-            if(data.businessId == "7d95f8ef-4c54-466a-8af9-6dd197dd920a"){
-              data.clientId = undefined
-            }
-            const businessValue = data.amount- clientValue - (data.referrerDriverId ? driverValue : 0);
-            const movements =[
-              {
-                _id: Crosscutting.generateDateBasedUuid(),
-                businessId: data.businessId,
-                walletId: data.fromId,
-                amount: data.amount * -1,
-                type: data.type,
-                sourceEvent: {aid, av},
-                concept: "DRIVER_PAYMENT_FOR_APP_CLIENT_SERVICE",
-                timestamp: Date.now(),
-                notes: data.notes,
-                pocket: 'MAIN',
-                user
-              },
-              {
-                _id: Crosscutting.generateDateBasedUuid(),
-                businessId: data.businessId,
-                walletId: data.toId,
-                amount: data.clientId ? businessValue : data.amount,
-                type: data.type,
-                sourceEvent: {aid, av},
-                concept: data.concept,
-                timestamp: Date.now(),
-                notes: data.notes,
-                pocket: 'MAIN',
-                user
-              }
-            ];
-            if(data.clientId){
-              movements.push({
-                _id: Crosscutting.generateDateBasedUuid(),
-                businessId: data.businessId,
-                walletId: data.clientId,
-                amount: clientValue,
-                type: data.type,
-                sourceEvent: {aid, av},
-                concept: data.concept,
-                timestamp: Date.now(),
-                notes: data.notes,
-                pocket: 'MAIN',
-                user
-              });
-            }
-            if(data.referrerDriverId){
-              movements.push({
-                _id: Crosscutting.generateDateBasedUuid(),
-                businessId: data.businessId,
-                walletId: data.referrerDriverId,
-                amount: driverValue,
-                type: data.type,
-                sourceEvent: {aid, av},
-                concept: data.concept,
-                timestamp: Date.now(),
-                notes: data.notes,
-                pocket: 'MAIN',
-                user
-              })
-            }
-            
-            return movements.map(movement => {
-              return ({...movement,associatedTransactionIds: movements.filter(m => m._id !== movement._id).map(mov => mov._id)
-               })
-            });
-          }),
-          mergeMap(txs => from(txs)
-              .pipe(
-                mergeMap(tx => eventSourcing.eventStore.emitEvent$(
-                  new Event({
-                    eventType: 'WalletTransactionExecuted',
-                    eventTypeVersion: 1,
-                    aggregateType: "Wallet",
-                    aggregateId: tx.walletId,
-                    data: tx,
-                    user: user
-                  })
-                )),
-                toArray()
-              )
-            )
-          
-        )
-      }
-      ;
-    } else { 
-
-      return of({})
-        .pipe(
-          map(() => ([
-            {
-              _id: Crosscutting.generateDateBasedUuid(),
-              businessId: data.businessId,
-              sourceEvent: {aid, av},
-              walletId: data.fromId,
-              amount: data.amount * -1,
-              type: data.type,
-              concept: data.concept,
-              timestamp: Date.now(),
-              notes: data.notes,
-              pocket: 'MAIN',
-              user
-            },
-            {
-              _id: Crosscutting.generateDateBasedUuid(),
-              businessId: data.businessId,
-              walletId: data.toId,
-              sourceEvent: {aid, av},
-              amount: data.amount,
-              type: data.type,
-              concept: data.concept,
-              timestamp: Date.now(),
-              notes: data.notes,
-              pocket: 'MAIN',
-              user
-            }
-          ])),
-          //  Fill the asociated transactions
-          map(txs => ([
-            { ...txs[0], associatedTransactionIds: [txs[1]._id] },
-            { ...txs[1], associatedTransactionIds: [txs[0]._id] },
-          ])),
-          mergeMap(txs => from(txs)
-            .pipe(
-              mergeMap(tx => eventSourcing.eventStore.emitEvent$(
-                new Event({
-                  eventType: 'WalletTransactionExecuted',
-                  eventTypeVersion: 1,
-                  aggregateType: "Wallet",
-                  aggregateId: tx.walletId,
-                  data: tx,
-                  user: user
-                })
-              )),
-              toArray()
             )
           )
-        )
+      }
     }
+    else{
+      return of({});
+    }
+    
     // console.log("handleWalletTransactionCommited$", aid, data, user);
 
   }
