@@ -143,7 +143,8 @@ class WalletES {
             aggregateType: "Wallet",
             aggregateId: tx.wallet._id,
             data: tx.transaction,
-            user: 'SYSTEM'
+            user: 'SYSTEM',
+            timestamp: Date.now()
           })
         )
       ),
@@ -392,7 +393,8 @@ class WalletES {
             aggregateType: "Wallet",
             aggregateId: wallet._id,
             data: walletTransactionExecuted,
-            user: 'SYSTEM'
+            user: 'SYSTEM',
+            timestamp: Date.now()
           })
         );
       }),
@@ -536,7 +538,8 @@ class WalletES {
                       aggregateType: "Wallet",
                       aggregateId: tx.walletId,
                       data: tx,
-                      user: user
+                      user: user,
+                      timestamp: Date.now()
                     })
                   )),
                   toArray()
@@ -625,7 +628,8 @@ class WalletES {
                       aggregateType: "Wallet",
                       aggregateId: tx.walletId,
                       data: tx,
-                      user: user
+                      user: user,
+                      timestamp: Date.now()
                     })
                   )),
                   toArray()
