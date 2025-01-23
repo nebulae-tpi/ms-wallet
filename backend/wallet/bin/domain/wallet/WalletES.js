@@ -487,7 +487,7 @@ class WalletES {
   handleWalletTransactionCommited$({ aid, av, data, user }) {
     const arrCache = transactionCache[data.businessId] || [];
     if(!arrCache.some(a => a == aid)){
-      this.addElelemtToCache(arrCache,element);
+      this.addElelemtToCache(arrCache,aid);
       transactionCache[data.businessId] = arrCache;
       console.log("cacheLength ==> ",arrCache.length);
       if (data.concept === "APP_DRIVER_AGREEMENT_PAYMENT") {
