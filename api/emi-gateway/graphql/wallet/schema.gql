@@ -49,6 +49,7 @@ type WalletTransaction {
   "Transaction concept"
   concept: String!
   "Indicates which was the used pocket"
+  plate: String
   pocket: String
   "Amount associated to the transaction"
   amount: Float!

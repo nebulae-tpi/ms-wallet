@@ -76,6 +76,11 @@
               <span class="title">{{'WALLET.TRANSACTION_RESPONSIBLE_USER' | translate}}:</span>
               <span class="value">{{selectedTransaction.user}}</span>
             </div>
+
+            <div *ngIf="selectedTransaction.plate" fxFlex.gt-xs="50" fxFlex="100" class="form-field" >
+              <span class="title">{{'WALLET.TRANSACTION_PLATE' | translate}}:</span>
+              <span class="value">{{selectedTransaction.plate}}</span>
+            </div>
           
             <div fxFlex="100" class="form-field" fxLayout="column" *ngIf="selectedTransaction.notes">
               <span class="title">{{'WALLET.TRANSACTION_NOTES' | translate}}:</span>
@@ -130,6 +135,7 @@
                     {{transaction.amount | currency}}</p>
                 </mat-cell>
               </ng-container>
+              
           
               <!-- Pocket Column -->
               <!-- <ng-container cdkColumnDef="pocket">

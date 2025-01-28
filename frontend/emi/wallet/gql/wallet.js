@@ -128,6 +128,7 @@ export const getWalletTransactionsHistoryById = gql`
       pocket
       amount
       user
+      plate
       notes
       reverted
       associatedTransactionIds
@@ -143,6 +144,7 @@ export const getAssociatedTransactionsHistoryByTransactionHistoryId = gql`
       walletId
       type
       concept
+      plate
       pocket
       amount
       user

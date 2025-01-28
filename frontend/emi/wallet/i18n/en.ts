@@ -2,6 +2,7 @@ export const locale = {
   lang: 'en',
   data: {
     WALLET: {
+      TRANSACTION_PLATE: "Plate",
       CREDIT: 'Credit',
       MANUAL_BALANCE_ADJUSTMENT: 'Manual balance adjustment',
       VALUE: 'Value',
