@@ -49,8 +49,8 @@ type WalletTransaction {
   "Transaction concept"
   concept: String!
   "Indicates which was the used pocket"
-  plate: String
   pocket: String
+  plate: String
   "Amount associated to the transaction"
   amount: Float!
   "User that performs the operation that create the transaction"
