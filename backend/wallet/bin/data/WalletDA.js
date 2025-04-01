@@ -227,6 +227,16 @@ class WalletDA {
     );
   }
 
+  static updateBusinessId$(walletId, businessId){
+    const collection = mongoDB.db.collection(COLLECTION_NAME);
+    return defer(() =>
+      collection.updateOne(
+        { _id: walletId },
+        { $set: { businessId: businessId }}
+      )
+    );
+  }
+
   static getFilteredWallets$(filterText, businessId, limit = 10) {
     const collection = mongoDB.db.collection(COLLECTION_NAME);
     const filter = { active: true };

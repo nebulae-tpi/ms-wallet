@@ -89,6 +89,15 @@ class ClientES {
     )
   }
 
+
+  handleClientSatelliteIdUpdated$({aid, data}){
+    if(data.businessId){
+      return walletDA.updateBusinessId$(aid, data.businessId);
+    }else {
+      return of({});
+    }
+  }
+
   emitWalletCreatedOrUpdated$(wallet){
     // console.log('PARA EMITIR ==> (WalletUpdated) ', wallet );
     return eventSourcing.eventStore.emitEvent$(
