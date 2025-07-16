@@ -61,7 +61,7 @@ module.exports = {
           mergeMap(() => broker.forwardAndGetReply$(
               "Wallet",
               "emigateway.graphql.query.getWalletTransactionsHistoryAmount",
-              { root, args, jwt: context.encodedToken }, 2000
+              { root, args, jwt: context.encodedToken }, 10000
           )),
           catchError(err => handleError$(err, "getWalletTransactionsHistoryAmount")),
           mergeMap(response => getResponseFromBackEnd$(response))
