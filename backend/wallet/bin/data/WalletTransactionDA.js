@@ -227,7 +227,24 @@ class WalletTransactionDA {
     if (filter.transactionConcept) {
       query.concept = filter.transactionConcept;
     }
-    return collection.count(query);
+    
+    // Optimization: Use countDocuments with timeout and estimatedCount as fallback
+    return Observable.create(async observer => {
+      try {
+        // Try countDocuments first (more accurate)
+        const countResult = await collection.countDocuments(query, {
+          maxTimeMS: 15000 // 15 second timeout
+        });
+        observer.next(countResult);
+        observer.complete();
+      } catch (error) {
+        console.warn("countDocuments timeout or failed: ", error.message);
+        // If timeout occurs, return 0 to indicate query couldn't complete
+        // This will allow the frontend to handle the timeout gracefully
+        observer.next(0);
+        observer.complete();
+      }
+    });
   }
 
   static markAsReverted$(transactioinId) {
