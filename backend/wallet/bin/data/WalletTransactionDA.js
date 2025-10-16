@@ -228,12 +228,11 @@ class WalletTransactionDA {
       query.concept = filter.transactionConcept;
     }
     
-    // Optimization: Use countDocuments with timeout and estimatedCount as fallback
+    // Optimization: Use countDocuments with timeout
     return Observable.create(async observer => {
       try {
-        // Try countDocuments first (more accurate)
         const countResult = await collection.countDocuments(query, {
-          maxTimeMS: 15000 // 15 second timeout
+          maxTimeMS: 15000
         });
         observer.next(countResult);
         observer.complete();
