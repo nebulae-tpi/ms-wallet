@@ -271,7 +271,19 @@ class WalletDA {
       {
         returnOriginal: false,
       }
-    ))
+    )).pipe(
+      mergeMap(result => {
+        // Validate that a document was updated
+        if (!result || !result.value) {
+          return throwError(new Error(`Wallet not found for update: ${walletId}`));
+        }
+        // Validate that matchedCount is 1 (document found and updated)
+        if (result.matchedCount === 0) {
+          return throwError(new Error(`Wallet with _id not found: ${walletId}`));
+        }
+        return of(result);
+      })
+    )
 
   }
 }

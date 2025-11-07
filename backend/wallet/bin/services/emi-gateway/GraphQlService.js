@@ -3,7 +3,7 @@
 const broker = require("../../tools/broker/BrokerFactory")();
 const Rx = require("rxjs");
 const jsonwebtoken = require("jsonwebtoken");
-const { map, mergeMap, catchError, tap } = require('rxjs/operators');
+const { map, mergeMap, catchError, tap, toArray } = require('rxjs/operators');
 const jwtPublicKey = process.env.JWT_PUBLIC_KEY.replace(/\\n/g, "\n");
 const spendingRules = require('../../domain/spending-rules');
 const logError = require('../../domain/log-error');
@@ -35,9 +35,15 @@ class GraphQlService {
       const onCompleteHandler = () => {
         () => console.log("GraphQlService incoming event subscription completed");
       };
+    console.log("GraphQlService starting ...");
     return Rx.from(this.getSubscriptionDescriptors()).pipe(
       map(aggregateEvent => ({ ...aggregateEvent, onErrorHandler, onCompleteHandler })),
-      map(params => this.subscribeEventHandler(params))
+      map(params => this.subscribeEventHandler(params)),
+      toArray(), // Added to ensure completion
+      map(subscriptions => {
+        console.log(`GraphQlService: ${subscriptions.length} subscriptions created`);
+        return 'GraphQlService started';
+      })
     )
   }
 

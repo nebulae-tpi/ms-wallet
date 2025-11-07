@@ -4,7 +4,7 @@ const eventSourcing = require("../../tools/EventSourcing")();
 const business = require("../../domain/business/");
 const spendingRule = require('../../domain/spending-rules');
 const wallet = require('../../domain/wallet');
-const { map, switchMap, filter, mergeMap, concatMap } = require('rxjs/operators');
+const { map, switchMap, filter, mergeMap, concatMap, toArray } = require('rxjs/operators');
 const { UserES } = require('../../domain/user');
 const { DriverES } = require('../../domain/driver');
 const { ClientES } = require('../../domain/client');
@@ -42,8 +42,13 @@ class EventStoreService {
     console.log("EventStoreService starting ...");
 
     return Rx.from(this.aggregateEventsArray).pipe(
-      map(aggregateEvent => ({ ...aggregateEvent, onErrorHandler, onCompleteHandler }))
-      ,map(params => this.subscribeEventHandler(params))
+      map(aggregateEvent => ({ ...aggregateEvent, onErrorHandler, onCompleteHandler })),
+      map(params => this.subscribeEventHandler(params)),
+      toArray(), // Added to ensure completion
+      map(subscriptions => {
+        console.log(`EventStoreService: ${subscriptions.length} subscriptions created`);
+        return 'EventStoreService started';
+      })
     );      
   }
 
