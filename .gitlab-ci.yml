@@ -1,0 +1,414 @@
+variables:
+  DOCKER_DRIVER: overlay2
+  MICROSERVICE_ID: wallet
+  FRONTEND_ID: emi
+  EMI_API_ID: emi-gateway
+  DRIVER_API_ID: driver-gateway
+  CLIENT_API_ID: client-gateway
+  EMI_IMAGE_NAME: emi
+  EMIGATEWAY_IMAGE_NAME: emigateway
+  DRIVERGATEWAY_IMAGE_NAME: drivergateway
+  CLIENTGATEWAY_IMAGE_NAME: clientgateway
+
+  BE_WALLET_IMAGE_NAME: wallet.backend.wallet
+  BE_WALLET_IMAGE_TAG: 0.1.62
+
+stages:
+  - prepare
+  - build
+  - pack
+  - deploy
+
+prepare:environment:
+  stage: prepare
+  image: debian:stable-slim
+  script: |
+    mkdir .artifacts_prepare
+    declare branch=$CI_COMMIT_REF_NAME        
+    echo 'export branch=$CI_COMMIT_REF_NAME' >> .artifacts_prepare/variables
+    for value in GKE_CLUSTER GCP_SERVICE_ACCOUNT GKE_PROJECT GKE_ZONE FILE_ENV_FRONTEND
+    do
+      echo $'eval export VARNAME=\'$\'"$branch"\'_\'"VARNAME"' | sed -e "s/VARNAME/${value}/g"  >> .artifacts_prepare/variables    
+    done    
+    source .artifacts_prepare/variables
+    echo $GCP_SERVICE_ACCOUNT | base64 --decode --ignore-garbage > .artifacts_prepare/gcloud-service-key.json
+  artifacts:
+    paths:
+      - .artifacts_prepare
+
+prepare:mbinit:
+  stage: prepare
+  image: golang:1.9-alpine
+  script: |
+    mkdir .artifacts_prepare_mbinit
+    mkdir .artifacts_prepare_mbinit/go
+    apk add --no-cache git
+    go get github.com/dumacp/mbinit
+    go install github.com/dumacp/mbinit
+    cp /go/bin/mbinit .artifacts_prepare_mbinit/go/
+  artifacts:
+    paths:
+      - .artifacts_prepare_mbinit
+
+######## FRONT END: emi  ############
+
+build:emi:
+  stage: build
+  image:
+    name: node:10.13.0
+    entrypoint: [""]
+  dependencies:
+    - prepare:environment
+  script: |
+    npm config set user 0
+    npm config set unsafe-perm true
+    npm config set prefix '~/.npm-global'
+    export PATH=~/.npm-global/bin:$PATH
+    source ~/.profile
+    source .artifacts_prepare/variables
+    npm install -g @nebulae/cli
+    npm install -g @angular/cli@7.3.9
+    nebulae register microfrontend --microservice-id=$MICROSERVICE_ID --frontend-id=$FRONTEND_ID --setup-file=etc/mfe-setup.json --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    mkdir .artifacts_build_emi
+    nebulae compose-ui production --shell-finalEnvFile=$FILE_ENV_FRONTEND --shell-type=FUSE2_ANGULAR --shell-repo=https://gitlab.com/nebulae-tpi/emi.git --frontend-id=emi --output-dir=.artifacts_build_emi/emi/ --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    ls .artifacts_build_emi/emi/
+  artifacts:
+    paths:
+      - .artifacts_build_emi
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_frontend-emi/
+
+pack:emi:
+  stage: pack
+  tags:
+    - saas-linux-small-amd64
+  image: docker:20.10.16
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:20.10.16-dind
+  dependencies:
+    - prepare:environment
+    - build:emi
+  script: |
+    env | grep KUBERNETES_SERVICE && export DOCKER_HOST="tcp://localhost:2375"
+    source .artifacts_prepare/variables
+    docker login -u "$CONTAINER_REGISTRY_ACCESS_TOKEN_LOGIN" -p "$CONTAINER_REGISTRY_ACCESS_TOKEN" $CI_REGISTRY
+    mkdir .artifacts_pack_emi
+    export IMAGE_NAMESPACE=$CI_REGISTRY/nebulaeng/tpi/emi/$branch
+    docker build -t $IMAGE_NAMESPACE/$EMI_IMAGE_NAME:latest .artifacts_build_emi/emi
+    docker push $IMAGE_NAMESPACE/$EMI_IMAGE_NAME:latest
+    echo $IMAGE_NAMESPACE/$EMI_IMAGE_NAME@$(docker pull $IMAGE_NAMESPACE/$EMI_IMAGE_NAME:latest | grep sha256 | cut -c 9-) > .artifacts_pack_emi/DOCKER_GENERATED_IMAGE_DIGEST
+  artifacts:
+    paths:
+      - .artifacts_pack_emi
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_frontend-emi/
+
+deploy:emi:
+  stage: deploy
+  image: google/cloud-sdk:241.0.0
+  dependencies:
+    - prepare:environment
+    - pack:emi
+  script: |
+    source .artifacts_prepare/variables
+    gcloud auth activate-service-account --key-file .artifacts_prepare/gcloud-service-key.json
+    gcloud --quiet config set project $GKE_PROJECT
+    gcloud --quiet config set compute/zone $GKE_ZONE
+    gcloud --quiet container clusters get-credentials $GKE_CLUSTER
+    if [ ! -f .artifacts_pack_emi/DOCKER_GENERATED_IMAGE_DIGEST ]; then
+      echo "ERROR: FrontEnd emi image not found. Deployment aborted."
+      exit 1
+    fi
+    IMAGE_DIGEST=$(< .artifacts_pack_emi/DOCKER_GENERATED_IMAGE_DIGEST)
+    echo "Deploying docker image: $IMAGE_DIGEST"
+    kubectl set image deployment/frontend-emi frontend-emi=$IMAGE_DIGEST
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_frontend-emi/
+
+######## API: emi-gateway ############
+
+build:emi-gateway:
+  stage: build
+  image:
+    name: node:10.12
+    entrypoint: [""]
+  dependencies:
+    - prepare:environment
+  script: |
+    npm config set user 0
+    npm config set unsafe-perm true
+    npm config set prefix '~/.npm-global'
+    export PATH=~/.npm-global/bin:$PATH
+    source ~/.profile
+    source .artifacts_prepare/variables
+    npm install -g @nebulae/cli
+    nebulae register microapi --microservice-id=$MICROSERVICE_ID --api-id=$EMI_API_ID --setup-file=etc/emi-mapi-setup.json --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    mkdir .artifacts_build_emi_gateway
+    nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://gitlab.com/nebulae-tpi/emi-gateway.git --api-id=emi-gateway --output-dir=.artifacts_build_emi_gateway/emi-gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    ls .artifacts_build_emi_gateway/emi-gateway/
+  artifacts:
+    paths:
+      - .artifacts_build_emi_gateway
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-emi/
+
+pack:emi-gateway:
+  stage: pack
+  tags:
+    - saas-linux-small-amd64
+  image: docker:20.10.16
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:20.10.16-dind
+  dependencies:
+    - prepare:environment
+    - build:emi-gateway
+  script: |
+    env | grep KUBERNETES_SERVICE && export DOCKER_HOST="tcp://localhost:2375"
+    source .artifacts_prepare/variables
+    docker login -u "$CONTAINER_REGISTRY_ACCESS_TOKEN_LOGIN" -p "$CONTAINER_REGISTRY_ACCESS_TOKEN" $CI_REGISTRY
+    mkdir .artifacts_pack_emigateway
+    export IMAGE_NAMESPACE=$CI_REGISTRY/nebulaeng/tpi/emi-gateway/$branch
+    docker build -t $IMAGE_NAMESPACE/$EMIGATEWAY_IMAGE_NAME:latest .artifacts_build_emi_gateway/emi-gateway
+    docker push $IMAGE_NAMESPACE/$EMIGATEWAY_IMAGE_NAME:latest
+    echo $IMAGE_NAMESPACE/$EMIGATEWAY_IMAGE_NAME@$(docker pull $IMAGE_NAMESPACE/$EMIGATEWAY_IMAGE_NAME:latest | grep sha256 | cut -c 9-) > .artifacts_pack_emigateway/DOCKER_GENERATED_IMAGE_DIGEST
+  artifacts:
+    paths:
+      - .artifacts_pack_emigateway
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-emi/
+
+deploy:emi-gateway:
+  stage: deploy
+  image: google/cloud-sdk:241.0.0
+  dependencies:
+    - prepare:environment
+    - pack:emi-gateway
+  script: |
+    source .artifacts_prepare/variables
+    gcloud auth activate-service-account --key-file .artifacts_prepare/gcloud-service-key.json
+    gcloud --quiet config set project $GKE_PROJECT
+    gcloud --quiet config set compute/zone $GKE_ZONE
+    gcloud --quiet container clusters get-credentials $GKE_CLUSTER
+    if [ ! -f .artifacts_pack_emigateway/DOCKER_GENERATED_IMAGE_DIGEST ]; then
+      echo "ERROR: API emi-gateway image not found. Deployment aborted."
+      exit 1
+    fi
+    IMAGE_DIGEST=$(< .artifacts_pack_emigateway/DOCKER_GENERATED_IMAGE_DIGEST)
+    echo "Deploying docker image: $IMAGE_DIGEST"
+    kubectl set image deployment/api-emi-gateway api-emi-gateway=$IMAGE_DIGEST
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-emi/
+
+######## API: driver-gateway ############
+
+build:driver-gateway:
+  stage: build
+  image:
+    name: node:10.15.1
+    entrypoint: [""]
+  dependencies:
+    - prepare:environment
+  script: |
+    npm config set user 0
+    npm config set unsafe-perm true
+    npm config set prefix '~/.npm-global'
+    export PATH=~/.npm-global/bin:$PATH
+    source ~/.profile
+    source .artifacts_prepare/variables
+    npm install -g @nebulae/cli
+    nebulae register microapi --microservice-id=$MICROSERVICE_ID --api-id=$DRIVER_API_ID --setup-file=etc/mapi-driver-setup.json --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    mkdir .artifacts_build_driver_gateway
+    nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://gitlab.com/nebulae-tpi/driver-gateway.git --api-id=driver-gateway --output-dir=.artifacts_build_driver_gateway/driver-gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    ls .artifacts_build_driver_gateway/driver-gateway/
+  artifacts:
+    paths:
+      - .artifacts_build_driver_gateway
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-driver/
+
+pack:driver-gateway:
+  stage: pack
+  tags:
+    - saas-linux-small-amd64
+  image: docker:20.10.16
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:20.10.16-dind
+  dependencies:
+    - prepare:environment
+    - build:driver-gateway
+  script: |
+    env | grep KUBERNETES_SERVICE && export DOCKER_HOST="tcp://localhost:2375"
+    source .artifacts_prepare/variables
+    docker login -u "$CONTAINER_REGISTRY_ACCESS_TOKEN_LOGIN" -p "$CONTAINER_REGISTRY_ACCESS_TOKEN" $CI_REGISTRY
+    mkdir .artifacts_pack_drivergateway
+    export IMAGE_NAMESPACE=$CI_REGISTRY/nebulaeng/tpi/driver-gateway/$branch
+    docker build -t $IMAGE_NAMESPACE/$DRIVERGATEWAY_IMAGE_NAME:latest .artifacts_build_driver_gateway/driver-gateway
+    docker push $IMAGE_NAMESPACE/$DRIVERGATEWAY_IMAGE_NAME:latest
+    echo $IMAGE_NAMESPACE/$DRIVERGATEWAY_IMAGE_NAME@$(docker pull $IMAGE_NAMESPACE/$DRIVERGATEWAY_IMAGE_NAME:latest | grep sha256 | cut -c 9-) > .artifacts_pack_drivergateway/DOCKER_GENERATED_IMAGE_DIGEST
+  artifacts:
+    paths:
+      - .artifacts_pack_drivergateway
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-driver/
+
+deploy:driver-gateway:
+  stage: deploy
+  image: google/cloud-sdk:241.0.0
+  dependencies:
+    - prepare:environment
+    - pack:driver-gateway
+  script: |
+    source .artifacts_prepare/variables
+    gcloud auth activate-service-account --key-file .artifacts_prepare/gcloud-service-key.json
+    gcloud --quiet config set project $GKE_PROJECT
+    gcloud --quiet config set compute/zone $GKE_ZONE
+    gcloud --quiet container clusters get-credentials $GKE_CLUSTER
+    if [ ! -f .artifacts_pack_drivergateway/DOCKER_GENERATED_IMAGE_DIGEST ]; then
+      echo "ERROR: API driver-gateway image not found. Deployment aborted."
+      exit 1
+    fi
+    IMAGE_DIGEST=$(< .artifacts_pack_drivergateway/DOCKER_GENERATED_IMAGE_DIGEST)
+    echo "Deploying docker image: $IMAGE_DIGEST"
+    kubectl set image deployment/api-driver-gateway api-driver-gateway=$IMAGE_DIGEST
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-driver/
+
+######## API: client-gateway ############
+
+build:client-gateway:
+  stage: build
+  image:
+    name: node:10.15.1
+    entrypoint: [""]
+  dependencies:
+    - prepare:environment
+  script: |
+    npm config set user 0
+    npm config set unsafe-perm true
+    npm config set prefix '~/.npm-global'
+    export PATH=~/.npm-global/bin:$PATH
+    source ~/.profile
+    source .artifacts_prepare/variables
+    npm install -g @nebulae/cli
+    nebulae register microapi --microservice-id=$MICROSERVICE_ID --api-id=$CLIENT_API_ID --setup-file=etc/mapi-client-setup.json --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    mkdir .artifacts_build_client_gateway
+    nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://gitlab.com/nebulae-tpi/client-gateway.git --api-id=client-gateway --output-dir=.artifacts_build_client_gateway/client-gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=.artifacts_prepare/gcloud-service-key.json
+    ls .artifacts_build_client_gateway/client-gateway/
+  artifacts:
+    paths:
+      - .artifacts_build_client_gateway
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-client/
+
+pack:client-gateway:
+  stage: pack
+  tags:
+    - saas-linux-small-amd64
+  image: docker:20.10.16
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:20.10.16-dind
+  dependencies:
+    - prepare:environment
+    - build:client-gateway
+  script: |
+    env | grep KUBERNETES_SERVICE && export DOCKER_HOST="tcp://localhost:2375"
+    source .artifacts_prepare/variables
+    docker login -u "$CONTAINER_REGISTRY_ACCESS_TOKEN_LOGIN" -p "$CONTAINER_REGISTRY_ACCESS_TOKEN" $CI_REGISTRY
+    mkdir .artifacts_pack_clientgateway
+    export IMAGE_NAMESPACE=$CI_REGISTRY/nebulaeng/tpi/client-gateway/$branch
+    docker build -t $IMAGE_NAMESPACE/$CLIENTGATEWAY_IMAGE_NAME:latest .artifacts_build_client_gateway/client-gateway
+    docker push $IMAGE_NAMESPACE/$CLIENTGATEWAY_IMAGE_NAME:latest
+    echo $IMAGE_NAMESPACE/$CLIENTGATEWAY_IMAGE_NAME@$(docker pull $IMAGE_NAMESPACE/$CLIENTGATEWAY_IMAGE_NAME:latest | grep sha256 | cut -c 9-) > .artifacts_pack_clientgateway/DOCKER_GENERATED_IMAGE_DIGEST
+  artifacts:
+    paths:
+      - .artifacts_pack_clientgateway
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-client/
+
+deploy:client-gateway:
+  stage: deploy
+  image: google/cloud-sdk:241.0.0
+  dependencies:
+    - prepare:environment
+    - pack:client-gateway
+  script: |
+    source .artifacts_prepare/variables
+    gcloud auth activate-service-account --key-file .artifacts_prepare/gcloud-service-key.json
+    gcloud --quiet config set project $GKE_PROJECT
+    gcloud --quiet config set compute/zone $GKE_ZONE
+    gcloud --quiet container clusters get-credentials $GKE_CLUSTER
+    if [ ! -f .artifacts_pack_clientgateway/DOCKER_GENERATED_IMAGE_DIGEST ]; then
+      echo "ERROR: API client-gateway image not found. Deployment aborted."
+      exit 1
+    fi
+    IMAGE_DIGEST=$(< .artifacts_pack_clientgateway/DOCKER_GENERATED_IMAGE_DIGEST)
+    echo "Deploying docker image: $IMAGE_DIGEST"
+    kubectl set image deployment/api-client-gateway api-client-gateway=$IMAGE_DIGEST
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_gateway-client/
+
+######## BACKEND: WALLET ############
+
+pack:backend-wallet:
+  stage: pack
+  tags:
+    - saas-linux-small-amd64
+  image: docker:20.10.16
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:20.10.16-dind
+  dependencies:
+    - prepare:environment
+    - prepare:mbinit
+  script: |
+    env | grep KUBERNETES_SERVICE && export DOCKER_HOST="tcp://localhost:2375"
+    source .artifacts_prepare/variables
+    cp .artifacts_prepare_mbinit/go/mbinit backend/wallet/
+    docker login -u "$CONTAINER_REGISTRY_ACCESS_TOKEN_LOGIN" -p "$CONTAINER_REGISTRY_ACCESS_TOKEN" $CI_REGISTRY
+    export IMAGE_NAMESPACE=$CI_REGISTRY/nebulaeng/tpi/$CI_PROJECT_NAME/$branch
+    docker build -t $IMAGE_NAMESPACE/$BE_WALLET_IMAGE_NAME:$BE_WALLET_IMAGE_TAG -t $IMAGE_NAMESPACE/$BE_WALLET_IMAGE_NAME:latest backend/wallet
+    docker push $IMAGE_NAMESPACE/$BE_WALLET_IMAGE_NAME:$BE_WALLET_IMAGE_TAG
+    docker push $IMAGE_NAMESPACE/$BE_WALLET_IMAGE_NAME:latest
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_backend-wallet/
+
+deploy:backend-wallet:
+  stage: deploy
+  image: google/cloud-sdk:241.0.0
+  dependencies:
+    - prepare:environment
+    - pack:backend-wallet
+  script: |
+    source .artifacts_prepare/variables
+    gcloud auth activate-service-account --key-file .artifacts_prepare/gcloud-service-key.json
+    gcloud --quiet config set project $GKE_PROJECT
+    gcloud --quiet config set compute/zone $GKE_ZONE
+    gcloud --quiet container clusters get-credentials $GKE_CLUSTER
+    export IMAGE_NAMESPACE=$CI_REGISTRY/nebulaeng/tpi/$CI_PROJECT_NAME/$branch
+    for xi in $(ls deployment/gke/deployment-wallet.yaml); do sed -i -e "s|IMAGE_NAMESPACE|$IMAGE_NAMESPACE|g" -e "s|IMAGE_NAME|$BE_WALLET_IMAGE_NAME|g" -e "s|IMAGE_TAG|$BE_WALLET_IMAGE_TAG|g" $xi ; done
+    kubectl apply -f deployment/gke/deployment-wallet.yaml
+  only:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /cicd_backend-wallet/
