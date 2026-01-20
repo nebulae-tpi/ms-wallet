@@ -20,7 +20,7 @@ class WalletTransactionDA {
       observer.complete();
     });
   }
-
+ 
   /**
    * Saves the transaction in a Mongo collection. The collection where the transaction
    * will be stored is determined according to the last four (4) characters of the uuid.
