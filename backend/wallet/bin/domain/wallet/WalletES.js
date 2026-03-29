@@ -447,13 +447,34 @@ class WalletES {
    * @param {*} walletTransactionExecuted wallet transaction executed event
    */
   handleWalletTransactionExecuted$({aid, user, data}){
-    // console.log('handleWalletTransactionExecuted => ', {aid, user, data} );
+    console.log(`[TRANSFER] Processing WalletTransactionExecuted: walletId=${data.walletId}, amount=${data.amount}`);
     return WalletDA.updateAmount$(data.walletId, 'main', data.amount)
     .pipe(
+      // Validate that the wallet was updated successfully
+      mergeMap(updateResult => {
+        if (!updateResult || !updateResult.value) {
+          const error = new Error(`Failed to update wallet ${data.walletId}. Wallet not found or update failed.`);
+          console.error('[TRANSFER] handleWalletTransactionExecuted$ ERROR:', error.message, data);
+          return throwError(error);
+        }
+        return of(updateResult);
+      }),
       mergeMap(walletPrev => WalletTransactionsDA.saveTransactionHistory$(data, (walletPrev ||{}).value)),
       tap(() => {
-        // console.log('Enviando la actualizacion de billetera, ', data.walletId);
+        console.log(`[TRANSFER] Wallet ${data.walletId} updated successfully`);
         this.walletPocketUpdatedEventEmitter$.next(data.walletId)
+      }),
+      // General error handling
+      catchError(error => {
+        console.error(`[TRANSFER] Error in handleWalletTransactionExecuted$ for wallet ${data.walletId}:`, error);
+        // Log the error
+        return this.errorHandler$(
+          { aid, user, data },
+          error.stack || error.message,
+          'walletTransactionExecuted'
+        ).pipe(
+          mergeMap(() => throwError(error)) // Re-throw to prevent EventStore from marking as processed
+        );
       })
     );
   }
@@ -640,60 +661,168 @@ class WalletES {
         }
         ;
       } else { 
-        return of({})
-          .pipe(
-            map(() => ([
-              {
-                _id: Crosscutting.generateDateBasedUuid(),
-                businessId: data.businessId,
-                sourceEvent: {aid, av},
-                walletId: data.fromId,
-                amount: data.amount * -1,
-                type: data.type,
-                plate: data.plate,
-                concept: data.concept,
-                timestamp: Date.now(),
-                notes: data.notes,
-                pocket: 'MAIN',
-                user
-              },
-              {
-                _id: Crosscutting.generateDateBasedUuid(),
-                businessId: data.businessId,
-                walletId: data.toId,
-                sourceEvent: {aid, av},
-                amount: data.amount,
-                type: data.type,
-                plate: data.plate,
-                concept: data.concept,
-                timestamp: Date.now(),
-                notes: data.notes,
-                pocket: 'MAIN',
-                user
-              }
-            ])),
-            //  Fill the asociated transactions
-            map(txs => ([
-              { ...txs[0], associatedTransactionIds: [txs[1]._id] },
-              { ...txs[1], associatedTransactionIds: [txs[0]._id] },
-            ])),
-            mergeMap(txs => from(txs)
-              .pipe(
-                mergeMap(tx => eventSourcing.eventStore.emitEvent$(
+        // Validate wallets exist before processing transfer
+        console.log(`[TRANSFER] Starting transfer: fromId=${data.fromId}, toId=${data.toId}, amount=${data.amount}, concept=${data.concept}`);
+        return forkJoin(
+          WalletDA.getWalletById$(data.fromId),
+          WalletDA.getWalletById$(data.toId)
+        ).pipe(
+          // Validate wallets exist
+          mergeMap(([fromWallet, toWallet]) => {
+            if (!fromWallet) {
+              const error = new Error(`Source wallet not found: ${data.fromId}`);
+              console.error(`[TRANSFER] ERROR:`, error.message);
+              return throwError(error);
+            }
+            if (!toWallet) {
+              const error = new Error(`Destination wallet not found: ${data.toId}`);
+              console.error(`[TRANSFER] ERROR:`, error.message);
+              return throwError(error);
+            }
+            console.log(`[TRANSFER] Wallets validated: fromWallet exists=${!!fromWallet}, toWallet exists=${!!toWallet}`);
+            
+            // Create transactions
+            const debitTx = {
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              sourceEvent: {aid, av},
+              walletId: data.fromId,
+              amount: data.amount * -1,
+              type: data.type,
+              plate: data.plate,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user: user
+            };
+            
+            const creditTx = {
+              _id: Crosscutting.generateDateBasedUuid(),
+              businessId: data.businessId,
+              walletId: data.toId,
+              sourceEvent: {aid, av},
+              amount: data.amount,
+              type: data.type,
+              plate: data.plate,
+              concept: data.concept,
+              timestamp: Date.now(),
+              notes: data.notes,
+              pocket: 'MAIN',
+              user: user
+            };
+            
+            // Fill associated transactions
+            debitTx.associatedTransactionIds = [creditTx._id];
+            creditTx.associatedTransactionIds = [debitTx._id];
+            
+            // Store debitTx reference for use in error handler
+            const debitTxForReversal = debitTx;
+            
+            // Process debit first (sequential processing)
+            console.log(`[TRANSFER] Emitting debit event for wallet ${debitTx.walletId}`);
+            return eventSourcing.eventStore.emitEvent$(
+              new Event({
+                eventType: 'WalletTransactionExecuted',
+                eventTypeVersion: 1,
+                aggregateType: "Wallet",
+                aggregateId: debitTx.walletId,
+                data: debitTx,
+                user: user,
+                timestamp: Date.now()
+              })
+            ).pipe(
+              // Validate debit was processed successfully
+              mergeMap(debitResult => {
+                console.log(`[TRANSFER] Debit event emitted, validating wallet ${debitTx.walletId}`);
+                return WalletDA.getWalletById$(debitTx.walletId).pipe(
+                  map(wallet => {
+                    if (!wallet) {
+                      throw new Error(`Debit wallet not found after processing: ${debitTx.walletId}`);
+                    }
+                    return { wallet, debitResult };
+                  })
+                );
+              }),
+              // Process credit after debit is confirmed
+              mergeMap(({ wallet, debitResult }) => {
+                console.log(`[TRANSFER] Debit validated, emitting credit event for wallet ${creditTx.walletId}`);
+                return eventSourcing.eventStore.emitEvent$(
                   new Event({
                     eventType: 'WalletTransactionExecuted',
                     eventTypeVersion: 1,
                     aggregateType: "Wallet",
-                    aggregateId: tx.walletId,
-                    data: tx,
+                    aggregateId: creditTx.walletId,
+                    data: creditTx,
                     user: user,
                     timestamp: Date.now()
                   })
-                )),
-                toArray()
-              )
-            )
-          )
+                ).pipe(
+                  // Validate credit was processed successfully
+                  mergeMap(creditResult => {
+                    console.log(`[TRANSFER] Credit event emitted, validating wallet ${creditTx.walletId}`);
+                    return WalletDA.getWalletById$(creditTx.walletId).pipe(
+                      map(toWallet => {
+                        if (!toWallet) {
+                          throw new Error(`Credit wallet not found after processing: ${creditTx.walletId}`);
+                        }
+                        return { debitResult, creditResult, toWallet };
+                      })
+                    );
+                  })
+                );
+              }),
+              // If credit fails, revert debit
+              catchError(error => {
+                console.error(`[TRANSFER] Error processing credit to ${creditTx.walletId}, reverting debit:`, error.message);
+                // Emit reversal event for debit
+                const reversalTx = {
+                  _id: Crosscutting.generateDateBasedUuid(),
+                  businessId: data.businessId,
+                  sourceEvent: {aid, av},
+                  walletId: debitTxForReversal.walletId,
+                  amount: debitTxForReversal.amount * -1, // Reverse the amount
+                  type: debitTxForReversal.type,
+                  plate: debitTxForReversal.plate,
+                  concept: debitTxForReversal.concept + '_REVERTED',
+                  timestamp: Date.now(),
+                  notes: 'Automatic reversal due to credit failure: ' + (data.notes || ''),
+                  pocket: 'MAIN',
+                  user: user,
+                  associatedTransactionIds: []
+                };
+                
+                return eventSourcing.eventStore.emitEvent$(
+                  new Event({
+                    eventType: 'WalletTransactionExecuted',
+                    eventTypeVersion: 1,
+                    aggregateType: "Wallet",
+                    aggregateId: reversalTx.walletId,
+                    data: reversalTx,
+                    user: user,
+                    timestamp: Date.now()
+                  })
+                ).pipe(
+                  mergeMap(() => {
+                    console.log(`[TRANSFER] Debit reverted for wallet ${reversalTx.walletId}`);
+                    return throwError(error); // Re-throw original error
+                  })
+                );
+              })
+            );
+          }),
+          // Handle validation errors (wallets don't exist)
+          catchError(error => {
+            console.error(`[TRANSFER] Error validating wallets:`, error.message);
+            return this.errorHandler$(
+              { aid, av, data, user },
+              error.stack || error.message,
+              'walletTransactionCommited'
+            ).pipe(
+              mergeMap(() => throwError(error))
+            );
+          })
+        );
       }
     }
     else{
